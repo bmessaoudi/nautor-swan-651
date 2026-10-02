@@ -1,0 +1,75 @@
+{
+  "_note": "Dati di riferimento per il modello 3D dello Swan 651. Unità in metri, kg, m2.",
+  "sources": {
+    "model": "nautor-swan-library/src/content/models/swan-651.json (Wikipedia, Sailboatdata, Swan Classic by Frers)",
+    "irc": "reference/irc-certificate-lunz-am-meer-AUT2895.pdf (IRC 40418, Lunz am Meer, valido 05/09/2026-31/12/2026, misure F. Nocetti)",
+    "drawing": "reference/swan651-002-profile-layout.jpeg (Nautor Profile Layout, scafo 651-002 Adrienne II)"
+  },
+  "hull": {
+    "loa": 19.98,
+    "lwl": 16.8,
+    "beam": 5.31,
+    "draft_standard": 3.5,
+    "displacement_kg": 36000,
+    "ballast_kg": 14400,
+    "keel": "pinna con bulbo in piombo",
+    "rudder": "timone su skeg"
+  },
+  "irc_lunz_am_meer": {
+    "variant": "SWAN 651 3.22 Mod",
+    "LH": 19.97,
+    "LWP": 16.63,
+    "weight_kg": 36582,
+    "draft": 3.23,
+    "rig": {
+      "P": 24.0,
+      "E": 7.04,
+      "J": 8.05,
+      "I_derived": 25.31,
+      "_I_note": "non presente nel certificato: ricavato da sqrt(HLU^2 - J^2), approssimato",
+      "spreaders_pairs": 3,
+      "mainsail": {
+        "P_luff": 24.0,
+        "E_foot": 7.04,
+        "MUW": 1.63,
+        "MTW": 2.82,
+        "MHW": 4.67
+      },
+      "headsail": {
+        "HLU": 26.56,
+        "HLUmax": 26.6,
+        "HLP": 7.81,
+        "HUW": 1.21,
+        "HTW": 2.22,
+        "HHW": 4.09,
+        "HSA_m2": 107.82
+      },
+      "spinnaker": {
+        "SLU": 28.1,
+        "SLE": 24.4,
+        "SHW": 15.6,
+        "SFL": 14.4,
+        "SPA_m2": 334.66
+      },
+      "STL": 8.37,
+      "_STL_note": "spinnaker tack length, misurata dalla faccia prodiera dell'albero",
+      "backstay": "paterazzo + 2 regolazioni poppiere (paio di volanti)"
+    },
+    "equipment": "coperta in teak, 4 winch elettrici, generatore, dissalatore",
+    "overhangs": {
+      "SO_stern": 1.71,
+      "SO_y": 0.38,
+      "BO_bow": 1.63,
+      "BO_x": 0.14,
+      "BO_h": 0.13
+    },
+    "_note": "Verificato sul disegno del PDF: HLU è solo del fiocco (rosso), la randa ha P 24.00. SO/BO sono gli slanci di poppa/prua rispetto al galleggiamento. I è stimato."
+  },
+  "model_rig_from_library": {
+    "rigType": "Masthead sloop",
+    "mainsail_m2": 86.1,
+    "jib_m2": 107.9,
+    "genoa150_m2": 161.8,
+    "spinnaker_m2": 388
+  }
+}

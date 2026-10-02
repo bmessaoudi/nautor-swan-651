@@ -1,0 +1,1952 @@
+[
+  {
+    "file": "interior/adrienne-ii_galley_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "galley",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1268-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cucina a U con lavello e forno basculante (versione estesa)"
+  },
+  {
+    "file": "interior/adrienne-ii_guest_cabin_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "guest_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1284-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "cuccetta ospiti"
+  },
+  {
+    "file": "interior/adrienne-ii_saloon_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1265-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "dinette a U blu e scaletta tambuccio, vista verso poppa"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1304-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "ruota timone e pozzetto"
+  },
+  {
+    "file": "interior/adrienne-ii_saloon_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1263-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "divano dritta e libreria, vista verso poppa"
+  },
+  {
+    "file": "interior/adrienne-ii_saloon_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1264-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "tavolo dinette con rosa dei venti intarsiata, vista verso poppa"
+  },
+  {
+    "file": "interior/adrienne-ii_saloon_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1266-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "dinette e scaletta tambuccio"
+  },
+  {
+    "file": "interior/adrienne-ii_galley_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "galley",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1267-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cucina con forno"
+  },
+  {
+    "file": "interior/adrienne-ii_galley_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "galley",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1269-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cucina, banco e fornello"
+  },
+  {
+    "file": "interior/adrienne-ii_galley_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "galley",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1270-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "lavello e frigo"
+  },
+  {
+    "file": "interior/adrienne-ii_saloon_5.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1271-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "divano dritta e carteggio, vista verso poppa"
+  },
+  {
+    "file": "interior/adrienne-ii_nav_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "nav",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1272-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "carteggio con quadro elettrico e strumenti"
+  },
+  {
+    "file": "interior/adrienne-ii_nav_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "nav",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1273-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "carteggio laterale"
+  },
+  {
+    "file": "interior/adrienne-ii_other_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "other",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1274-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "corridoio con porta ad arco"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1275-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cabina poppiera con scaletta verso il ponte di poppa (versione estesa)"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1276-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cabina poppiera con scaletta e due cuccette"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1277-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cabina poppiera con scaletta"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1278-2-scaled.jpg",
+    "width": 2560,
+    "height": 1920,
+    "notes": "cabina poppiera, porta verso bagno"
+  },
+  {
+    "file": "interior/adrienne-ii_heads_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "heads",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1279-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "bagno con lavatrice"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_5.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1280-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "cabina poppiera con scaletta, vista verticale"
+  },
+  {
+    "file": "interior/adrienne-ii_aft_cabin_6.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "aft_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1281-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "cabina poppiera con scaletta"
+  },
+  {
+    "file": "interior/adrienne-ii_nav_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "nav",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1282-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "carteggio vista verticale"
+  },
+  {
+    "file": "interior/adrienne-ii_heads_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "heads",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1283-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/adrienne-ii_other_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "other",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1285-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "pannello prese/interruttori su paratia"
+  },
+  {
+    "file": "interior/adrienne-ii_heads_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "heads",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1286-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/adrienne-ii_guest_cabin_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "guest_cabin",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1287-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "cuccette sovrapposte con corridoio"
+  },
+  {
+    "file": "interior/adrienne-ii_forepeak_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "forepeak",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1288-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "gavone di prua con vele e cerate"
+  },
+  {
+    "file": "interior/adrienne-ii_forepeak_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "forepeak",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1290-2-1-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "cabina/gavone prodiero con osteriggio"
+  },
+  {
+    "file": "interior/adrienne-ii_forepeak_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "forepeak",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1289-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "gavone prodiero con osteriggio"
+  },
+  {
+    "file": "interior/adrienne-ii_companionway_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "companionway",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1291-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "scaletta tambuccio"
+  },
+  {
+    "file": "interior/adrienne-ii_nav_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "nav",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1292-2-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "carteggio con elettronica"
+  },
+  {
+    "file": "interior/adrienne-ii_other_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "other",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/aft-companionway-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "corridoio verso prua con porta ad arco"
+  },
+  {
+    "file": "interior/adrienne-ii_other_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "other",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/washing-mashine-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "lavatrice in mobile"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1302-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "pozzetto"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1298-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "winch in pozzetto"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1300-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "winch e pulsantiera"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_5.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1303-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "pannello motore"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_6.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1301-1-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "winch e pulsantiera"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_7.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1297-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "binnacle e pannello strumenti"
+  },
+  {
+    "file": "interior/adrienne-ii_engine_1.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "engine",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1293-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "dissalatore"
+  },
+  {
+    "file": "interior/adrienne-ii_engine_2.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "engine",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1294-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "motore"
+  },
+  {
+    "file": "deck/adrienne-ii_cockpit_8.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "cockpit",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1299-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "console strumenti pozzetto"
+  },
+  {
+    "file": "interior/adrienne-ii_engine_3.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "engine",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1295-1-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "generatore"
+  },
+  {
+    "file": "interior/adrienne-ii_engine_4.jpg",
+    "hull_name": "Adrienne II (1983, versione estesa)",
+    "room": "engine",
+    "source_page_url": "https://navark.se/en/bat/swan-70-3/",
+    "image_url": "https://navark.se/wp-content/uploads/2026/01/img-1296-1-scaled.jpg",
+    "width": 1920,
+    "height": 2560,
+    "notes": "motore"
+  },
+  {
+    "file": "deck/aurora_deck_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "deck",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/7-4-3.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "prua e strallo"
+  },
+  {
+    "file": "deck/aurora_deck_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "deck",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/3-6-8-4.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "coperta prodiera con tender"
+  },
+  {
+    "file": "deck/aurora_deck_3.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "deck",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/10-1-5.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "coperta con fascia blu Nautor"
+  },
+  {
+    "file": "deck/aurora_deck_4.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "deck",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/0-9-3-6.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "tambuccio e dorade"
+  },
+  {
+    "file": "deck/aurora_deck_5.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "deck",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/1-5-7.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "tuga e winch"
+  },
+  {
+    "file": "deck/aurora_cockpit_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-9-9-8.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto di manovra con capottina"
+  },
+  {
+    "file": "deck/aurora_cockpit_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/6-7-9.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto e tambuccio"
+  },
+  {
+    "file": "deck/aurora_cockpit_3.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-10.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto con timoneria coperta"
+  },
+  {
+    "file": "deck/aurora_cockpit_4.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/0-4-11.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto timoneria"
+  },
+  {
+    "file": "deck/aurora_cockpit_5.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/7-6-12.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto"
+  },
+  {
+    "file": "deck/aurora_cockpit_6.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "cockpit",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/5-7-13.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pozzetto e winch"
+  },
+  {
+    "file": "interior/aurora_guest_cabin_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/8-6-b.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cabina ospiti prodiera con cuccette sovrapposte"
+  },
+  {
+    "file": "interior/aurora_guest_cabin_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/10-8-c.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cabina ospiti prodiera"
+  },
+  {
+    "file": "interior/aurora_heads_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "heads",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/2-a.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "bagno ospiti prodiero, mezza altezza vetroresina bianca"
+  },
+  {
+    "file": "interior/aurora_guest_cabin_3.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/8-8-d.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cabina ospiti con cuccette sovrapposte"
+  },
+  {
+    "file": "interior/aurora_guest_cabin_4.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/9-7-e.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "interior/aurora_saloon_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "saloon",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/0-3-f.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "dinette a U e divano a L, vista verso prua"
+  },
+  {
+    "file": "interior/aurora_saloon_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "saloon",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-10-g.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "dinette vista verso poppa"
+  },
+  {
+    "file": "interior/aurora_saloon_3.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "saloon",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/8-10-h.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "dinette a U con tavolo"
+  },
+  {
+    "file": "interior/aurora_saloon_4.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "saloon",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/9-4-i.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "divano a L dritta e mobile TV"
+  },
+  {
+    "file": "interior/aurora_galley_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "galley",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/9-j.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cucina chiusa a sinistra, fornelli e lavelli"
+  },
+  {
+    "file": "interior/aurora_galley_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "galley",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-k.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cucina, frigo e lavello"
+  },
+  {
+    "file": "interior/aurora_nav_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "nav",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-3-l.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "carteggio rivolto a prua"
+  },
+  {
+    "file": "interior/aurora_nav_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "nav",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/10-10-m.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "pannello elettrico ed elettronica"
+  },
+  {
+    "file": "interior/aurora_heads_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "heads",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/10-o.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "bagno armatore"
+  },
+  {
+    "file": "interior/aurora_guest_cabin_5.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/8-p.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cabina ospiti poppiera con cuccette sovrapposte"
+  },
+  {
+    "file": "interior/aurora_owner_cabin_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/6-q.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "cabina armatore con letto matrimoniale"
+  },
+  {
+    "file": "interior/aurora_owner_cabin_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/3-r.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "letto matrimoniale e cassettiera"
+  },
+  {
+    "file": "interior/aurora_engine_1.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "engine",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/4-9-s.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "motore Perkins Sabre"
+  },
+  {
+    "file": "interior/aurora_engine_2.jpg",
+    "hull_name": "Aurora (1989, scafo 17)",
+    "room": "engine",
+    "source_page_url": "https://www.yeomanyachts.com/boat-for-sale/swan-651-aurora",
+    "image_url": "https://www.yeomanyachts.com/images/bagallery/original/10-t.jpg",
+    "width": 1024,
+    "height": 682,
+    "notes": "generatore"
+  },
+  {
+    "file": "deck/unnamed-1982-martinique_deck_1.jpg",
+    "hull_name": "Sconosciuto 1982 (Martinica)",
+    "room": "deck",
+    "source_page_url": "https://www.boats-caribbean.com/sailing-monohull/nautor-s-swan/swan-651-pre-owned_859.html",
+    "image_url": "https://www.boats-caribbean.com/sites/www.bateaux-antilles.fr/files/photos/9906/35.jpg",
+    "width": 1028,
+    "height": 330,
+    "notes": "pianta di coperta (disegno)"
+  },
+  {
+    "file": "interior/unnamed-1982-martinique_other_1.jpg",
+    "hull_name": "Sconosciuto 1982 (Martinica)",
+    "room": "other",
+    "source_page_url": "https://www.boats-caribbean.com/sailing-monohull/nautor-s-swan/swan-651-pre-owned_859.html",
+    "image_url": "https://www.boats-caribbean.com/sites/www.bateaux-antilles.fr/files/photos/9906/36.jpg",
+    "width": 1025,
+    "height": 313,
+    "notes": "pianta degli interni (disegno layout)"
+  },
+  {
+    "file": "deck/ichiban_deck_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "deck",
+    "source_page_url": "https://ichibansailingevent.se/content/files/pdf/sy_ichiban_the_classic_swan_651_extended.pdf",
+    "image_url": "https://ichibansailingevent.se/content/files/pdf/sy_ichiban_the_classic_swan_651_extended.pdf#p-008",
+    "width": 1188,
+    "height": 656,
+    "notes": "coperta e winch di poppa (brochure PDF)"
+  },
+  {
+    "file": "deck/ichiban_deck_2.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "deck",
+    "source_page_url": "https://ichibansailingevent.se/content/files/pdf/sy_ichiban_the_classic_swan_651_extended.pdf",
+    "image_url": "https://ichibansailingevent.se/content/files/pdf/sy_ichiban_the_classic_swan_651_extended.pdf#p-014",
+    "width": 1181,
+    "height": 656,
+    "notes": "ponte di poppa della versione estesa con osteriggio (brochure PDF)"
+  },
+  {
+    "file": "interior/ichiban_saloon_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "saloon",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure2_20260506231644_b248caa5.jpg",
+    "width": 1200,
+    "height": 799,
+    "notes": "dinette ovale con libreria e applique (versione estesa)"
+  },
+  {
+    "file": "deck/ichiban_deck_3.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "deck",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure4_20260506231645_7da43aff.jpg",
+    "width": 1200,
+    "height": 800,
+    "notes": "coperta e tuga in navigazione"
+  },
+  {
+    "file": "deck/ichiban_deck_4.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "deck",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure5_20260506231646_7dae6b64.jpg",
+    "width": 1200,
+    "height": 800,
+    "notes": "winch al piede d'albero in navigazione"
+  },
+  {
+    "file": "interior/ichiban_owner_cabin_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "owner_cabin",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure6_20260506231646_66aaa0fc.jpg",
+    "width": 1200,
+    "height": 799,
+    "notes": "cabina poppiera con divanetti e cuccette"
+  },
+  {
+    "file": "interior/ichiban_heads_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "heads",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure7_20260506231647_181d7d25.jpg",
+    "width": 1200,
+    "height": 800,
+    "notes": "bagno con doppio lavabo"
+  },
+  {
+    "file": "interior/ichiban_guest_cabin_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "guest_cabin",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/brochure8_20260506231647_8737192b.jpg",
+    "width": 1200,
+    "height": 800,
+    "notes": "cuccette sovrapposte e corridoio"
+  },
+  {
+    "file": "interior/ichiban_other_1.jpg",
+    "hull_name": "Ichiban (1983, versione estesa)",
+    "room": "other",
+    "source_page_url": "https://viewyacht.com/ichiban",
+    "image_url": "https://cya.sfo3.cdn.digitaloceanspaces.com/yachts/69f33f1fb5a1600bf78586e3/layout19_20260506231655_7210297b.jpg",
+    "width": 1200,
+    "height": 848,
+    "notes": "layout interni con foto ambienti (brochure)"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ebe90548.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "passavanti e piede d'albero"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603efd70301.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "piede d'albero e winch"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ef0e204c.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pozzetto con capottina e cuscineria rossa"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ee488162.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pozzetto con tavolo fisso"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_3.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ee9cc589.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pozzetto con tavolo a ribalta"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_4.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ec53d3b7.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pozzetto di poppa e timoneria"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_5.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603eda84f50.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "ruota timone"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_6.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ed37ba84.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pannello motore in pozzetto"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_7.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ecf944e5.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "bussola su binnacle"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_8.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603eca63981.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "consolle strumenti pozzetto"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_3.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603eae45ed8.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "prua"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_4.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ea86f72c.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "gavone di coperta"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_5.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603eb5b2740.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "pozzo salpancore"
+  },
+  {
+    "file": "interior/unnamed-1984_saloon_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "saloon",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e7c96d80.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "dinette a U con tavolo e libreria"
+  },
+  {
+    "file": "interior/unnamed-1984_other_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "other",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e93ecab7.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "botola pagliolo con meccanismo"
+  },
+  {
+    "file": "interior/unnamed-1984_nav_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "nav",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_566040e4ad52a.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "carteggio"
+  },
+  {
+    "file": "interior/unnamed-1984_nav_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "nav",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_566040de01dba.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "quadro elettrico"
+  },
+  {
+    "file": "interior/unnamed-1984_galley_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "galley",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e82101f9.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "cucina"
+  },
+  {
+    "file": "interior/unnamed-1984_galley_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "galley",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e980a6be.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "fornello e forno basculante"
+  },
+  {
+    "file": "interior/unnamed-1984_galley_3.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "galley",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603ea26d115.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "frigo top loading"
+  },
+  {
+    "file": "interior/unnamed-1984_companionway_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "companionway",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e9d37c1d.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "scaletta"
+  },
+  {
+    "file": "interior/unnamed-1984_owner_cabin_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603f0200f04.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "cabina armatore con letto matrimoniale"
+  },
+  {
+    "file": "interior/unnamed-1984_guest_cabin_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e8a91238.jpg",
+    "width": 800,
+    "height": 1067,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "interior/unnamed-1984_heads_1.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "heads",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603edf08ec9.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/unnamed-1984_heads_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "heads",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e85f3818.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/unnamed-1984_other_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "other",
+    "source_page_url": "https://www.mediaship.it/boat-archive?id=72244",
+    "image_url": "https://www.mediaship.it/wp-content/uploads/2015/12/file_56603e8fa494c.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "vano tecnico sotto pagliolo"
+  },
+  {
+    "file": "interior/my-way_saloon_1.jpg",
+    "hull_name": "My Way (1990)",
+    "room": "saloon",
+    "source_page_url": "https://www.equinoxeyachts.com/my-way-sold-announcement/",
+    "image_url": "https://www.equinoxeyachts.com/wp-content/uploads/2018/02/my-way-interior-saloon.jpg",
+    "width": 2048,
+    "height": 1536,
+    "notes": "dinette a U con tavolo e applique, libreria"
+  },
+  {
+    "file": "interior/my-way_guest_cabin_1.jpg",
+    "hull_name": "My Way (1990)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.equinoxeyachts.com/my-way-sold-announcement/",
+    "image_url": "https://www.equinoxeyachts.com/wp-content/uploads/2018/02/my-way-guestscabin.jpg",
+    "width": 2048,
+    "height": 1536,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "deck/my-way_cockpit_1.jpg",
+    "hull_name": "My Way (1990)",
+    "room": "cockpit",
+    "source_page_url": "https://www.equinoxeyachts.com/my-way-sold-announcement/",
+    "image_url": "https://www.equinoxeyachts.com/wp-content/uploads/2018/02/my-way-sundeck.jpg",
+    "width": 800,
+    "height": 600,
+    "notes": "pozzetto di poppa con prendisole"
+  },
+  {
+    "file": "deck/second-wind_deck_1.jpg",
+    "hull_name": "Second Wind (1984)",
+    "room": "deck",
+    "source_page_url": "https://www.fraseryachts.com/en/yacht/second-wind/",
+    "image_url": "https://media.fraseryachts.com/Yachts/Y7843_MC/images/Nautor-s-swan_yacht_for_sale_Second-wind_14413-oRlQUfdv.jpg",
+    "width": 1366,
+    "height": 690,
+    "notes": "coperta, osteriggio e winch al piede d'albero"
+  },
+  {
+    "file": "interior/show-me_other_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "other",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_71aab10a_2.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "corridoio longitudinale verso prua, porta ad arco"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_d6420b48_3.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "cabina ospiti con cuccette sovrapposte"
+  },
+  {
+    "file": "interior/show-me_other_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "other",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_9c1feb2c_4.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "corridoio verso bagno di prua, porta ad arco"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_21f47b4d_5.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_5ca16757_6.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "cabina a cuccette vista dalla porta"
+  },
+  {
+    "file": "deck/show-me_deck_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_058ed193_7.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta in teak"
+  },
+  {
+    "file": "interior/show-me_galley_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "galley",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_c738f71c_8.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cucina a L con forno Force 10"
+  },
+  {
+    "file": "interior/show-me_engine_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "engine",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_e27c24df_9.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "motore Perkins"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_a9bf792a_10.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "interior/show-me_galley_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "galley",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_8f660151_11.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cucina, piano cottura e forno"
+  },
+  {
+    "file": "interior/show-me_engine_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "engine",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_f2f9f46a_12.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "vano motore"
+  },
+  {
+    "file": "interior/show-me_heads_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "heads",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_28f7e2ef_13.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/show-me_galley_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "galley",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_97ecb441_14.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "lavelli doppi e banco"
+  },
+  {
+    "file": "deck/show-me_cockpit_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "cockpit",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_61a77c96_15.jpg",
+    "width": 1918,
+    "height": 1080,
+    "notes": "pozzetto timoneria"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_3d7a896f_16.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cuccetta doppia con rete portaoggetti"
+  },
+  {
+    "file": "interior/show-me_heads_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "heads",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_94b4935f_17.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/show-me_galley_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "galley",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_7a5615a7_18.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "lavello doppio"
+  },
+  {
+    "file": "deck/show-me_deck_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_7315923e_19.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "passavanti"
+  },
+  {
+    "file": "deck/show-me_deck_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_9741cb67_20.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta"
+  },
+  {
+    "file": "deck/show-me_deck_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_15af38ca_21.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta"
+  },
+  {
+    "file": "deck/show-me_deck_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_97906f5a_22.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "passavanti"
+  },
+  {
+    "file": "deck/show-me_deck_6.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_b5d60921_23.jpg",
+    "width": 1918,
+    "height": 1080,
+    "notes": "osteriggio e winch"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_553a7834_24.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "letto matrimoniale cabina armatore"
+  },
+  {
+    "file": "deck/show-me_deck_7.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_3cab2d1e_25.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta"
+  },
+  {
+    "file": "deck/show-me_deck_8.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_b2e5a03b_26.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta"
+  },
+  {
+    "file": "deck/show-me_cockpit_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "cockpit",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_8b045e3c_27.jpg",
+    "width": 1918,
+    "height": 1080,
+    "notes": "pozzetto"
+  },
+  {
+    "file": "deck/show-me_deck_9.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_70ac436e_28.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "passavanti"
+  },
+  {
+    "file": "interior/show-me_other_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "other",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_f08a367e_29.jpg",
+    "width": 715,
+    "height": 1080,
+    "notes": "mobile illuminato"
+  },
+  {
+    "file": "deck/show-me_deck_10.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_5c6bc055_30.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "coperta"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_118230db_31.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cabina armatore"
+  },
+  {
+    "file": "deck/show-me_deck_11.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_69cee577_32.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "passavanti"
+  },
+  {
+    "file": "deck/show-me_cockpit_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "cockpit",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_4a818ab4_33.jpg",
+    "width": 1620,
+    "height": 1080,
+    "notes": "ruota timone e binnacle"
+  },
+  {
+    "file": "deck/show-me_deck_12.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_4b2f4900_37.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "tambuccio e osteriggio"
+  },
+  {
+    "file": "deck/show-me_deck_13.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_c9327f02_38.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "piede d'albero"
+  },
+  {
+    "file": "interior/show-me_nav_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "nav",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_3117d7dc_41.jpg",
+    "width": 1918,
+    "height": 1080,
+    "notes": "barometro e barografo in teca"
+  },
+  {
+    "file": "interior/show-me_nav_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "nav",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_c7318a6f_43.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "tavolo da carteggio"
+  },
+  {
+    "file": "interior/show-me_companionway_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "companionway",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_c520c85c_44.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "scaletta tambuccio"
+  },
+  {
+    "file": "interior/show-me_saloon_1.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "saloon",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_bfa8f436_45.jpg",
+    "width": 1918,
+    "height": 1080,
+    "notes": "libreria sopra divano"
+  },
+  {
+    "file": "deck/show-me_deck_14.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "deck",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_d9e64de4_47.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "salpancore"
+  },
+  {
+    "file": "interior/show-me_nav_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "nav",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_5e9a4c8e_49.jpg",
+    "width": 1620,
+    "height": 1080,
+    "notes": "pannello elettrico e radio"
+  },
+  {
+    "file": "interior/show-me_saloon_2.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "saloon",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_0d617d36_51.jpg",
+    "width": 1620,
+    "height": 1080,
+    "notes": "divano con TV"
+  },
+  {
+    "file": "interior/show-me_nav_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "nav",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_5646db84_52.jpg",
+    "width": 1620,
+    "height": 1080,
+    "notes": "pannello serbatoi"
+  },
+  {
+    "file": "interior/show-me_nav_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "nav",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_fcbb0ab1_53.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "carteggio e pannello"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_c06405e4_54.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cabina armatore poppa"
+  },
+  {
+    "file": "interior/show-me_other_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "other",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_cf83b6e4_55.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "corridoio"
+  },
+  {
+    "file": "interior/show-me_saloon_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "saloon",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_357c38f2_56.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "dinette"
+  },
+  {
+    "file": "interior/show-me_saloon_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "saloon",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_caa46cc2_57.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "dinette con tavolo"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_4.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_678be996_58.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "armadio cabina armatore"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_069b5a33_59.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "letto matrimoniale e divanetti"
+  },
+  {
+    "file": "interior/show-me_owner_cabin_6.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_689c2089_60.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cabina armatore"
+  },
+  {
+    "file": "interior/show-me_guest_cabin_6.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_6757261e_61.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "cuccetta con rete"
+  },
+  {
+    "file": "interior/show-me_heads_3.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "heads",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_1132f617_62.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "bagno"
+  },
+  {
+    "file": "interior/show-me_other_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "other",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_4c613e82_63.jpg",
+    "width": 720,
+    "height": 1080,
+    "notes": "corridoio"
+  },
+  {
+    "file": "interior/show-me_saloon_5.jpg",
+    "hull_name": "Show Me (1983)",
+    "room": "saloon",
+    "source_page_url": "https://www.seattleyachts.com/used-yachts-for-sale/65-nautor-swan-651-1983-show-me/2831939_1",
+    "image_url": "https://cdn.yachtbroker.org/images/highdef/2831939_ba80d55f_64.jpg",
+    "width": 1631,
+    "height": 1080,
+    "notes": "divano con TV"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_9.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/2.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "pozzetto con cuscineria rossa"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_10.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/3.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "pozzetto con tavolo"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_11.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/4.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "pozzetto con tavolo"
+  },
+  {
+    "file": "deck/unnamed-1984_cockpit_12.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "cockpit",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/5.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "pozzetto di poppa e winch"
+  },
+  {
+    "file": "deck/unnamed-1984_deck_6.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "deck",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/6.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "coperta prodiera con prendisole"
+  },
+  {
+    "file": "interior/unnamed-1984_saloon_2.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "saloon",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/7.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "dinette e scaletta tambuccio, vista verso poppa"
+  },
+  {
+    "file": "interior/unnamed-1984_saloon_3.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "saloon",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/8.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "dinette verso prua con montante albero"
+  },
+  {
+    "file": "interior/unnamed-1984_saloon_4.jpg",
+    "hull_name": "Sconosciuto 1984, bandiera UK, cuscineria rossa",
+    "room": "saloon",
+    "source_page_url": "https://monbobateau.eu/es/barco-4294-nautor-swan-651.html",
+    "image_url": "https://monbobateau.eu/assets/images/4294/1024/9.webp",
+    "width": 1024,
+    "height": 683,
+    "notes": "dinette a U con libreria"
+  },
+  {
+    "file": "deck/hull-001_cockpit_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "cockpit",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_3_1458146093.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "pozzetto di manovra, winch e capottina"
+  },
+  {
+    "file": "deck/hull-001_cockpit_2.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "cockpit",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_4_1458146127.jpg",
+    "width": 960,
+    "height": 641,
+    "notes": "pozzetto con consolle strumenti"
+  },
+  {
+    "file": "interior/hull-001_other_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "other",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_5_1458146151.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "targa Nautor's Swan 651/001 June 82"
+  },
+  {
+    "file": "interior/hull-001_saloon_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "saloon",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_6_1458146182.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "dinette a U con tavolo, vista verso prua"
+  },
+  {
+    "file": "interior/hull-001_galley_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "galley",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_7_1458146221.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "cucina a U con forno e lavelli"
+  },
+  {
+    "file": "interior/hull-001_nav_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "nav",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_8_1458146257.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "carteggio e quadro elettrico"
+  },
+  {
+    "file": "interior/hull-001_other_2.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "other",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_9_1458146307.jpg",
+    "width": 480,
+    "height": 720,
+    "notes": "corridoio con cuccette"
+  },
+  {
+    "file": "interior/hull-001_guest_cabin_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_10_1458146321.jpg",
+    "width": 480,
+    "height": 720,
+    "notes": "cuccetta"
+  },
+  {
+    "file": "interior/hull-001_heads_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "heads",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_11_1458146336.jpg",
+    "width": 480,
+    "height": 720,
+    "notes": "lavabo"
+  },
+  {
+    "file": "interior/hull-001_other_3.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "other",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_12_1458146357.jpg",
+    "width": 480,
+    "height": 720,
+    "notes": "corridoio con porte ad arco"
+  },
+  {
+    "file": "interior/hull-001_guest_cabin_2.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "guest_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_13_1458146367.jpg",
+    "width": 480,
+    "height": 720,
+    "notes": "cuccette sovrapposte"
+  },
+  {
+    "file": "interior/hull-001_owner_cabin_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_14_1458146483.jpg",
+    "width": 960,
+    "height": 641,
+    "notes": "cabina armatore poppiera con letto centrale e divanetti"
+  },
+  {
+    "file": "interior/hull-001_owner_cabin_2.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_15_1458146403.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "cabina armatore con oblo' a specchio di poppa"
+  },
+  {
+    "file": "interior/hull-001_owner_cabin_3.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_16_1458146504.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "cabina armatore, porta ad arco"
+  },
+  {
+    "file": "interior/hull-001_owner_cabin_4.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_17_1458146523.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "cabina armatore con toeletta"
+  },
+  {
+    "file": "interior/hull-001_heads_2.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "heads",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_18_1458146536.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "bagno visto dall'alto"
+  },
+  {
+    "file": "interior/hull-001_owner_cabin_5.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "owner_cabin",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_19_1458146581.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "paratia con porta ad arco"
+  },
+  {
+    "file": "interior/hull-001_forepeak_1.jpg",
+    "hull_name": "Swan 651-001 (giugno 1982)",
+    "room": "forepeak",
+    "source_page_url": "https://www.xboat.es/4271-NAUTOR-SWAN_SWAN-651.html",
+    "image_url": "https://www.xboat.es/medias/bateau/4271/large/swan-651_20_1458146610.jpg",
+    "width": 960,
+    "height": 640,
+    "notes": "gavone di prua con vele"
+  }
+]
