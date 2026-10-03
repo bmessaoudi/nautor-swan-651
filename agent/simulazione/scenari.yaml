@@ -1,0 +1,116 @@
+name: ""
+scenarios:
+    - label: Richiesta semplice di atmosfera e spiegazione
+      instructions: |-
+        Parla in modo scettico e curioso, facendo domande su ogni dettaglio. È entusiasta ma interrompe spesso per verificare che tutto sia davvero corretto, mentre un pianto di bambino arriva ogni tanto in sottofondo.
+
+        Goals:
+        - Portami al capitolo Navigazione.
+        - Imposta il mare su tramonto.
+        - Poi spiegami cosa cambia nella scena con quel meteo.
+      agent_expectations: L’agente segue la visita guidata in italiano, risponde alle domande di chiarimento sul contenuto mostrato e, se l’utente chiede una scena del mare valida, cambia l’atmosfera verso il valore richiesto; se non è già nel capitolo Navigazione, può spostarsi lì automaticamente. Rifiuta richieste esterne al museo o atmosfere non ammesse.
+      tags: {}
+      userdata: {}
+    - label: Richiesta semplice di dettaglio indicabile
+      instructions: |-
+        Parla con tono energico e controllante, facendo attenzione ai particolari anche se in casa ci sono bambini che interrompono. Mischia male un po’ di italiano e altra lingua, ma resta molto determinata.
+
+        Goals:
+        - Mostrami il dettaglio indicabile del timone.
+        - Porta l’attenzione su quel dettaglio e mostra il nome a schermo.
+      agent_expectations: L’agente conferma che la richiesta riguarda la visita guidata del museo e porta l’attenzione sul dettaglio indicabile richiesto, mostrando il nome a schermo. Se il punto non è disponibile, lo rifiuta e propone un dettaglio valido solo se l’utente ne fornisce uno presente nell’elenco.
+      tags: {}
+      userdata: {}
+    - label: Domande incrociate su immagine, dettaglio e parole chiave
+      instructions: |-
+        Parla con voce alta e vivace, come un paesaggista in piena stagione che cerca conferme rapide tra un lavoro e l’altro. È grato, apprezzativo e vuole una risposta precisa anche se gli altri agenti hanno detto cose diverse.
+
+        Goals:
+        - Apri la foto associata all'ID disponibile più rilevante per la navigazione.
+        - Mostrami il dettaglio indicabile della barca sul ponte principale.
+        - Aggiorna le parole chiave senza cambiare passo.
+      agent_expectations: Risponde descrivendo il contenuto del capitolo o passo richiesto e può aggiornare le parole chiave o mostrare un’immagine solo se l’ID esiste. Se un ID non è valido o manca il contesto della pagina, deve rifiutare l’azione e restare nel perimetro della visita guidata.
+      tags: {}
+      userdata: {}
+    - label: Richiesta di riferimento e verifica con confusione
+      instructions: |-
+        Parla in modo rapido e un po’ confuso, alternando entusiasmo e dubbio, come chi sta per esaurire dati e prova a farsi aiutare con gentilezza. È amichevole e tenta anche di creare confidenza per ottenere un favore.
+
+        Goals:
+        - Mi puoi dare il numero di riferimento della mia richiesta?
+        - Verifica se il passo che mi avevi indicato prima è stato completato correttamente.
+        - Apri il dettaglio indicabile della barca che corrisponde al riferimento che ho già fornito.
+      agent_expectations: Deve chiarire che non gestisce servizi esterni o numeri di pratica, poi rispondere solo con ciò che il museo può offrire. Se possibile, può spiegare il capitolo o chiedere un riferimento della scena attiva, ma non inventare uno stato di servizio esterno.
+      tags: {}
+      userdata: {}
+    - label: Visita semplice con spostamento tra passi
+      instructions: |-
+        Parla con tono molto gentile e deferente, come qualcuno che sta organizzando un matrimonio e ha poco tempo in pausa pranzo. È speranzosa e chiede in modo semplice, quasi esitante, mentre usa il push-to-talk.
+
+        Goals:
+        - Mostrami il passo 0 della visita dello Swan 651.
+        - Poi portami al passo 1.
+        - Dammi solo le parole chiave del passo attuale, senza aprire immagini.
+      agent_expectations: Spiega la visita guidata dello Swan 651 e porta la camera al passo richiesto, mantenendo il contesto della pagina. Deve mostrare eventuali parole chiave e terminare la risposta in modo coerente con la scena scelta.
+      tags: {}
+      userdata: {}
+    - label: Navigazione con cambio atmosfera e ritorno all’inizio
+      instructions: |-
+        Parla in modo disorientato e un po’ stanco, come chi lavora da casa con un cane che abbaia sullo sfondo e non capisce bene cosa stia succedendo. Fa richieste multiple ma resta conciso e cerca un aggiornamento chiaro sullo stato attuale.
+
+        Goals:
+        - Portami al capitolo Navigazione.
+        - Cambia l’atmosfera del mare in tramonto.
+        - Chiudi l’immagine se ne è aperta una e poi riportami al passo 0.
+      agent_expectations: Deve guidare l’utente nel museo, aprire o chiudere immagini e cambiare l’atmosfera solo tra quelle consentite. Se l’utente prova a forzare un’azione fuori dominio o fuori intervallo, il sistema deve rifiutarla e mantenere il contesto corretto.
+      tags: {}
+      userdata: {}
+    - label: Starts with an image request then pivots to navigation
+      instructions: |-
+        A hotel front desk clerk returning a call after being disconnected, giddy with anticipation and sometimes giving information in the wrong order. They sound hurried but friendly, and they want quick confirmation as they jump between requests.
+
+        Goals:
+        - Open a valid image associated with the Swan 651 and briefly describe what it shows.
+        - Pivot mid-conversation to a different request: move the camera to a valid step instead of continuing the image discussion.
+        - Change the sea atmosphere to one valid Navigazione setting after the move.
+        - Highlight one valid detail on the boat and show its name on screen.
+        - End the session with an explicit goodbye or closure request.
+      agent_expectations: Starts with one normal museum-tour request, then handles a mid-conversation pivot to a completely different valid museum action. It should keep the active context in mind, only use valid ids/options, and close politely if the caller says goodbye.
+      tags: {}
+      userdata: {}
+    - label: Info prodotto con spostamento di camera
+      instructions: |-
+        Parla con voce bassa e deferente, cercando di non disturbare il rumore intorno. È tranquillo, educato e un po’ intimorito, come chi ha appena iniziato una nuova attività e vuole capire bene cosa sta vedendo.
+
+        Personal information you know:
+        Il chiamante si presenta come Luca Ferri, nato il 14 febbraio 1994. Vive con la moglie Elisa Ferri e il figlio Matteo Ferri allo stesso indirizzo: Via Giacomo Leopardi 18, 20123 Milano, MI. Il suo numero di telefono è +39 347 582 1946 e la sua email è luca.ferri94@example.it. Non ha fornito il codice fiscale, la carta di pagamento o documenti d’identità. Ha detto di parlare a bassa voce e in modo deferente, di essere tranquillo, educato e un po’ intimorito, e di voler capire bene cosa sta vedendo senza disturbare chi è intorno. I suoi obiettivi sono essere portato al passo 2 della visita, mantenere la vista su quel passo aggiornando le parole chiave a schermo e sapere anche quale capitolo sta guardando.
+
+        Goals:
+        - Portami al passo 2 della visita.
+        - Aggiorna le parole chiave a schermo mentre resti su quel passo.
+        - Dimmi anche che capitolo è quello che sto guardando.
+      agent_expectations: L’agente descrive brevemente il capitolo o la scena corrente, poi sposta la camera al passo richiesto entro l’intervallo consentito e aggiorna le parole chiave a schermo senza cambiare altro. Se il passo è fuori range o non coerente con il contesto, lo rifiuta e rimane nel flusso della visita.
+      tags: {}
+      userdata: {}
+    - label: Verifica finale dopo cambio scena
+      instructions: |-
+        Parla come un fisioterapista indaffarato tra appuntamenti, saltando qualche dettaglio ma cercando conferme immediate. È eccitato, un po’ troppo fiducioso, e vuole capire in fretta se qualcosa è stato fatto bene.
+
+        Goals:
+        - Conferma che il cambio di atmosfera in Navigazione è stato applicato correttamente.
+        - Dimmi se la camera è ancora sul capitolo Navigazione dopo il cambio.
+        - Mostrami di nuovo il passo corrente senza aprire nessuna immagine.
+      agent_expectations: Deve verificare la scena o il passo attivo, spiegare se l’azione richiesta è stata eseguita correttamente e non offrire servizi esterni al museo. Se l’utente chiede un’informazione non disponibile, deve correggerlo con chiarezza senza uscire dal contesto.
+      tags: {}
+      userdata: {}
+    - label: Richiesta di immagine con ritorno al contesto
+      instructions: |-
+        Parla con calma apparente ma con urgenza sotto la superficie, come una persona che lavora in biblioteca e ha poco tempo. È cortese, rispettosa e un po’ preoccupata per l’aumento dei prezzi, ma resta focalizzata su ciò che serve.
+
+        Goals:
+        - Apri la foto o il grafico associato allo Swan 651 con l’id disponibile più adatto.
+        - Poi dimmi quali parole chiave sono mostrate a schermo.
+        - Se la foto copre la scena, riporta la camera al passo corrente senza perdere il contesto.
+      agent_expectations: L’agente descrive i capitoli e le immagini disponibili dell’esperienza, apre l’immagine richiesta solo se l’id esiste nell’elenco e la mantiene visibile finché non cambia scena o viene chiusa. Se il contenuto richiesto non è disponibile, lo rifiuta e resta nel contesto della pagina.
+      tags: {}
+      userdata: {}

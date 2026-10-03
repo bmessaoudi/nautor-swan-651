@@ -24,6 +24,7 @@ from livekit.agents import (
     AgentSession,
     JobContext,
     RunContext,
+    SimulationContext,
     cli,
     function_tool,
     llm,
@@ -33,6 +34,8 @@ from livekit.agents.voice import room_io
 from livekit.agents.utils import is_given
 from livekit.plugins import anthropic, deepgram, elevenlabs
 from livekit.plugins.anthropic import llm as anthropic_llm
+
+from simulazione.pagina import PaginaSimulata, carica_indice
 
 # .env.local lo scrive la CLI di LiveKit (lk app env -w) con le credenziali del progetto Cloud
 load_dotenv(Path(__file__).parent / ".env.local")
@@ -137,13 +140,27 @@ def dati_json(dati: list[Dato]) -> list[dict[str, str]]:
 
 
 class ComputerDiBordo(Agent):
-    def __init__(self, *, visitor: rtc.RemoteParticipant, room: rtc.Room, index: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        *,
+        visitor: rtc.RemoteParticipant | None,
+        room: rtc.Room,
+        index: dict[str, Any],
+        pagina: PaginaSimulata | None = None,
+    ) -> None:
         super().__init__(instructions=build_instructions(index))
         self._visitor = visitor
         self._room = room
         self._last = len(index["passi"]) - 1
+        # nelle simulations la pagina è finta e risponde in processo
+        self._pagina = pagina
 
     async def _sito(self, method: str, **args: Any) -> dict[str, Any]:
+        if self._pagina:
+            try:
+                return self._pagina.chiama(method, args)
+            except ValueError as e:
+                raise llm.ToolError(f"La pagina non ha risposto: {e}") from e
         try:
             res = await self._room.local_participant.perform_rpc(
                 destination_identity=self._visitor.identity,
@@ -157,10 +174,13 @@ class ComputerDiBordo(Agent):
 
     def nota_schermo(self) -> str:
         """Ciò che la pagina mostra adesso, dall'attributo che la pagina aggiorna a ogni passo."""
-        raw = self._visitor.attributes.get("sito.stato")
-        if not raw:
-            return ""
-        s = json.loads(raw)
+        if self._pagina:
+            s = self._pagina.stato()
+        else:
+            raw = self._visitor.attributes.get("sito.stato")
+            if not raw:
+                return ""
+            s = json.loads(raw)
         nota = f"[A schermo: passo {s['passo']}, {s['capitolo']}, {s['titolo']}"
         if s["capitolo"] == "Navigazione" and s.get("mare"):
             nota += f"; mare: {s['mare']}"
@@ -246,11 +266,7 @@ class ComputerDiBordo(Agent):
 server = AgentServer()
 
 
-@server.rtc_session(agent_name=AGENT_NAME)
-async def entrypoint(ctx: JobContext) -> None:
-    await ctx.connect()
-    visitor = await ctx.wait_for_participant()
-
+async def chiedi_indice(ctx: JobContext, visitor: rtc.RemoteParticipant) -> dict[str, Any]:
     # La pagina manda il proprio indice: testi, passi, dettagli e immagini hanno una sola fonte.
     # Arriva come stream di testo perché supera il limite di una risposta RPC (15 KB)
     arrivato: asyncio.Future[str] = asyncio.get_running_loop().create_future()
@@ -267,7 +283,20 @@ async def entrypoint(ctx: JobContext) -> None:
     await ctx.room.local_participant.perform_rpc(
         destination_identity=visitor.identity, method="sito.indice", payload="{}", response_timeout=10.0
     )
-    index = json.loads(await asyncio.wait_for(arrivato, timeout=10.0))
+    return json.loads(await asyncio.wait_for(arrivato, timeout=10.0))
+
+
+@server.rtc_session(agent_name=AGENT_NAME)
+async def entrypoint(ctx: JobContext) -> None:
+    await ctx.connect()
+    # Nelle simulations (lk agent simulate) non c'è il browser: indice e pagina sono finti
+    sim = ctx.simulation_context()
+    if sim:
+        index = carica_indice()
+        visitor, pagina = None, PaginaSimulata(index)
+    else:
+        visitor, pagina = await ctx.wait_for_participant(), None
+        index = await chiedi_indice(ctx, visitor)
 
     session = AgentSession(
         stt=deepgram.STTv2(
@@ -282,14 +311,16 @@ async def entrypoint(ctx: JobContext) -> None:
             model=TTS_MODEL,
             voice_id=os.environ.get("ELEVEN_VOICE_ID") or elevenlabs.tts.DEFAULT_VOICE_ID,
             language="it",
+            # i numeri arrivano in cifre dal prompt: ElevenLabs li legge in italiano
+            apply_text_normalization="on",
         ),
-        **turn_options(),
+        **turn_options(sim),
         tts_text_transforms=["filter_markdown", "filter_emoji", *([] if TAG_AUDIO else [togli_tag])],
     )
     # una sessione chiusa (errore o visitatore uscito) chiude anche il job: l'agente lascia
     # la stanza e la plancia lo vede spegnersi
     session.on("close", lambda ev: ctx.shutdown(reason=str(ev.reason)))
-    agent = ComputerDiBordo(visitor=visitor, room=ctx.room, index=index)
+    agent = ComputerDiBordo(visitor=visitor, room=ctx.room, index=index, pagina=pagina)
 
     # Il testo dalla pagina (suggerimenti cliccati, capitoli aperti dai puntini) segue la
     # stessa strada della voce, con la nota di ciò che è a schermo
@@ -305,37 +336,39 @@ async def entrypoint(ctx: JobContext) -> None:
         agent,
         room=ctx.room,
         room_options=room_io.RoomOptions(text_input=room_io.TextInputOptions(text_input_cb=testo)),
-        record=False,
+        # sessioni registrate su LiveKit Cloud: trascrizioni e audio per derivarne scenari
+        record=True,
     )
-    # Push to talk: la pagina apre e chiude il turno con due RPC. Fra un turno e l'altro
-    # l'audio in ingresso è spento
-    session.input.set_audio_enabled(False)
-    lp = ctx.room.local_participant
-
-    @lp.register_rpc_method("agente.inizioTurno")
-    async def inizio_turno(data: rtc.RpcInvocationData) -> str:
-        # chi preme per parlare zittisce subito l'agente, anche a metà frase
-        try:
-            session.interrupt(force=True)
-        except RuntimeError:
-            pass
-        session.clear_user_turn()
-        session.input.set_audio_enabled(True)
-        return "ok"
-
-    @lp.register_rpc_method("agente.fineTurno")
-    async def fine_turno(data: rtc.RpcInvocationData) -> str:
+    if not sim:
+        # Push to talk: la pagina apre e chiude il turno con due RPC. Fra un turno e l'altro
+        # l'audio in ingresso è spento
         session.input.set_audio_enabled(False)
-        # Flux chiude la trascrizione dopo un attimo di silenzio: se non arriva in tempo si usa
-        # quella provvisoria, che con Flux è già buona
-        session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
-        return "ok"
+        lp = ctx.room.local_participant
 
-    @lp.register_rpc_method("agente.annullaTurno")
-    async def annulla_turno(data: rtc.RpcInvocationData) -> str:
-        session.input.set_audio_enabled(False)
-        session.clear_user_turn()
-        return "ok"
+        @lp.register_rpc_method("agente.inizioTurno")
+        async def inizio_turno(data: rtc.RpcInvocationData) -> str:
+            # chi preme per parlare zittisce subito l'agente, anche a metà frase
+            try:
+                session.interrupt(force=True)
+            except RuntimeError:
+                pass
+            session.clear_user_turn()
+            session.input.set_audio_enabled(True)
+            return "ok"
+
+        @lp.register_rpc_method("agente.fineTurno")
+        async def fine_turno(data: rtc.RpcInvocationData) -> str:
+            session.input.set_audio_enabled(False)
+            # Flux chiude la trascrizione dopo un attimo di silenzio: se non arriva in tempo si usa
+            # quella provvisoria, che con Flux è già buona
+            session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
+            return "ok"
+
+        @lp.register_rpc_method("agente.annullaTurno")
+        async def annulla_turno(data: rtc.RpcInvocationData) -> str:
+            session.input.set_audio_enabled(False)
+            session.clear_user_turn()
+            return "ok"
 
     # mentre la voce saluta, la cache del prompt si scalda: la prima domanda non la paga a freddo
     asyncio.create_task(scalda_cache(session.llm, agent))
@@ -371,10 +404,14 @@ async def togli_tag(text: AsyncIterable[str]) -> AsyncIterable[str]:
         yield resto
 
 
-def turn_options() -> dict[str, Any]:
+def turn_options(sim: SimulationContext | None) -> dict[str, Any]:
     """Push to talk: il turno lo decide chi visita tenendo premuto lo strumento centrale (o la
     barra spaziatrice). Niente rilevamento automatico dei turni né interruzioni da rumore, e
-    quindi niente VAD: il microfono conta solo mentre è premuto."""
+    quindi niente VAD: il microfono conta solo mentre è premuto.
+
+    Nelle simulations nessuno preme la sfera: il turno lo chiude Flux."""
+    if sim:
+        return {"turn_handling": {"turn_detection": "stt"}}
     return {"turn_handling": {"turn_detection": "manual", "interruption": {"enabled": False}}}
 
 
