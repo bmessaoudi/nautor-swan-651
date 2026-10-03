@@ -1,27 +1,55 @@
-/* Pagina guidata a voce: la barca a tutto schermo, poche parole grandi, i comandi di vetro in basso */
+/* Pagina guidata a voce: la barca a tutto schermo, poche parole grandi, i comandi di vetro in basso.
+   Stessa identità della landing (src/style.css): Montserrat, navy #003660 e blu Swan, titoli leggeri
+   maiuscoli e spaziati, angoli vivi. I token sono gli stessi, copiati qui perché la pagina non
+   carica lo stile della landing. */
 :root {
-  --ink: #f3efe6;
-  --ink-dim: rgba(243, 239, 230, 0.66);
-  --line: rgba(243, 239, 230, 0.18);
-  --card: rgba(10, 22, 38, 0.55);
-  --accent: #c8352e;
-  --serif: "Cormorant Garamond", Georgia, serif;
-  --sans: "Inter", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --navy: #003660;
+  --abyss: #00223d;
+  --signal: #157aac;
+  --signal-strong: #136fa0;
+  --sky: #3d9cc9;
+  --pale: #9cc9e0;
+  --orange: #f26522;
+
+  --ink: #ffffff;
+  --ink-dim: rgba(255, 255, 255, 0.78);
+  --line: rgba(255, 255, 255, 0.16);
+  --card: rgba(0, 34, 61, 0.62);
+  --heading: #ffffff;
+  --accent: var(--sky);
+  --brand: #ffffff;
+
+  --sans: "Montserrat", system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* il tema chiaro arriva dalla scena quando si passa allo studio */
 body.light {
-  --ink: #15202c;
-  --ink-dim: rgba(21, 32, 44, 0.68);
-  --line: rgba(21, 32, 44, 0.16);
-  --card: rgba(246, 243, 236, 0.72);
+  --ink: #1f1f1f;
+  --ink-dim: #4f5a63;
+  --line: #e3e3e3;
+  --card: rgba(255, 255, 255, 0.88);
+  --heading: var(--navy);
+  --accent: var(--signal);
+  --brand: var(--navy);
+}
+
+/* Leggibilità adattiva (contrast.js della landing): i testi senza card sulla scena leggono la
+   luminosità di ciò che hanno dietro. Stesse regole di src/style.css. */
+[data-tone] { color: var(--ink); text-shadow: var(--halo, none); transition: color 0.4s ease, text-shadow 0.4s ease; }
+[data-tone="on-dark"] {
+  --ink: #ffffff; --ink-dim: rgba(255, 255, 255, 0.9); --heading: #ffffff; --accent: var(--pale);
+  --halo: 0 0 2px rgba(0, 22, 40, 0.45), 0 0 18px rgba(0, 22, 40, 0.55);
+}
+[data-tone="on-light"] {
+  --ink: #16212b; --ink-dim: #2e3d4a; --heading: var(--navy); --accent: #0f5f87;
+  --halo: 0 0 2px rgba(255, 255, 255, 0.55), 0 0 18px rgba(255, 255, 255, 0.7);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; background: #0b1f36; }
-body { font-family: var(--sans); font-weight: 300; color: var(--ink); transition: color 0.6s ease; }
-.mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+html, body { height: 100%; overflow: hidden; background: var(--navy); }
+body { font-family: var(--sans); font-weight: 300; color: var(--ink); transition: color 0.6s ease; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* Etichette: piccole, maiuscole, molto spaziate (la classe .mono della landing) */
+.mono { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
@@ -39,14 +67,15 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   transition: opacity 0.5s ease, transform 0.8s var(--ease);
 }
 #parole.on { opacity: 1; transform: none; }
-/* alone del colore dello sfondo: le parole restano leggibili anche sopra la barca */
-#parole { text-shadow: 0 0 18px rgba(8, 24, 42, 0.85), 0 0 42px rgba(8, 24, 42, 0.6); }
-body.light #parole { text-shadow: 0 0 18px rgba(236, 233, 226, 0.95), 0 0 42px rgba(236, 233, 226, 0.8); }
-.parole-titolo { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 4.4vw, 68px); line-height: 1; text-wrap: balance; }
+/* titoli della casa: leggeri, maiuscoli, spaziati; il colore lo sceglie il tono adattivo */
+.parole-titolo {
+  font-weight: 300; font-size: clamp(30px, 3.4vw, 54px); line-height: 1.1; text-wrap: balance;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--heading);
+}
 .parole-dati { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
 .parole-dati div { display: grid; gap: 6px; }
-.parole-dati dd { font-family: var(--serif); font-size: clamp(28px, 3vw, 44px); line-height: 1; }
-.parole-dati dt { color: var(--ink-dim); font-size: 10px; }
+.parole-dati dd { font-weight: 300; font-size: clamp(26px, 2.6vw, 40px); line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--heading); }
+.parole-dati dt { color: var(--ink-dim); font-size: 9.5px; letter-spacing: 0.16em; }
 /* i dati entrano uno dopo l'altro */
 .parole-dati div { opacity: 0; transform: translateY(8px); transition: opacity 0.5s, transform 0.7s var(--ease); }
 #parole.on .parole-dati div { opacity: 1; transform: none; }
@@ -55,15 +84,15 @@ body.light #parole { text-shadow: 0 0 18px rgba(236, 233, 226, 0.95), 0 0 42px r
 
 /* con una foto aperta le parole salgono e si stringono, la foto prende il resto */
 body.con-media #parole { top: 12vh; }
-body.con-media .parole-titolo { font-size: clamp(34px, 3.8vw, 56px); }
+body.con-media .parole-titolo { font-size: clamp(26px, 2.8vw, 44px); }
 body.con-media .parole-dati { margin-top: 16px; }
-body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
+body.con-media .parole-dati dd { font-size: clamp(22px, 2.2vw, 32px); }
 
 /* ---------- Foto e grafici ---------- */
 #media {
   position: fixed; z-index: 6; right: 6vw; bottom: 170px;
   width: min(440px, 30vw);
-  background: var(--card); backdrop-filter: blur(12px);
+  background: var(--card); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
   border: 1px solid var(--line); padding: 10px;
   opacity: 0; visibility: hidden; transform: translateY(16px) scale(0.98);
   transition: opacity 0.5s, visibility 0.5s, transform 0.8s var(--ease);
@@ -71,24 +100,25 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 #media.on { opacity: 1; visibility: visible; transform: none; }
 .media-corpo img { display: block; width: 100%; max-height: 34vh; object-fit: cover; }
 #media figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 4px 2px; }
-.media-titolo { font-family: var(--serif); font-size: 22px; }
+.media-titolo { font-size: 15px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--heading); }
 .media-didascalia { color: var(--ink-dim); font-size: 9.5px; text-align: right; }
 .grafico { display: block; width: 100%; max-height: 34vh; }
 .legenda { display: flex; gap: 16px; justify-content: center; font-size: 9.5px; padding-top: 6px; color: var(--ink-dim); }
 .legenda:empty { display: none; }
 .legenda span::before { content: ""; display: inline-block; width: 14px; height: 2px; margin-right: 6px; vertical-align: middle; background: currentColor; }
-.legenda .l10::before, .legenda .lpac::before { background: #7fb0d8; }
-.legenda .l16::before, .legenda .lmed::before { background: #e0a84a; }
-.legenda .l20::before, .legenda .latl::before { background: var(--accent); }
+.legenda .l10::before { background: var(--pale); } .legenda .l16::before, .legenda .lmed::before { background: var(--sky); }
+.legenda .l20::before, .legenda .latl::before { background: var(--heading); } .legenda .lpac::before { background: var(--orange); }
 /* polare e mappa: stessi tratti della landing, disegnati quando il pannello compare */
 .grafico .ring, .grafico .grat { fill: none; stroke: var(--line); }
 .grafico .ax { stroke: var(--line); }
-.grafico text { font-family: var(--mono); font-size: 8px; fill: var(--ink-dim); }
+.grafico text { font-family: var(--sans); font-weight: 500; font-size: 7.5px; letter-spacing: 0.06em; fill: var(--ink-dim); }
 .grafico .curve, .grafico .route { fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
 #media.on .grafico .curve, #media.on .grafico .route { stroke-dashoffset: 0; transition: stroke-dashoffset 2.2s ease 0.3s; }
-.grafico .c10, .grafico .route.pac { stroke: #7fb0d8; }
-.grafico .c16, .grafico .route.med { stroke: #e0a84a; }
-.grafico .c20, .grafico .route.atl { stroke: var(--accent); }
+/* stessi colori dei grafici della landing: pale, sky e navy (bianco sul tema scuro), arancio per il Pacifico */
+.grafico .c10 { stroke: var(--pale); }
+.grafico .c16, .grafico .route.med { stroke: var(--sky); }
+.grafico .c20, .grafico .route.atl { stroke: var(--heading); }
+.grafico .route.pac { stroke: var(--orange); }
 .grafico .sphere { fill: rgba(30, 70, 110, 0.18); }
 .grafico .land { fill: var(--ink); fill-opacity: 0.14; stroke: var(--ink); stroke-opacity: 0.3; stroke-width: 0.4; }
 .grafico .port { fill: var(--ink); }
@@ -97,20 +127,20 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 .grafico .entra { opacity: 0; transition: opacity 0.6s ease; }
 #media.on .grafico .entra { opacity: 1; }
 .grafico .scafo-sagoma { fill: var(--ink); fill-opacity: 0.1; stroke: var(--ink); stroke-opacity: 0.55; stroke-width: 0.8; stroke-linejoin: round; }
-.grafico .opera-viva { fill: #7fb0d8; fill-opacity: 0.22; stroke: none; }
-.grafico .acqua { stroke: #7fb0d8; stroke-width: 0.8; stroke-dasharray: 4 3; }
+.grafico .opera-viva { fill: var(--sky); fill-opacity: 0.22; stroke: none; }
+.grafico .acqua { stroke: var(--sky); stroke-width: 0.8; stroke-dasharray: 4 3; }
 .grafico .quota { stroke: var(--ink-dim); stroke-width: 0.7; }
 .grafico .quota-lab { fill: var(--ink); font-size: 8.5px; }
 .grafico .richiamo { stroke: var(--ink-dim); stroke-width: 0.6; }
 .grafico .punto { fill: var(--accent); }
 .grafico .vela { stroke: var(--ink); stroke-opacity: 0.5; stroke-width: 0.6; }
 .grafico .randa { fill: var(--accent); fill-opacity: 0.32; }
-.grafico .fiocco { fill: #e0a84a; fill-opacity: 0.3; }
+.grafico .fiocco { fill: var(--pale); fill-opacity: 0.3; }
 .grafico .albero { stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
 .grafico .crocetta { stroke: var(--ink); stroke-width: 0.8; }
 .grafico .strallo { stroke: var(--ink-dim); stroke-width: 0.5; }
 .legenda .lranda::before { background: var(--accent); }
-.legenda .lfiocco::before { background: #e0a84a; }
+.legenda .lfiocco::before { background: var(--pale); }
 .grafico .binario { fill: var(--line); fill-opacity: 0.35; }
 .grafico .barra { fill: var(--ink); fill-opacity: 0.55; transform-box: fill-box; transform-origin: left; transform: scaleX(0); transition: transform 1.2s var(--ease); }
 .grafico .barra.forte { fill: var(--accent); fill-opacity: 0.85; }
@@ -122,8 +152,8 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 .grafico .traccia.zavorra { stroke: var(--accent); }
 .grafico .chip.zavorra { fill: var(--accent); }
 .grafico .chip.totale { fill: var(--line); }
-.grafico text.grande { font-family: var(--serif); font-size: 40px; fill: var(--ink); }
-.grafico text.medio { font-family: var(--serif); font-size: 24px; fill: var(--ink); }
+.grafico text.grande { font-weight: 300; font-size: 38px; fill: var(--heading); }
+.grafico text.medio { font-weight: 300; font-size: 22px; fill: var(--heading); }
 
 /* ---------- Dettagli sulla barca ---------- */
 .hs { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform; }
@@ -134,28 +164,36 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 }
 .hs .lab {
   position: absolute; left: 16px; top: -12px; white-space: nowrap;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 10px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--ink); background: var(--card); backdrop-filter: blur(8px);
-  border: 1px solid var(--line); padding: 5px 9px; border-radius: 2px;
+  border: 1px solid var(--line); padding: 6px 10px;
   opacity: 0; transform: translateX(-6px); transition: opacity 0.4s, transform 0.5s var(--ease);
 }
-.hs.focus .dot { transform: scale(1.5); box-shadow: 0 0 0 6px rgba(200, 53, 46, 0.3); animation: indica 1.8s infinite; }
+.hs.focus .dot { transform: scale(1.5); box-shadow: 0 0 0 6px rgba(61, 156, 201, 0.35); animation: indica 1.8s infinite; }
 .hs.focus .lab { opacity: 1; transform: none; }
-@keyframes indica { 70% { box-shadow: 0 0 0 14px rgba(200, 53, 46, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 53, 46, 0); } }
+@keyframes indica { 70% { box-shadow: 0 0 0 14px rgba(61, 156, 201, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 156, 201, 0); } }
 
 /* ---------- Testata ---------- */
+/* logo centrato come nella landing: il file è bianco su trasparente, usato come maschera prende il colore del tema */
 #top {
   position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 22px 32px; pointer-events: none;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  height: 80px; padding: 8px 32px 0; pointer-events: none;
   transition: opacity 1s ease;
 }
 #top a { pointer-events: auto; }
-.brand { font-family: var(--serif); font-size: 22px; letter-spacing: 0.02em; color: inherit; text-decoration: none; }
-.brand em { font-style: italic; color: var(--accent); }
+.brand {
+  grid-column: 2;
+  display: block; width: 71px; height: 48px;
+  background: var(--brand);
+  -webkit-mask: url(/img/logo-white.png) no-repeat center / contain;
+  mask: url(/img/logo-white.png) no-repeat center / contain;
+  transition: background-color 0.6s ease;
+}
 
 /* ---------- Ingresso: tutto spento ---------- */
-body[data-fase="ingresso"], body[data-fase="accensione"] { background: #050607; }
+/* parte dal navy su cui la landing ha chiuso la sua copertura: il passaggio fra le pagine non si vede */
+body[data-fase="ingresso"], body[data-fase="accensione"] { background: var(--navy); }
 #gl { transition: opacity 1.8s ease; }
 body[data-fase="ingresso"] #gl, body[data-fase="accensione"] #gl,
 body[data-fase="ingresso"] #top, body[data-fase="accensione"] #top,
@@ -164,23 +202,24 @@ body[data-fase="ingresso"] #indice, body[data-fase="accensione"] #indice { opaci
 #ingresso, #ingresso-sotto {
   position: fixed; z-index: 20; left: 50%; transform: translateX(-50%);
   width: min(760px, calc(100vw - 32px));
-  display: grid; justify-items: center; gap: 12px; text-align: center; color: #d9d4c7;
+  display: grid; justify-items: center; gap: 16px; text-align: center; color: #fff;
   transition: opacity 0.6s ease, visibility 0.6s;
 }
 #ingresso { bottom: calc(50% + 100px); }
 #ingresso-sotto { top: calc(50% + 100px); }
 body:not([data-fase="ingresso"]) #ingresso, body:not([data-fase="ingresso"]) #ingresso-sotto { opacity: 0; visibility: hidden; }
-#ingresso .kicker { color: #7d786d; }
-#ingresso .invito { font-family: var(--serif); font-size: 28px; line-height: 1.2; color: #ece8de; }
-#ingresso .invito b { font-weight: 500; color: #ff5a44; }
-#ingresso-sotto .nota { color: #6f6b62; font-size: 10px; }
+#ingresso .kicker { color: rgba(255, 255, 255, 0.8); }
+#ingresso .invito { font-size: clamp(22px, 2.6vw, 32px); font-weight: 300; line-height: 1.3; letter-spacing: 0.08em; text-transform: uppercase; text-wrap: balance; }
+#ingresso .invito b { font-weight: 400; color: var(--pale); }
+#ingresso-sotto .nota { color: rgba(255, 255, 255, 0.78); font-size: 10px; }
 #ingresso-sotto .pronto { display: none; }
 body.pronta #ingresso-sotto .carico { display: none; }
 body.pronta #ingresso-sotto .pronto { display: inline; }
 
 /* ---------- Comandi di vetro ---------- */
-/* pulsanti flottanti come il "liquid glass" di iOS: vetro sfocato e saturo, bordo che prende
-   luce dall'alto, ombra morbida. La sfera della voce sta al centro */
+/* pulsanti flottanti come il "liquid glass" di iOS: vetro sfocato, bordo che prende luce
+   dall'alto, ombra morbida. La sfera della voce sta al centro. Saturazione come le card della
+   landing: più alta, il navy dell'ingresso diventerebbe blu elettrico */
 body { --scala-plancia: 1; }
 #plancia {
   position: fixed; z-index: 12; left: 50%; bottom: 22px;
@@ -199,8 +238,8 @@ body[data-fase="ingresso"] #plancia, body[data-fase="accensione"] #plancia { bot
   background:
     radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.22), transparent 55%),
     var(--vetro-tinta);
-  -webkit-backdrop-filter: blur(18px) saturate(185%) brightness(1.06);
-  backdrop-filter: blur(18px) saturate(185%) brightness(1.06);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) brightness(1.06);
+  backdrop-filter: blur(18px) saturate(1.2) brightness(1.06);
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, 0.5),
     inset 0 -1px 1px rgba(255, 255, 255, 0.12),
@@ -232,7 +271,7 @@ body.light .vetro {
 .tasto:hover { background-color: rgba(255, 255, 255, 0.12); }
 .tasto:active { transform: scale(0.88); }
 .tasto[aria-pressed="true"] { background-color: rgba(255, 255, 255, 0.2); }
-.tasto[data-k="power"][aria-pressed="true"] { color: #ff5a44; filter: drop-shadow(0 0 6px rgba(255, 90, 68, 0.6)); }
+.tasto[data-k="power"][aria-pressed="true"] { color: var(--pale); filter: drop-shadow(0 0 6px rgba(156, 201, 224, 0.75)); }
 .tasto[data-k="audio"] .spento, .tasto[data-k="audio"][aria-pressed="true"] .acceso { display: inline; }
 .tasto[data-k="audio"] .acceso, .tasto[data-k="audio"][aria-pressed="true"] .spento { display: none; }
 .tasto[data-k="audio"][aria-pressed="true"] { background-color: transparent; }
@@ -248,31 +287,30 @@ body.light .vetro {
 #plancia:not([data-state="off"]):not([data-state="error"]) .sfera:hover { transform: scale(1.04); }
 #plancia.premuto .sfera {
   transform: scale(1.08);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 0 18px rgba(120, 190, 255, 0.25), 0 0 0 6px rgba(80, 170, 255, 0.16), 0 0 34px rgba(80, 170, 255, 0.45);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 0 18px rgba(156, 201, 224, 0.25), 0 0 0 6px rgba(61, 156, 201, 0.18), 0 0 34px rgba(61, 156, 201, 0.5);
 }
 #plancia.accensione .sfera { transform: scale(1.1); }
-#plancia.premuto .stato { color: #6fb6ff; }
+#plancia.premuto .stato { color: var(--pale); }
 
-#plancia .stato { font-size: 9.5px; color: var(--ink-dim); min-height: 12px; text-shadow: 0 0 12px rgba(8, 24, 42, 0.6); }
-body.light #plancia .stato { text-shadow: 0 0 12px rgba(236, 233, 226, 0.9); }
+#plancia .stato { font-size: 9.5px; color: var(--ink-dim); min-height: 12px; text-shadow: 0 0 12px rgba(0, 22, 40, 0.6); }
+body.light #plancia .stato { text-shadow: 0 0 12px rgba(255, 255, 255, 0.9); }
 body[data-fase="ingresso"] #plancia .stato { opacity: 0; }
 
 /* all'ingresso, sul nero, il pulsante di accensione chiama il tocco; gli altri sono spenti */
 body[data-fase="ingresso"] .vetro { --vetro-tinta: rgba(255, 255, 255, 0.05); }
 body[data-fase="ingresso"] .capsula:last-child { opacity: 0.35; pointer-events: none; }
-body.pronta[data-fase="ingresso"] .tasto[data-k="power"] { color: #ff5a44; animation: chiama 2s ease-in-out infinite; }
-@keyframes chiama { 50% { box-shadow: 0 0 0 4px rgba(255, 90, 68, 0.28), 0 0 26px rgba(255, 90, 68, 0.45); } }
+body.pronta[data-fase="ingresso"] .tasto[data-k="power"] { color: var(--pale); animation: chiama 2s ease-in-out infinite; }
+@keyframes chiama { 50% { box-shadow: 0 0 0 4px rgba(156, 201, 224, 0.3), 0 0 26px rgba(61, 156, 201, 0.55); } }
 
 /* ---------- Sottotitoli ---------- */
 #cc {
   position: fixed; z-index: 11; left: 50%; bottom: 168px; transform: translate(-50%, 8px);
   width: max-content; max-width: min(760px, calc(100vw - 32px));
-  padding: 12px 22px; border-radius: 22px; text-align: center; text-wrap: balance;
-  font-family: var(--serif); font-size: clamp(19px, 1.6vw, 24px); line-height: 1.3; color: #fff;
-  background: rgba(8, 18, 32, 0.42);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  backdrop-filter: blur(16px) saturate(160%);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.22), 0 8px 26px rgba(0, 10, 25, 0.2);
+  padding: 14px 24px; text-align: center; text-wrap: balance;
+  font-size: clamp(16px, 1.3vw, 19px); font-weight: 300; line-height: 1.55; color: #fff;
+  background: rgba(0, 34, 61, 0.62); border: 1px solid rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
   opacity: 0; visibility: hidden; pointer-events: none;
   transition: opacity 0.35s ease, visibility 0.35s, transform 0.5s var(--ease);
 }
@@ -291,15 +329,13 @@ body[data-fase="ingresso"] #cc { display: none; }
 .gruppo { display: grid; justify-items: start; gap: 2px; }
 .gruppo > span { font-size: 9px; color: var(--ink-dim); opacity: 0.75; margin-bottom: 2px; }
 .gruppo button {
-  position: relative; font-family: var(--serif); font-size: 18px; line-height: 1.25; text-align: left;
+  position: relative; font-size: 14px; font-weight: 400; line-height: 1.5; letter-spacing: 0.02em; text-align: left;
   color: var(--ink-dim); padding-left: 0; transition: color 0.3s, padding 0.4s var(--ease);
 }
 .gruppo button:hover { color: var(--ink); }
 .gruppo button.qui { color: var(--ink); padding-left: 14px; }
 .gruppo button.qui::before { content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 1px; background: var(--accent); }
 .gruppo button.chiesto { color: var(--ink); }
-#indice { text-shadow: 0 0 14px rgba(8, 24, 42, 0.7); }
-body.light #indice { text-shadow: 0 0 14px rgba(236, 233, 226, 0.9); }
 
 /* ---------- Telefono ---------- */
 @media (max-width: 900px) {
@@ -313,5 +349,5 @@ body.light #indice { text-shadow: 0 0 14px rgba(236, 233, 226, 0.9); }
   body { --scala-plancia: 0.85; }
   #plancia { bottom: 12px; }
   body[data-fase="ingresso"] #plancia, body[data-fase="accensione"] #plancia { transform: translateX(-50%) scale(1); }
-  #cc { bottom: 140px; font-size: 18px; }
+  #cc { bottom: 140px; font-size: 16px; }
 }

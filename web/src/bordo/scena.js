@@ -11,6 +11,7 @@ import { createOcean } from "../ocean.js";
 import { createLandscape } from "../landscape.js";
 import { makeConditions, seedFromUrl } from "../conditions.js";
 import { createPost } from "../post.js";
+import { createAdaptiveTone } from "../contrast.js";
 import { createMaterials } from "../materials.js";
 import { createSeaFx, BOAT_LAYER } from "../seafx.js";
 import { createRigging } from "../rigging.js";
@@ -64,6 +65,8 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
   const post = createPost(renderer, scene, camera);
+  // parole chiave e indice scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js, come nella landing)
+  const tone = createAdaptiveTone(renderer);
 
   // ---------- Sfondo (come nella landing) ----------
   const backdrop = new THREE.Mesh(
@@ -624,6 +627,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       seaFx.render(dt, cond.flow, s.ocean);
       post.render(dt, still);
       post.endFrame();
+      tone.update();
     }
     if (!still && lastTime) post.measure(time - lastTime);
     lastTime = time;

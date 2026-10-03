@@ -6,14 +6,14 @@
   <title>Swan 651, computer di bordo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body data-fase="ingresso">
   <canvas id="gl"></canvas>
   <div id="hotspots"></div>
 
   <!-- Parole chiave e dati: li sceglie l'agente mentre parla -->
-  <div id="parole" aria-live="polite">
+  <div id="parole" aria-live="polite" data-tone>
     <h2 class="parole-titolo"></h2>
     <dl class="parole-dati"></dl>
   </div>
@@ -25,12 +25,12 @@
   </figure>
 
   <header id="top">
-    <a class="brand" href="/">Nautor's Swan <em>651</em></a>
+    <a class="brand" href="/" aria-label="Nautor Swan, torna all'inizio"></a>
   </header>
 
   <!-- Indice: gli argomenti di cui si può chiedere -->
   <nav id="indice" aria-label="Argomenti della visita">
-    <span class="mono indice-titolo">Chiedimi di</span>
+    <span class="mono indice-titolo" data-tone>Chiedimi di</span>
     <div class="indice-voci"></div>
   </nav>
 
