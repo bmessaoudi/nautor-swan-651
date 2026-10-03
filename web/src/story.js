@@ -56,10 +56,10 @@ export const HOTSPOTS = [
   { steps: [5], at: [0.2, -2.6, 0.27], title: "Pinna e piombo", text: "Pinna con scarpa in piombo, pescaggio 3,23 m nella versione Mod." },
   { steps: [5], at: [-8.6, -1.4, 0.08], title: "Timone su skeg", text: "Lo skeg sostiene e protegge la pala: una scelta da oceano più che da regata." },
   // Coperta
-  { steps: [6], at: [-5.2, 1.2, 0], title: "Pozzetto", text: "Da 1,15 a 8,1 m dallo specchio, profondo e protetto." },
+  { steps: [6], at: [-5.2, 1.2, 0], title: "Pozzetto", text: "Pozzetto di manovra profondo e protetto, con i coffee grinder." },
   { steps: [6], at: [-7.5, 3.1, 0], title: "Timoneria", text: "Piattaforma rialzata a poppa, sopra la cabina armatoriale." },
   { steps: [6], at: [3.5, 1.9, 0], title: "Tuga", text: "Larga circa il 52% della coperta: passavanti ampi per lavorare a prua." },
-  { steps: [6], at: [-0.5, 2.0, 1.75], title: "Verricelli", text: "Tre coppie sulla tuga e in pozzetto, quattro elettrici." },
+  { steps: [6], at: [-0.5, 2.0, 1.75], title: "Verricelli", text: "Tre coppie sulla tuga e in pozzetto. In origine manuali, su Lunz am Meer quattro sono elettrici." },
   { steps: [6], at: [7, 1.75, -1.6], title: "Teak", text: "Coperta interamente in teak, doghe allineate alla falchetta." },
   // Vele
   { steps: [7], at: [-2, 11, 0.7], title: "Randa", text: "86,1 m², P 24,00 m, E 7,04 m." },
@@ -71,7 +71,7 @@ export const HOTSPOTS = [
   { steps: [8], at: [-8.1, -1.7, 0.08], title: "Skeg", text: "Davanti al timone, come sulle barche da giro del mondo." },
   // Interni
   { steps: [10, 11], at: [-6.3, 0.4, 0], title: "Armatore", text: "Cabina di poppa con due cuccette, bagno e doccia." },
-  { steps: [10], at: [-2.7, 0.5, 0.1], title: "Sala macchine", text: "Sotto il pozzetto: Perkins 6.354 e generatore." },
+  { steps: [10], at: [-2.7, 0.5, 0.1], title: "Sala macchine", text: "Sotto il pozzetto: Perkins 6.354 e, su molti scafi, un generatore aggiunto dopo." },
   { steps: [10], at: [-2.1, 0.5, -1.5], title: "Cucina", text: "A sinistra, banco a L con penisola, vicino alla scala." },
   { steps: [10], at: [-1.45, 0.5, 1.6], title: "Carteggio", text: "A dritta, con la cabina ospiti alle spalle." },
   { steps: [10], at: [0.4, 0.5, -0.9], title: "Dinette", text: "Tavolo a U e divani in pelle rossa attorno all'albero." },
@@ -81,5 +81,5 @@ export const HOTSPOTS = [
   // Materiali
   { steps: [12], at: [0.3, 0.5, -1.55], title: "Pelle rossa", text: "Divani della dinette, scelta per questa ricostruzione." },
   { steps: [12], at: [1.59, 0.7, -0.6], title: "Teak miele", text: "Paratie e mobili in teak satinato." },
-  { steps: [12], at: [-0.3, -0.1, 0.4], title: "Teak e holly", text: "Pagliolo a listelli, il classico dei Swan nordici." },
+  { steps: [12], at: [-0.6, -0.28, -0.3], title: "Teak e holly", text: "Pagliolo a listelli, il classico dei Swan nordici." },
 ];

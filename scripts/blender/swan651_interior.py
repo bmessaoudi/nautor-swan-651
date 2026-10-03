@@ -10,6 +10,7 @@ cabina ospiti e carteggio a dritta, dinette con tavolo a U, albero, due cabine e
 prodieri, cabina di prua a V, gavone delle vele.
 """
 import math
+import random
 
 import bmesh
 import bpy
@@ -29,7 +30,7 @@ SOLE_Z = -0.30            # pagliolo della dinette (sotto il galleggiamento)
 # pagliolo teak e holly, cielo in vinile bianco con listelli. Tessuti: pelle rossa (scelta del cliente).
 MAT_JOINERY = material("Interior_Teak_Honey", (0.46, 0.22, 0.08), 0.38)
 MAT_SOLE = textured_material("Interior_Sole_TeakHolly", "teak_holly_sole.png", 0.3)
-MAT_UPHOLSTERY = material("Upholstery_Leather_Red", (0.36, 0.025, 0.03), 0.42)
+MAT_UPHOLSTERY = material("Upholstery_Leather_Red", (0.36, 0.025, 0.03), 0.6)
 MAT_MATTRESS = material("Mattress_Cream", (0.85, 0.8, 0.7), 0.9)
 MAT_HEADLINER = material("Headliner_White_Vinyl", (0.88, 0.87, 0.83), 0.55)
 MAT_WHITE = material("Interior_White", (0.9, 0.9, 0.88), 0.3)
@@ -37,9 +38,18 @@ MAT_ENGINE = material("Engine_Grey", (0.25, 0.3, 0.33), 0.5, metallic=0.3)
 MAT_COUNTER = material("Galley_Counter", (0.82, 0.8, 0.74), 0.25)
 MAT_STEEL_IN = material("Stainless", (0.85, 0.86, 0.88), 0.12, metallic=1.0)
 
+MAT_INSTR = material("Instrument_Black", (0.01, 0.012, 0.015), 0.2)
+MAT_BOOKS = [
+    material("Book_Oxblood", (0.3, 0.04, 0.03), 0.6),
+    material("Book_Navy", (0.03, 0.06, 0.15), 0.6),
+    material("Book_Cream", (0.7, 0.62, 0.48), 0.7),
+    material("Book_Green", (0.05, 0.15, 0.1), 0.6),
+]
+
 MATS = [MAT_JOINERY, MAT_SOLE, MAT_UPHOLSTERY, MAT_MATTRESS, MAT_WHITE, MAT_ENGINE,
-        MAT_COUNTER, MAT_STEEL_IN, MAT_HEADLINER]
-J_, SOLE_, UPH, MATT, WHITE, ENG, CNT, STEEL_, HEAD = range(9)
+        MAT_COUNTER, MAT_STEEL_IN, MAT_HEADLINER, MAT_INSTR, *MAT_BOOKS]
+J_, SOLE_, UPH, MATT, WHITE, ENG, CNT, STEEL_, HEAD, INSTR = range(10)
+BOOKS = list(range(10, 10 + len(MAT_BOOKS)))
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +120,29 @@ class Builder:
             f = bm.faces.new([v[i] for i in q])
             f.material_index = mat
             f.smooth = False
+
+    def rbox(self, x0, x1, y0, y1, z0, z1, mat, r=0.04, seg=3):
+        """Scatola con spigoli arrotondati: cuscini, materassi, piani dei tavoli."""
+        xa, xb = sorted((x0, x1))
+        ya, yb = sorted((y0, y1))
+        za, zb = sorted((z0, z1))
+        r = min(r, (xb - xa) / 2.2, (yb - ya) / 2.2, (zb - za) / 2.2)
+        tmp = bmesh.new()
+        bmesh.ops.create_cube(tmp, size=1.0)
+        for v in tmp.verts:
+            v.co = to_world(xa if v.co.x < 0 else xb, ya if v.co.y < 0 else yb, za if v.co.z < 0 else zb)
+        bmesh.ops.bevel(tmp, geom=list(tmp.edges), offset=r, segments=seg, profile=0.5, affect="EDGES")
+        for f in tmp.faces:
+            f.material_index = mat
+            f.smooth = True
+        me = bpy.data.meshes.new("_rbox_tmp")
+        tmp.to_mesh(me)
+        tmp.free()
+        self.bm.from_mesh(me)
+        bpy.data.meshes.remove(me)
+
+    def prbox(self, px0, px1, py0, py1, z0, z1, mat, r=0.04):
+        self.rbox(plan_x(px0), plan_x(px1), plan_y(py0), plan_y(py1), z0, z1, mat, r)
 
     def pbox(self, px0, px1, py0, py1, z0, z1, mat):
         """Scatola da coordinate in pixel della pianta."""
@@ -201,8 +234,13 @@ def bulkhead(b, px, door_half=0.33, door_h=1.9, door_y=0.0, solid=False):
         if solid:
             pts.append((x, 0.0, z0))
         else:
+            # vano porta con gli angoli alti arrotondati, come nelle paratie Swan
+            rc = min(0.24, door_half * 0.9)
             pts.append((x, door_y, z0 + door_h))
-            pts.append((x, door_y + side * door_half, z0 + door_h))
+            for k in range(1, 8):
+                a = math.pi / 2 * k / 7
+                pts.append((x, door_y + side * (door_half - rc + rc * math.sin(a)),
+                            z0 + door_h - rc + rc * math.cos(a)))
             pts.append((x, door_y + side * door_half, z0))
         # ordine coerente della faccia
         if side < 0:
@@ -251,7 +289,7 @@ def berth(b, px0, px1, py0, py1, h=0.45):
     x0, x1 = plan_x(px0), plan_x(px1)
     z0 = sole_z_at((x0 + x1) / 2)
     b.pbox(px0, px1, py0, py1, z0, z0 + h - 0.14, J_)
-    b.pbox(px0 + 8, px1 - 8, py0 + 8, py1 - 8, z0 + h - 0.14, z0 + h, MATT)
+    b.prbox(px0 + 6, px1 - 6, py0 + 6, py1 - 6, z0 + h - 0.15, z0 + h, MATT, r=0.05)
 
 
 def settee(b, px0, px1, py0, py1, back_side):
@@ -259,11 +297,64 @@ def settee(b, px0, px1, py0, py1, back_side):
     x0 = plan_x(px0)
     z0 = sole_z_at(x0)
     b.pbox(px0, px1, py0, py1, z0, z0 + 0.3, J_)
-    b.pbox(px0, px1, py0, py1, z0 + 0.3, z0 + 0.44, UPH)
     yy0, yy1 = plan_y(py0), plan_y(py1)
     outward = yy0 if abs(yy0) > abs(yy1) else yy1
-    t = 0.12 if outward > 0 else -0.12
-    b.box(plan_x(px0), plan_x(px1), outward, outward - t, z0 + 0.44, z0 + 0.9, UPH)
+    t = 0.14 if outward > 0 else -0.14
+    xa, xb = plan_x(px0), plan_x(px1)
+    # seduta e schienale a moduli di circa 60 cm, con bordi arrotondati
+    n = max(1, round((xb - xa) / 0.6))
+    w = (xb - xa) / n
+    for i in range(n):
+        x0_, x1_ = xa + i * w + 0.006, xa + (i + 1) * w - 0.006
+        b.rbox(x0_, x1_, yy0, yy1, z0 + 0.3, z0 + 0.45, UPH, r=0.045)
+        b.rbox(x0_, x1_, outward, outward - t, z0 + 0.45, z0 + 0.92, UPH, r=0.05)
+
+
+def doors(b, px0, px1, py, z0, z1, n, toward):
+    """Ante con pannello in rilievo sul fronte di un mobile; toward = verso del fronte in y (+1/-1)."""
+    x0, x1 = plan_x(px0), plan_x(px1)
+    y = plan_y(py)
+    w = (x1 - x0) / n
+    for i in range(n):
+        xa, xb = x0 + i * w + 0.015, x0 + (i + 1) * w - 0.015
+        b.box(xa, xb, y, y + toward * 0.012, z0 + 0.05, z1 - 0.04, J_)
+        b.box(xa + 0.05, xb - 0.05, y + toward * 0.012, y + toward * 0.022, z0 + 0.11, z1 - 0.1, J_)
+
+
+def fiddle(b, x0, x1, y0, y1, z, h=0.04):
+    """Bordino anti-rollio lungo un lato di un piano."""
+    b.box(x0, x1, y0, y1, z, z + h, J_)
+
+
+def bookshelf(b, px0, px1, py0, py1, z0, z1, seed=0):
+    """Libreria sopra i divani: fondo, cielo, montanti, bordino e una fila di libri."""
+    rng = random.Random(seed)
+    x0, x1 = plan_x(px0), plan_x(px1)
+    ya, yb = plan_y(py0), plan_y(py1)
+    outer = ya if abs(ya) > abs(yb) else yb
+    inner = yb if outer == ya else ya
+    sg = 1 if outer > 0 else -1
+    b.box(x0, x1, ya, yb, z0, z0 + 0.03, J_)
+    b.box(x0, x1, ya, yb, z1 - 0.03, z1, J_)
+    n = max(1, round((x1 - x0) / 0.65))
+    posts = [x0 + (x1 - x0) * i / n for i in range(n + 1)]
+    for xx in posts:
+        b.box(xx - 0.012, xx + 0.012, ya, yb, z0, z1, J_)
+    fiddle(b, x0, x1, inner, inner + sg * 0.02, z0 + 0.03, 0.07)
+    x = x0 + 0.02
+    while x < x1 - 0.06:
+        if any(abs(x - p) < 0.03 for p in posts):
+            x += 0.03
+            continue
+        if rng.random() < 0.06:
+            x += rng.uniform(0.05, 0.12)
+            continue
+        wb = rng.uniform(0.022, 0.05)
+        hb = rng.uniform(0.17, min(0.27, z1 - z0 - 0.08))
+        d = rng.uniform(0.13, 0.18)
+        b.box(x, x + wb, outer - sg * 0.02, outer - sg * (0.02 + d), z0 + 0.03, z0 + 0.03 + hb,
+              rng.choice(BOOKS))
+        x += wb + 0.003
 
 
 def build_furniture(col):
@@ -309,6 +400,20 @@ def build_furniture(col):
     b.pbox(2085, 2195, 1910, 2015, z + 0.95, z + 0.99, STEEL_)          # fornello basculante
     b.pbox(1960, 2075, 2140, 2180, z + 0.9, z + 0.955, STEEL_)          # lavelli
     b.pbox(1885, 1950, 2040, 2130, z, z + 0.92, WHITE)                  # frigo
+    # fuochi del fornello, vasche dei lavelli, rubinetto, bordini e ante
+    for bx in (2110, 2165):
+        for by in (1935, 1985):
+            b.cyl(plan_x(bx), plan_y(by), z + 0.99, z + 1.0, 0.045, INSTR, seg=20)
+    b.pbox(1968, 2016, 2146, 2176, z + 0.951, z + 0.957, INSTR)
+    b.pbox(2024, 2070, 2146, 2176, z + 0.951, z + 0.957, INSTR)
+    b.cyl(plan_x(2020), plan_y(2190), z + 0.95, z + 1.2, 0.012, STEEL_, seg=10)
+    b.box(plan_x(2020) - 0.01, plan_x(2020) + 0.01, plan_y(2190), plan_y(2160), z + 1.18, z + 1.2, STEEL_)
+    fiddle(b, plan_x(1825), plan_x(2275), plan_y(2005), plan_y(2005) - 0.02, z + 0.95)
+    fiddle(b, plan_x(1950), plan_x(2145), plan_y(2135), plan_y(2135) + 0.02, z + 0.95)
+    fiddle(b, plan_x(1950), plan_x(2145), plan_y(2225), plan_y(2225) - 0.02, z + 0.95)
+    doors(b, 1955, 2275, 2005, z, z + 0.92, 4, -1)
+    doors(b, 1950, 2145, 2135, z, z + 0.92, 3, 1)
+    doors(b, 1950, 2145, 2225, z, z + 0.92, 3, -1)
 
     # --- Cabina ospiti di dritta e carteggio
     berth(b, 1620, 1975, 2560, 2740)
@@ -316,6 +421,14 @@ def build_furniture(col):
     b.pbox(2125, 2215, 2520, 2650, z + 0.78, z + 0.82, CNT)
     b.pbox(2035, 2115, 2540, 2630, z, z + 0.45, UPH)                    # seduta
     b.pbox(2215, 2275, 2500, 2700, z + 0.8, z + 1.5, J_)                # pannello strumenti
+    # strumenti sul pannello (guardano a poppa) e schienale della seduta
+    xf = plan_x(2215) - 0.012
+    for (pa, pb_, za, zb) in ((2525, 2600, 1.02, 1.22), (2610, 2680, 1.02, 1.22),
+                              (2525, 2570, 1.28, 1.42), (2580, 2625, 1.28, 1.42), (2635, 2680, 1.28, 1.42)):
+        b.box(xf, xf + 0.012, plan_y(pa), plan_y(pb_), z + za, z + zb, INSTR)
+    b.pbox(2125, 2215, 2520, 2650, z + 0.82, z + 0.83, J_)               # coperchio del tavolo
+    b.prbox(2030, 2045, 2540, 2630, z + 0.45, z + 0.85, UPH, r=0.03)     # schienale
+    doors(b, 2125, 2215, 2650, z, z + 0.78, 1, -1)
 
     # --- Dinette: U a sinistra con tavolo, divano lineare a dritta, credenze
     z = sole_z_at(plan_x(2500))
@@ -323,11 +436,13 @@ def build_furniture(col):
     settee(b, 2306, 2412, 2075, 2257, "out")                            # braccio poppiero
     settee(b, 2590, 2692, 2075, 2257, "out")                            # braccio prodiero
     b.pbox(2425, 2580, 2085, 2245, z, z + 0.68, J_)                     # piede tavolo
-    b.pbox(2412, 2590, 2072, 2247, z + 0.68, z + 0.74, J_)              # piano tavolo
-    b.pbox(2458, 2552, 2260, 2310, z, z + 0.45, UPH)                    # pouf
+    b.prbox(2412, 2590, 2072, 2247, z + 0.68, z + 0.74, J_, r=0.03)     # piano tavolo
+    fiddle(b, plan_x(2420), plan_x(2582), plan_y(2160) + 0.01, plan_y(2160) - 0.01, z + 0.74, 0.03)
+    b.prbox(2458, 2552, 2260, 2310, z, z + 0.45, UPH, r=0.05)           # pouf
     settee(b, 2275, 2636, 2546, 2633, "out")                            # divano di dritta
-    b.pbox(2275, 2722, 1830, 1942, z + 0.9, z + 1.25, J_)               # credenza alta sinistra
-    b.pbox(2275, 2636, 2633, 2690, z + 0.9, z + 1.25, J_)               # credenza alta dritta
+    bookshelf(b, 2290, 2710, 1830, 1950, z + 0.95, z + 1.3, seed=1)    # libreria sinistra
+    bookshelf(b, 2290, 2630, 2625, 2700, z + 0.95, z + 1.3, seed=2)    # libreria dritta
+    doors(b, 2636, 2727, 2430, z, z + 0.95, 1, 1)                       # mobile a dritta
     b.pbox(2636, 2727, 2430, 2572, z, z + 0.95, J_)                     # mobile a dritta
 
     # --- Cabine prodiere
@@ -427,6 +542,31 @@ def build_mast_post(col):
     return b.finish("Interior_MastPost", col, clamp=False)
 
 
+def build_portlight_trims(col):
+    """Cornici in acciaio degli oblò, viste dall'interno della tuga e del pozzetto."""
+    b = Builder()
+    t, d = 0.035, 0.02
+    for x0p, x1p, slant in PORTLIGHTS:
+        x0, x1 = px_x(x0p), px_x(x1p)
+        xm = (x0 + x1) / 2
+        ztop = coachroof_side_height(xm)
+        zbase = deck_z(xm, coachroof_half_width(xm))
+        z0 = zbase + (ztop - zbase) * (CR_RED_BAND + 0.08)
+        z1 = zbase + (ztop - zbase) * 0.9
+        x1t = x1 - slant * S
+        for side in (-1, 1):
+            if xm < COCKPIT_FWD:
+                y = side * (cockpit_half_width() + 0.06 - 0.03)
+            else:
+                y = side * (coachroof_side_y(xm, (z0 + z1) / 2) - 0.03)
+            ya, yb = y, y - side * d
+            b.box(x0 - t, x1 + t, ya, yb, z0 - t, z0, STEEL_)
+            b.box(x0 - t, x1t + t, ya, yb, z1, z1 + t, STEEL_)
+            b.box(x0 - t, x0, ya, yb, z0, z1, STEEL_)
+            b.box((x1 + x1t) / 2, (x1 + x1t) / 2 + t, ya, yb, z0, z1, STEEL_)
+    return b.finish("Interior_Trim", col, clamp=False)
+
+
 def build_interior_all():
     col = get_collection("Swan651_Interior")
     build_sole(col)
@@ -435,6 +575,7 @@ def build_interior_all():
     build_furniture(col)
     build_headliner(col)
     build_mast_post(col)
+    build_portlight_trims(col)
     for m in MATS:
         m.use_backface_culling = False
     return {"sole_z": SOLE_Z, "objects": [o.name for o in col.objects]}
