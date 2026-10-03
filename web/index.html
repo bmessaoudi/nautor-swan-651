@@ -47,7 +47,14 @@
   </div>
 
   <header id="top">
-    <button type="button" id="explore-btn" class="cta explore-btn" aria-label="Esplora liberamente il modello 3D">Esplora in 3D</button>
+    <div class="top-left">
+      <!-- Indietro alla scelta fra visita tradizionale e audio, come in /bordo/ -->
+      <a id="back-btn" class="cta explore-btn back-btn" href="/?scelta" aria-label="Torna alla scelta della visita">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+        <span>Scegli la visita</span>
+      </a>
+      <button type="button" id="explore-btn" class="cta explore-btn" aria-label="Esplora liberamente il modello 3D"><span class="explore-long">Esplora in&nbsp;</span>3D</button>
+    </div>
     <a class="brand" href="/" aria-label="Nautor Swan, torna all'inizio"></a>
     <div class="top-right">
       <div id="cond" class="mono"><span></span><button type="button">Cambia</button></div>
