@@ -157,7 +157,7 @@ scene.add(landscape.group, landscape.rain);
 // isole e coste da mappe di altezza vere
 const terrain = createTerrain(ocean.shared);
 scene.add(terrain.group);
-// gabbiani e delfini con scheletro
+// gabbiani con scheletro
 const fauna = createFauna(ocean.shared);
 scene.add(fauna.group);
 
@@ -700,7 +700,7 @@ function frame(time) {
   sky.update(t, dt, s.ocean);
   landscape.update(t, s.ocean);
   terrain.update(t, s.ocean);
-  fauna.update(t, dt, s.ocean, camera, nav ? nav.heading : 0);
+  fauna.update(t, dt, s.ocean, camera);
 
   // Luci: dallo studio al mare
   const sea = s.ocean;

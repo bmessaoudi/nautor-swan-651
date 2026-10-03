@@ -5,18 +5,14 @@ import { clone as cloneSkinned } from "three/addons/utils/SkeletonUtils.js";
 import { SKY } from "./ocean.js";
 import { makeRng } from "./conditions.js";
 
-// Fauna del capitolo Navigazione: gabbiani reali attorno all'albero e lontani, tursiopi che
-// saltano davanti alla prua. Modelli con scheletro (scripts/blender/fauna.py), compressi con
+// Fauna del capitolo Navigazione: gabbiani reali attorno all'albero e lontani. Modello con scheletro (scripts/blender/fauna.py), compressi con
 // meshopt e caricati in modo asincrono: finché non arrivano, la scena va avanti senza.
-// - Gabbiani: due animazioni (Flap, Glide) mescolate con i pesi, così si passa dal battito
-//   alla planata senza scatti. Col vento planano di più e sbandano a raffiche.
-// - Delfini: solo con mare calmo o medio (forza 5 al massimo) e senza pioggia.
+// Due animazioni (Flap, Glide) mescolate con i pesi, così si passa dal battito alla planata
+// senza scatti. Col vento planano di più e sbandano a raffiche.
 // Tutto segue la dissolvenza uOpacity e la foschia della chunk SKY, come il paesaggio.
 
 const URL_GULL = "/models/fauna/gull.glb";
-const URL_DOLPHIN = "/models/fauna/dolphin.glb";
 const G = 9.81;
-const BOW = 9.6; // prua dello Swan 651 rispetto all'origine della barca (x)
 
 // Materiale standard (sole, cielo e mappa d'ambiente come lo scafo) più la foschia della scena
 function faunaMaterial(shared, roughness) {
@@ -43,114 +39,19 @@ function faunaMaterial(shared, roughness) {
   return m;
 }
 
-// Spruzzi dei delfini: punti che volano e ricadono, presi da un piccolo serbatoio
-const splashVert = /* glsl */ `
-attribute float aLife;
-attribute float aSize;
-varying float vLife;
-void main() {
-  vLife = aLife;
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  gl_PointSize = aSize * 900.0 / -mv.z;
-  gl_Position = projectionMatrix * mv;
-}
-`;
-const splashFrag = /* glsl */ `
-uniform float uOpacity;
-uniform vec3 uSunCol;
-uniform vec3 uHorizon;
-varying float vLife;
-void main() {
-  if (vLife <= 0.0) discard;
-  float d = length(gl_PointCoord - 0.5);
-  float a = smoothstep(0.5, 0.15, d) * vLife * 0.75;
-  vec3 col = mix(uHorizon, vec3(1.0), 0.6) * 0.75 + uSunCol * 0.25;
-  gl_FragColor = vec4(col, a * uOpacity);
-}
-`;
-
-function createSplash(shared, count = 260) {
-  const pos = new Float32Array(count * 3);
-  const vel = new Float32Array(count * 3);
-  const life = new Float32Array(count);
-  const size = new Float32Array(count);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  g.setAttribute("aLife", new THREE.BufferAttribute(life, 1));
-  g.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
-  const pts = new THREE.Points(
-    g,
-    new THREE.ShaderMaterial({
-      vertexShader: splashVert,
-      fragmentShader: splashFrag,
-      uniforms: { uOpacity: shared.uOpacity, uSunCol: shared.uSunCol, uHorizon: shared.uHorizon },
-      transparent: true,
-      depthWrite: false,
-    })
-  );
-  pts.frustumCulled = false;
-  let next = 0;
-  return {
-    points: pts,
-    emit(x, y, z, dirX, n, strength) {
-      for (let i = 0; i < n; i++) {
-        const k = next;
-        next = (next + 1) % count;
-        const a = Math.random() * Math.PI * 2;
-        const r = Math.random() * 0.35;
-        pos.set([x + Math.cos(a) * r, y, z + Math.sin(a) * r], k * 3);
-        const up = (1.5 + Math.random() * 2.5) * strength;
-        const out = (0.4 + Math.random() * 1.2) * strength;
-        vel.set([Math.cos(a) * out + dirX * strength * 1.5, up, Math.sin(a) * out], k * 3);
-        life[k] = 1;
-        size[k] = 0.05 + Math.random() * 0.09;
-      }
-    },
-    update(dt) {
-      let alive = false;
-      for (let k = 0; k < count; k++) {
-        if (life[k] <= 0) continue;
-        alive = true;
-        vel[k * 3 + 1] -= G * dt;
-        pos[k * 3] += vel[k * 3] * dt;
-        pos[k * 3 + 1] += vel[k * 3 + 1] * dt;
-        pos[k * 3 + 2] += vel[k * 3 + 2] * dt;
-        life[k] -= dt * 1.1;
-        if (pos[k * 3 + 1] < -0.2) life[k] = 0;
-      }
-      if (alive) {
-        g.attributes.position.needsUpdate = true;
-        g.attributes.aLife.needsUpdate = true;
-        g.attributes.aSize.needsUpdate = true;
-      }
-    },
-    clear() {
-      life.fill(0);
-      g.attributes.aLife.needsUpdate = true;
-    },
-  };
-}
-
 export function createFauna(shared) {
-  const group = new THREE.Group(); // gabbiani: attorno all'albero, non seguono la rotta
-  const pod = new THREE.Group(); // delfini: ruotano con la prua nella navigazione libera
-  group.add(pod);
+  const group = new THREE.Group(); // attorno all'albero, non segue la rotta
   const gullMat = faunaMaterial(shared, 0.85);
-  const dolphinMat = faunaMaterial(shared, 0.32); // pelle bagnata: riflette il cielo
-  const splash = createSplash(shared);
-  pod.add(splash.points);
 
   let models = null;
   let cond = null;
   let gulls = [];
-  let dolphins = [];
-  let podState = null;
 
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const load = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
-  Promise.all([load(URL_GULL), load(URL_DOLPHIN)])
-    .then(([gull, dolphin]) => {
-      models = { gull, dolphin };
+  load(URL_GULL)
+    .then((gull) => {
+      models = { gull };
       if (cond) populate();
     })
     .catch((err) => console.warn("Fauna non caricata", err));
@@ -170,14 +71,11 @@ export function createFauna(shared) {
   }
 
   function clear() {
-    for (const q of [...gulls, ...dolphins]) {
+    for (const q of gulls) {
       q.mixer.stopAllAction();
       q.root.removeFromParent();
     }
     gulls = [];
-    dolphins = [];
-    podState = null;
-    splash.clear();
   }
 
   function populate() {
@@ -238,38 +136,6 @@ export function createFauna(shared) {
       group.add(b.root);
       gulls.push(q);
     }
-
-    // Delfini: solo con mare calmo o medio, e non sempre
-    if (!c.rain && c.force <= 5 && rng() < 0.8) {
-      const n = rng.int(2, 4);
-      for (let i = 0; i < n; i++) {
-        const b = instance(models.dolphin, dolphinMat);
-        b.actions.Swim.play();
-        b.actions.Swim.time = rng() * b.actions.Swim.getClip().duration;
-        b.root.visible = false;
-        b.root.scale.setScalar(rng.range(0.85, 1.05));
-        pod.add(b.root);
-        dolphins.push({ ...b, jump: null, lane: (i % 2 ? 1 : -1) * rng.range(1.6, 3.8), ahead: rng.range(1, 6) });
-      }
-      podState = { rng, wait: rng.range(3, 7), calm: 1 - THREE.MathUtils.clamp((c.force - 2) / 4, 0, 0.6) };
-    }
-  }
-
-  // Un salto: arco balistico da sotto la superficie, il corpo segue la tangente
-  function startJump(d, delay, rng) {
-    const h = rng.range(1.0, 2.0) * podState.calm + 0.4;
-    const vy = Math.sqrt(2 * G * (h + 0.9));
-    d.jump = {
-      t: -delay,
-      T: (2 * vy) / G,
-      vy,
-      x0: BOW + d.ahead + rng.range(-1, 1),
-      vx: rng.range(2.8, 4.2), // un po' più veloci della barca: la superano saltando
-      z: d.lane + rng.range(-0.5, 0.5),
-      y0: -0.9,
-      splashIn: false,
-      splashOut: false,
-    };
   }
 
   function updateGull(q, t, dt, cam) {
@@ -331,52 +197,6 @@ export function createFauna(shared) {
     q.root.rotation.set(side * bank + gust, yaw, pitch, "YZX");
   }
 
-  function updatePod(t, dt) {
-    if (!podState) return;
-    const rng = podState.rng;
-    podState.wait -= dt;
-    if (podState.wait <= 0 && dolphins.every((d) => !d.jump)) {
-      // un gruppo che salta in sequenza, a volte due volte di fila
-      let delay = 0;
-      for (const d of dolphins) {
-        if (rng() < 0.85) startJump(d, delay, rng);
-        delay += rng.range(0.15, 0.6);
-      }
-      podState.wait = rng.range(7, 16);
-    }
-    for (const d of dolphins) {
-      const j = d.jump;
-      if (!j) continue;
-      j.t += dt;
-      if (j.t < 0) continue;
-      if (j.t > j.T + 0.35) {
-        d.jump = null;
-        d.root.visible = false;
-        // a volte ripartono subito, come fanno davanti alle prue
-        if (rng() < 0.35) startJump(d, rng.range(0.6, 1.2), rng);
-        continue;
-      }
-      const y = j.y0 + j.vy * j.t - 0.5 * G * j.t * j.t;
-      const x = j.x0 + j.vx * j.t;
-      const vy = j.vy - G * j.t;
-      d.root.visible = true;
-      d.root.position.set(x, y, j.z);
-      // assetto lungo la traiettoria, con un filo di rollio
-      d.root.rotation.set(Math.sin(j.t * 2) * 0.08, 0, Math.atan2(vy, j.vx * 1.6), "YZX");
-      // in aria la coda si ferma quasi: l'animazione rallenta fuori dall'acqua
-      d.actions.Swim.timeScale = y > 0 ? 0.35 : 1.4;
-      if (!j.splashIn && vy > 0 && y > -0.15) {
-        j.splashIn = true;
-        splash.emit(x + 0.9, 0, j.z, 1, 26, 0.9);
-      }
-      if (!j.splashOut && vy < 0 && y < 0.2) {
-        j.splashOut = true;
-        splash.emit(x + 0.6, 0, j.z, 1, 40, 1.1);
-      }
-    }
-    splash.update(dt);
-  }
-
   const api = {
     group,
     // Le condizioni cambiano col seme: si ricostruisce tutto, appena i modelli ci sono
@@ -384,24 +204,20 @@ export function createFauna(shared) {
       cond = c;
       if (models) populate();
     },
-    // cam: per il gabbiano curioso; heading: rotta della navigazione libera (sailing.js),
-    // i delfini restano davanti alla prua
-    update(t, dt, opacity, cam, heading = 0) {
+    // cam: per il gabbiano curioso
+    update(t, dt, opacity, cam) {
       const vis = opacity > 0.005 && !!models;
       group.visible = vis;
       if (!vis) return;
-      gullMat.opacity = dolphinMat.opacity = opacity;
+      gullMat.opacity = opacity;
       dt = Math.min(dt, 0.1); // dopo una scheda in secondo piano niente salti
-      pod.rotation.y = -heading;
       for (const q of gulls) {
         updateGull(q, t, dt, cam);
         q.mixer.update(dt);
       }
-      updatePod(t, dt);
-      for (const d of dolphins) if (d.root.visible) d.mixer.update(dt);
     },
   };
-  // per le verifiche dalla console: stato di gabbiani e delfini
-  if (import.meta.env.DEV) window.__fauna = { api, get gulls() { return gulls; }, get dolphins() { return dolphins; }, get pod() { return podState; } };
+  // per le verifiche dalla console: stato dei gabbiani
+  if (import.meta.env.DEV) window.__fauna = { api, get gulls() { return gulls; } };
   return api;
 }

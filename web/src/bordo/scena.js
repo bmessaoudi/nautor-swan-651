@@ -195,7 +195,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   // isole e coste da mappe di altezza vere
   const terrain = createTerrain(ocean.shared);
   scene.add(terrain.group);
-  // gabbiani e delfini con scheletro
+  // gabbiani con scheletro
   const fauna = createFauna(ocean.shared);
   scene.add(fauna.group);
 
