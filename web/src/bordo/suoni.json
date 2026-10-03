@@ -1,0 +1,25 @@
+{
+  "_nota": "Suoni della pagina a voce. Il testo in 'prompt' va a ElevenLabs Sound Effects (eleven_text_to_sound_v2): agent/genera_suoni.py crea web/public/audio/bordo/<id>.mp3. I prompt sono in inglese perché il modello li segue meglio.",
+  "ambienti": [
+    { "id": "amb-tavola", "loop": true, "durata": 22, "prompt": "Quiet naval architecture drafting studio, soft room tone, faint ticking wall clock, occasional pencil strokes on paper, calm and focused" },
+    { "id": "amb-cantiere", "loop": true, "durata": 26, "prompt": "Interior of a large boatyard shed in Finland, distant muffled hammering and tools echoing, low hum of a big empty hall, calm" },
+    { "id": "amb-sottocoperta", "loop": true, "durata": 26, "prompt": "Inside the wooden cabin of a sailing yacht at anchor, gentle creaking of wood, water softly lapping against the hull muffled through the planks, cosy and very quiet" },
+    { "id": "amb-voci", "loop": true, "durata": 22, "prompt": "Three people chatting softly and laughing quietly in a small wooden cabin, indistinct murmur, close and intimate, no clear words" },
+    { "id": "amb-vele", "loop": true, "durata": 14, "prompt": "Large slack sails luffing and flapping in steady wind, sailcloth fluttering, occasional snap" },
+    { "id": "amb-mare", "loop": true, "durata": 30, "prompt": "Sailing yacht under way at sea, wind rushing over the deck, waves washing along the hull, rigging humming softly" },
+    { "id": "amb-vento-forte", "loop": true, "durata": 26, "prompt": "Strong wind gusts over open ocean, spray hitting the deck, rigging whistling, powerful but not harsh" },
+    { "id": "amb-gabbiani", "loop": true, "durata": 22, "prompt": "Seagulls calling in the distance near a rocky Mediterranean coast, light surf on rocks" },
+    { "id": "amb-pioggia", "loop": true, "durata": 22, "prompt": "Steady rain falling on the sea surface and on a teak boat deck, soft patter" }
+  ],
+  "effetti": [
+    { "id": "fx-accensione", "durata": 2.2, "prompt": "Warm electronic power-on chime of a yacht navigation instrument panel, soft rising beep and short hum, premium and subtle" },
+    { "id": "fx-spegnimento", "durata": 1.6, "prompt": "Yacht instrument panel powering down, soft descending beep, subtle" },
+    { "id": "fx-carta", "durata": 2.2, "prompt": "Large paper blueprint being unrolled and smoothed on a wooden drafting table" },
+    { "id": "fx-interruttore", "durata": 0.8, "prompt": "Old brass light switch click in a small wooden yacht cabin, close" },
+    { "id": "fx-porta", "durata": 2.6, "prompt": "Small wooden cabin door on a yacht opening slowly with a soft creak and a latch click" },
+    { "id": "fx-verricello", "durata": 3.0, "prompt": "Sailboat winch ratchet clicking as a sheet is cranked several turns with a winch handle" },
+    { "id": "fx-vela-gonfia", "durata": 2.6, "prompt": "Large sail suddenly filling with wind with a deep whoomp, sheet tightening and creaking" },
+    { "id": "fx-sartiame", "durata": 2.0, "prompt": "Metal shackles and halyards clinking against an aluminium mast on a sailing yacht" },
+    { "id": "fx-onda", "durata": 3.0, "prompt": "A single wave breaking against the bow of a sailing yacht, spray falling back on deck" }
+  ]
+}

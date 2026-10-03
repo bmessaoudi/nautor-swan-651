@@ -3,48 +3,132 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Swan 651</title>
+  <title>Nautor Swan - Swan 651</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <canvas id="gl"></canvas>
   <div id="hotspots"></div>
 
-  <div id="loader">
-    <div class="loader-inner">
-      <span class="mono">SWAN 651 / FRERS 1982</span>
-      <div class="loader-bar"><i></i></div>
-      <span class="mono loader-pct">0%</span>
+  <!-- Copertura navy: resta finché il modello non è pronto, poi si apre sulla scena. -->
+  <div id="loader"><span class="mono loader-error"></span></div>
+
+  <!-- Ingresso in due passi sullo stesso overlay: presentazione, poi scelta della visita.
+       Compare subito, sopra la copertura, mentre il modello si carica dietro. -->
+  <div id="mode" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+    <div class="mode-gallery" aria-hidden="true"></div>
+    <canvas class="film-dust" aria-hidden="true"></canvas>
+    <div class="film-flicker" aria-hidden="true"></div>
+    <div class="mode-timeline" aria-hidden="true"></div>
+    <div class="mode-card mode-step" data-step="intro">
+      <h2 id="intro-title">L'archivio storico Nautor Swan</h2>
+      <p class="mode-text">Entra nel profondo del mondo Nautor Swan: un archivio storico che custodisce documenti, immagini e testimonianze, da esplorare una pagina alla volta.</p>
+      <button type="button" class="cta" data-mode="enter">Entra</button>
+    </div>
+    <div class="mode-card mode-step" data-step="choice" hidden>
+      <span class="mono kicker">Swan 651</span>
+      <h2 id="mode-title">Come vuoi vivere la visita?</h2>
+      <div class="mode-options">
+        <button type="button" data-mode="classic">
+          <span class="mono">01</span>
+          <b>Tradizionale</b>
+          <span>Scorri la pagina e leggi al tuo ritmo.</span>
+        </button>
+        <button type="button" data-mode="audio">
+          <span class="mono">02</span>
+          <b>Esperienza audio</b>
+          <span>Una voce ti accompagna lungo la visita.</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <header id="top">
-    <a class="brand" href="#s0">Nautor's Swan <em>651</em></a>
+    <button type="button" id="explore-btn" class="cta explore-btn" aria-label="Esplora liberamente il modello 3D">Esplora in 3D</button>
+    <a class="brand" href="/" aria-label="Nautor Swan, torna all'inizio"></a>
     <div class="top-right">
       <div id="cond" class="mono"><span></span><button type="button">Cambia</button></div>
-      <span class="mono draft-tag">Bozza interna</span>
     </div>
   </header>
 
+  <!-- Esplorazione libera: si passa fra esterni e interni, la camera si gira col mouse -->
+  <div id="explore-bar" role="toolbar" aria-label="Esplorazione del modello">
+    <button type="button" data-view="esterni" aria-pressed="true">Esterni</button>
+    <button type="button" data-view="interni" aria-pressed="false">Interni</button>
+    <button type="button" data-view="navigazione" aria-pressed="false">Navigazione</button>
+  </div>
+
+  <!-- Navigazione libera (sailing.js): visibile solo giocando, nella vista Navigazione dell'esplorazione -->
+  <section id="sail-hud" aria-label="Comandi di navigazione">
+    <header class="hud-top">
+      <svg class="hud-dial" viewBox="-60 -60 120 120" aria-hidden="true">
+        <circle r="54" class="dial-face" />
+        <g class="dial-ticks" data-ticks></g>
+        <!-- settori di bolina: rosso a sinistra, verde a dritta, come negli strumenti di bordo -->
+        <path class="dial-port" d="M -15.73 -43.23 A 46 46 0 0 0 -39.84 -23" />
+        <path class="dial-stbd" d="M 15.73 -43.23 A 46 46 0 0 1 39.84 -23" />
+        <path class="dial-boat" d="M0 -20 C6 -11 6 7 4.5 17 L-4.5 17 C-6 7 -6 -11 0 -20 Z" />
+        <g data-wind-app><path class="dial-app" d="M0 -40 L5 -30 L-5 -30 Z" /></g>
+        <g data-wind-true><path class="dial-true" d="M0 -53 L7 -40 L1.6 -40 L1.6 -26 L-1.6 -26 L-1.6 -40 L-7 -40 Z" /></g>
+      </svg>
+      <div class="hud-speed">
+        <span class="hud-label">Velocità</span>
+        <p><strong data-speed>0,0</strong><span>nodi</span></p>
+        <span class="hud-pos" data-pos></span>
+      </div>
+    </header>
+
+    <dl class="hud-wind">
+      <div><dt class="hud-label"><i class="key-true"></i>Vento reale</dt><dd data-tw></dd></div>
+      <div><dt class="hud-label"><i class="key-app"></i>Apparente</dt><dd data-aw></dd></div>
+    </dl>
+
+    <label class="hud-sheet" data-sheet="main">
+      <span class="hud-row"><span class="hud-label">Randa</span><b data-trim-main></b></span>
+      <input id="hud-main" type="range" min="0" max="100" value="15" />
+      <span class="hud-row hud-ends"><i>Cazza</i><i>Lasca</i></span>
+    </label>
+    <label class="hud-sheet" data-sheet="jib">
+      <span class="hud-row"><span class="hud-label" data-jib-label>Fiocco</span><b data-trim-jib></b></span>
+      <input id="hud-jib" type="range" min="0" max="100" value="15" />
+      <span class="hud-row hud-ends"><i>Cazza</i><i>Lasca</i></span>
+    </label>
+
+    <div class="hud-helm">
+      <button type="button" data-steer="-1" aria-label="Accosta a sinistra"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" /></svg></button>
+      <div class="hud-rudder">
+        <span class="hud-label">Timone</span>
+        <span class="rudder-track"><i data-rudder></i></span>
+      </div>
+      <button type="button" data-steer="1" aria-label="Accosta a dritta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></button>
+    </div>
+
+    <div class="hud-kites">
+      <button type="button" data-kite="gennaker" aria-pressed="false">Issa gennaker</button>
+      <button type="button" data-kite="spinnaker" aria-pressed="false">Issa spinnaker</button>
+    </div>
+    <p class="hud-keys">← → timone · W S randa · Q E fiocco · G gennaker · P spinnaker</p>
+  </section>
+
   <nav id="chapters">
-    <a data-go="1"><span class="num">01</span><span class="lab">Blueprint</span></a>
-    <a data-go="4"><span class="num">02</span><span class="lab">Esterni</span></a>
-    <a data-go="9"><span class="num">03</span><span class="lab">Interni</span></a>
-    <a data-go="13"><span class="num">04</span><span class="lab">Navigazione</span></a>
+    <a data-tone data-go="1"><span class="num">01</span><span class="lab">Blueprint</span></a>
+    <a data-tone data-go="4"><span class="num">02</span><span class="lab">Esterni</span></a>
+    <a data-tone data-go="9"><span class="num">03</span><span class="lab">Interni</span></a>
+    <a data-tone data-go="13"><span class="num">04</span><span class="lab">Navigazione</span></a>
     <div class="progress"><i></i></div>
   </nav>
 
-  <div id="readout" class="mono">
+  <div id="readout" class="mono" data-tone>
     <span data-r="x">X 0.00</span><span data-r="fov">FOV 0</span><span data-r="step">00 / 17</span>
   </div>
 
   <main id="steps">
     <!-- 0. Apertura -->
     <section class="step hero" id="s0">
-      <div class="hero-txt">
+      <div class="hero-txt" data-tone>
         <span class="mono kicker">Germán Frers per Nautor's Swan, 1982-1991</span>
         <h1>Swan <em>651</em></h1>
         <p>Diciannove scafi. Un maxi da regata pensato per attraversare gli oceani.</p>
@@ -83,23 +167,23 @@
       <div class="card">
         <span class="mono kicker">01 / Blueprint</span>
         <h2>L'armo</h2>
-        <p>Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su Lunz am Meer oggi quattro verricelli sono elettrici.</p>
+        <p>Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su diversi scafi oggi alcuni verricelli sono elettrici.</p>
         <dl class="specs">
           <div><dt>P (randa)</dt><dd>24,00 m</dd></div>
           <div><dt>E (base randa)</dt><dd>7,04 m</dd></div>
           <div><dt>J</dt><dd>8,05 m</dd></div>
           <div><dt>Superficie di bolina</dt><dd>~194 m²</dd></div>
         </dl>
-        <p class="note mono">Misure dal certificato IRC di Lunz am Meer (651-007).</p>
+        <p class="note mono">Misure dal certificato IRC di uno Swan 651.</p>
       </div>
     </section>
 
     <!-- 2. Esterni -->
     <section class="step chapter" data-side="right" id="s4">
-      <div class="card">
+      <div class="card" data-tone>
         <span class="mono kicker">02</span>
         <h2 class="big">Esterni</h2>
-        <p>La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta: i colori di Lunz am Meer.</p>
+        <p>La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta.</p>
       </div>
     </section>
 
@@ -150,7 +234,7 @@
 
     <!-- 3. Interni -->
     <section class="step chapter" data-side="left" id="s9">
-      <div class="card">
+      <div class="card" data-tone>
         <span class="mono kicker">03</span>
         <h2 class="big">Interni</h2>
         <p>Si toglie la coperta. Sotto, quindici metri di spazio vivibile disegnati come una casa: zona armatore a poppa, vita comune al centro, ospiti e vele a prua.</p>
@@ -203,7 +287,7 @@
 
     <!-- 4. Navigazione -->
     <section class="step chapter" data-side="left" id="s13">
-      <div class="card">
+      <div class="card" data-tone>
         <span class="mono kicker">04</span>
         <h2 class="big">Navigazione</h2>
         <p>Fuori dal cantiere, in mare aperto. È qui che il disegno di Frers si spiega.</p>
@@ -214,10 +298,10 @@
       <div class="card">
         <span class="mono kicker">04 / Velocità</span>
         <h2>Otto nodi di media, per settimane</h2>
-        <p>Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera. Nel 2023 Spirit of Helsinki ha vinto in tempo reale la prima tappa della Ocean Globe Race: 7.672 miglia a circa 8 nodi di media.</p>
+        <p>Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera.</p>
         <svg id="polar" viewBox="0 0 200 300" aria-label="Diagramma polare stimato"></svg>
         <div class="legend mono"><span class="l10">10 kn</span><span class="l16">16 kn</span><span class="l20">20 kn</span></div>
-        <p class="note mono">Polare dal certificato ORC di Lunz am Meer. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.</p>
+        <p class="note mono">Polare dal certificato ORC di uno Swan 651. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.</p>
       </div>
     </section>
 
@@ -249,11 +333,11 @@
     </section>
 
     <section class="step outro" id="s17">
-      <div class="hero-txt">
-        <span class="mono kicker">Scafo 651-007</span>
-        <h1>Lunz <em>am Meer</em></h1>
-        <p>Il prossimo capitolo: la storia dei diciannove scafi.</p>
-        <a class="mono restart" data-go="0">Torna alla tavola</a>
+      <div class="hero-txt" data-tone>
+        <span class="mono kicker">Germán Frers, 1982-1991</span>
+        <h1>Diciannove <em>scafi</em></h1>
+        <p>Il prossimo capitolo: la storia di ognuno di loro.</p>
+        <a class="mono cta restart" data-go="0">Torna alla tavola</a>
       </div>
     </section>
   </main>

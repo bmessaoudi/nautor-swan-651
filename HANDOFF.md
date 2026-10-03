@@ -1,195 +1,207 @@
-# Handoff: museo 3D Swan 651
+# Handoff: Swan 651, branch dell'agente vocale
 
 Aggiornato al 3 ottobre 2026. Leggi questo file prima di toccare qualcosa.
 
-## Obiettivo
+## Dove siamo
 
-Demo **a uso interno** di un museo web interattivo dedicato **solo allo Swan 651** (Nautor's Swan, Germán Frers, 1982-1991, 19 esemplari). Riferimento principale: **Lunz am Meer** (scafo 651-007, AUT 2895).
+Demo **a uso interno** di un museo web dedicato **solo allo Swan 651** (Nautor's Swan, Germán Frers, 1982-1991, 19 esemplari). **Museo generico sul 651**: si racconta il progetto, non i singoli scafi (scelta della designer, estesa all'agente il 3 ottobre 2026). Le uniche barche citate per nome sono quelle della landing: Fazer Finland, oggi Spirit of Helsinki, per la Whitbread 1985-86, e Second Wind, Show Me e Adrienne II come fonti. Lunz am Meer resta solo come fonte interna del modello 3D (armo, colori, specchio di poppa). Non servono consensi né licenze: lo ha detto l'utente, non riproporre il tema.
 
-- Non servono consensi, licenze o autorizzazioni: lo ha detto l'utente, non riproporre il tema.
-- Il punto critico era il modello 3D, che ora esiste. Il design del sito non è ancora stato discusso.
-- Niente generazione AI (fal, Meshy e simili): l'utente ha scelto il metodo a script.
+Il team è diviso in due e lavora su due branch:
 
-## Stato attuale
+| Branch | Chi | Esperienza |
+|---|---|---|
+| `feature/computer-di-bordo` | l'utente (dev) | Agente vocale che fa da guida: l'utente ascolta e guarda il sito che si muove, con pochissimo testo a schermo |
+| `dev` | la designer | Landing page con design prestabilito, da leggere ed esplorare in autonomia |
 
-Il modello completo esiste ed è generato **interamente da script Python** eseguiti in Blender via MCP.
+Più avanti i due branch verranno uniti in `main`, che conterrà entrambe le esperienze.
+
+- Questo branch è nato da `main` al commit `0d9bb57` ed è pubblicato su `origin`.
+- **3 ottobre 2026: `origin/dev` unito in questo branch** (commit `cac2d9b`), poi PR verso `dev`. Il branch `dev` non si tocca direttamente: è lo spazio della designer.
+- Il pulsante "Esperienza audio" dell'ingresso della landing porta a `/bordo/` (`AUDIO_HREF` in `main.js`, l'unica riga cambiata nel suo codice). Il segnaposto `audio.html` è stato tolto.
+- **Regola:** il codice dell'agente vive in file e cartelle propri. Sui file condivisi (`web/src/main.js`, `web/index.html`, `web/src/style.css`) solo modifiche piccole e circoscritte.
+- **Trappola nei moduli condivisi:** dopo il gioco di navigazione della designer, `ocean.js` non fa più scorrere l'acqua da solo: lo scorrimento arriva da `ocean.setCourse(heading, pos)`. `scena.js` lo chiama a rotta dritta; senza, il mare di `/bordo/` resta fermo.
+
+## Obiettivo del branch: il "computer di bordo"
+
+Un agente vocale che fa visitare il sito al posto dell'utente. Se l'utente chiede gli interni, la camera ci va. Se chiede la storia del brand o qualcosa che non ha una scena, risponde a voce e dice che non c'è niente da mostrare. Il nome richiama il computer di bordo di una barca a vela. **Si accende dal pulsante di accensione della plancia**, che è anche il gesto con cui il browser concede microfono e audio.
+
+### Vincoli dell'utente
+
+- Tutto definito **in codice nel repo**. Nessuna dashboard esterna: ElevenLabs Agents è escluso per questo.
+- **Esclusi i modelli speech-to-speech realtime**: OpenAI Realtime, Gemini Live e simili.
+- Priorità alla **qualità dell'esperienza e della voce**: tono, espressività, italiano naturale.
+
+### Stack scelto (verificato sui sorgenti dei plugin il 3 ottobre 2026)
+
+| Pezzo | Scelta | Note |
+|---|---|---|
+| Trasporto | LiveKit server locale | `brew install livekit`, poi `livekit-server --dev`; credenziali `devkey` / `secret`, porta 7880. Si passa a LiveKit Cloud cambiando solo le variabili d'ambiente |
+| Worker | **Python** con LiveKit Agents, cartella `agent/` | Python e non Node, vedi sotto |
+| Cervello | Claude Opus 5.5 (`claude-opus-5-5`), effort basso | Prompt e conoscenza in file nel repo, prompt caching attivo |
+| Orecchie | Deepgram Flux Multilingual (`flux-general-multi`) | Classe `deepgram.STTv2`, suggerimento di lingua `it` |
+| Turni | Endpointing di Flux (`turn_detection="stt"`) oppure TurnDetector audio di LiveKit | Il TurnDetector supporta l'italiano. In locale gira la versione `v1-mini` sulla CPU, gratis. Provare entrambi |
+| Voce | ElevenLabs **Eleven v4 Turbo** (`eleven_v4_turbo`) | Uscito il 28 settembre 2026, 90+ lingue, audio tag per il tono, circa 100 ms di inferenza. Ripiego: `eleven_flash_v2_5` |
+| Ponte col sito | RPC di LiveKit dall'agente al browser | Pattern documentato "forwarding tools to the frontend" |
+
+**Perché Python:** Eleven v4 Turbo passa solo dal WebSocket "Text to Dialogue". Il plugin ElevenLabs Python lo implementa già (`is_dialogue_model`). Quello Node usa solo il WebSocket classico e si ferma a `eleven_v3`. Anche le opzioni di Deepgram Flux a sessione aperta sono solo in Python.
+
+**Limiti noti del plugin Anthropic** (sia Python sia Node):
+
+- Non espone `output_config.effort`. Su Opus 5.5 il default è `medium`: serve una sottoclasse o `extra_kwargs` per passare `low`.
+- Il default di `max_tokens` in Python è 1024, troppo stretto con il thinking sempre attivo di Opus 5.5. Alzarlo.
+- Non rimanda i blocchi di thinking fra un turno e l'altro. È ammesso dall'API: si perde solo un po' di continuità di ragionamento.
+- Su Opus 5.5 `tool_choice` `any` o `tool` restituisce un errore 400. Lasciare `auto`, che è il default del plugin.
+- Su Opus 5.5 aggiungere i fallback lato server in caso di rifiuto (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`).
+
+### Chiavi API necessarie
+
+Anthropic, Deepgram, ElevenLabs. Vanno in `agent/.env`, mai committate.
+
+## Stato al 3 ottobre 2026 (notte)
+
+Il computer di bordo ha una **pagina tutta sua, `/bordo/`**, riprogettata per la voce, con lo stile della landing (vedi sotto). La landing (`/`, `index.html`, `main.js`, `style.css`) è della designer. **Manca ancora la prova con le chiavi vere** e i suoni non sono stati generati.
+
+### Scelte dell'utente per la pagina a voce (3 ottobre)
+
+- Pagina separata `/bordo/`: in `main` conviveranno la landing da leggere e il museo guidato a voce.
+- **Regia solo dell'agente**: niente scroll. A sinistra un indice di argomenti da chiedere (vedi il secondo giro).
+- **Niente testo a schermo**: solo parole chiave (un titolo e fino a tre dati) scelte dall'agente, più foto e grafici quando servono.
+- Sottotitoli spenti, attivabili dal tasto CC.
+- Foto da `reference/` (sia dell'utente sia dal web) e grafici della landing.
+- Suoni d'ambiente per sezione con ElevenLabs Sound Effects, sempre sotto la voce. Suno scartato: niente API ufficiale né sintesi vocale.
+
+### Secondo giro (richieste dell'utente, 3 ottobre notte)
+
+- **Consumo.** Misurato con Chrome: landing e `/bordo/` a camera ferma disegnano zero fotogrammi WebGL; LiveKit e il worker Python lavorano solo sulla CPU. La differenza trovata: animazioni CSS continue sopra pannelli con `backdrop-filter` raddoppiavano il lavoro del processo GPU anche da fermi. La nuova plancia non ha sfocature; la sfera è un canvas piccolo che si ferma quando la plancia è spenta; gli strumenti si aggiornano 4 volte al secondo. La scena in mare resta la parte pesante, in entrambe le pagine.
+- **LiveKit Cloud.** Basta mettere url e chiavi del progetto (`lk cloud auth`, poi `lk app env -w` in `agent/`, che scrive `.env.local`; gli script lo leggono). Su Cloud l'agente usa da solo le interruzioni `adaptive` e, con `BORDO_TURNI=audio`, il TurnDetector `v1` in cloud.
+- **Ingresso al buio con la plancia.** Ricerca sulle foto vere (`reference/photos_web/deck/unnamed-1984_cockpit_8.jpg` è il riferimento migliore): mensola con cappello di teak sulla paratia del pozzetto di poppa, casse quadrate nere con quadranti antracite e lancette bianche (ripetitori B&G Hercules degli anni Ottanta). `plancia.js` la disegna in SVG: vento apparente con sagoma dello scafo e settori rosso e verde, nodi di vento, rotta (la rosa segue la camera), "visita" come un indicatore VDO dei serbatoi; levette d'alluminio con spia (Bordo rossa, Sottotitoli ambra, Suoni verde). Si entra con tutto spento e la plancia al centro; la levetta Bordo accende gli strumenti con l'autotest delle lancette, poi appare la barca e la plancia scende al suo posto.
+- **Sfera della voce** (`orb.js`): shader WebGL di acqua e schiuma dentro lo strumento centrale. Si gonfia con la voce dell'agente quando parla e con il microfono quando ascolta (`livello.js`), gira quando elabora.
+- **Indice al posto della navigazione** (`indice.js`): argomenti raggruppati (Il progetto, Fuori, Dentro, In mare, Storie). Si illumina quello in scena; il clic manda all'agente "[Argomento scelto dall'indice: ...]". Spariti i puntini dei capitoli e le domande suggerite.
+- **Inquadrature.** Composizione fissa: indice a sinistra, parole chiave e foto a destra, barca centrata nello spazio fra i due e sopra la plancia (il centro ottico della camera si sposta lì). Ritocchi di campo visivo in `REGIA` dentro `scena.js` per i passi 0, 1, 3, 4, 7, 11, 12, 14, 16. In sviluppo `?passo=N` apre direttamente una scena. **Centraggio automatico** (`misuraSagoma` in `scena.js`): a ogni fotogramma si proietta un campione di circa 3000 vertici esterni e il centro ottico va sul centro della sagoma, anche durante la panoramica. Se la barca è più alta dello schermo la chiglia si appoggia sopra la plancia e si taglia l'albero. Negli interni resta il punto di `story.js`.
+- **Luci di cabina**: faretti rivolti in basso invece di luci puntiformi. Le chiazze rosate sui fianchi bianchi degli interni ci sono anche nella landing, quindi non dipendono dalle luci: è un difetto dei rivestimenti interni da guardare a parte.
+- **Carattere**: prompt con personalità ironica e carismatica (battute brevi dopo il fatto vero, mai inventare aneddoti) e audio tag di Eleven v4 (`[chuckles]`, `[sarcastic]`, `[whispers]`, `[dry amusement]`...), al massimo uno o due per risposta. Saluto nuovo. Con Flash i tag vengono tolti dal testo (`togli_tag`); i sottotitoli li nascondono sempre.
+- **Voce**: `agent/cerca_voce.py` (cerca nella Voice Library italiana e scarica le anteprime, prova una battuta con i tag su `eleven_v4`, aggiunge la voce all'account, oppure Voice Design da descrizione). Candidati: Vittorio (`nH7uLS5UdEnvKEOAXtlQ`, "friendly, smiling") e Max (`tULHfJ4iE8Pmlm5lOtto`, "expressive"), da verificare: la Library pubblica non è leggibile senza login. ElevenLabs avverte che le voci progettate rendono meno su v4 di quelle della Library.
+
+### Pagina `/bordo/` (`web/bordo/index.html`, `web/src/bordo/`)
+
+- `scena.js`: copia della scena della landing guidata dalla regia invece che dallo scroll. Ogni spostamento va dallo stato attuale a quello d'arrivo senza attraversare i passi intermedi (da 1,8 a 3,6 secondi). Negli interni si accendono cinque luci di cabina calde, con un breve sfarfallio. **Da unificare con `main.js` in un modulo comune al merge.**
+- `pagina.js` e `pagina.css`: ingresso con il pulsante di accensione (sblocca audio e microfono), unico modo di entrare: l'ingresso senza voce è stato tolto; parole chiave sul lato libero dell'inquadratura; pannello per foto e grafici; plancia in basso al centro (vedi il secondo giro).
+- `passi.js`: i testi delle 18 schede della landing, ora conoscenza dell'agente e non testo a schermo. Ogni passo ha un campo `pannello`: la foto o il grafico che riempie la colonna di destra all'arrivo della camera, così la colonna non resta mai vuota. Una foto aperta dall'agente prende il suo posto fino allo spostamento successivo; se l'agente non dà parole chiave resta il titolo del passo. Sul telefono (sotto 901 px) il pannello fisso non compare, per non coprire la barca.
+- `disegni.js` e `contorni.js`: sei grafici SVG nuovi (scheda tecnica generale, pannello d'apertura; misure, carena, piano velico quotato, superfici delle vele, zavorra). Registro dei 19 scafi e palmarès di Lunz am Meer tolti con il museo generico. I contorni dello scafo in metri sono ricavati da `reference/drawing_outlines_px.json`. In `scena.js` la camera allarga il campo (fino a 1,6 volte) quando la barca intera non entra fra indice e colonna di destra.
+- `immagini.js` e `public/img/bordo/`: 42 foto scelte da `reference/` (circa 10 MB, massimo 400 KB l'una), con titolo, didascalia e una descrizione per l'agente. Id, file e testi sono generici ("uno Swan 651"), tranne Fazer Finland e Spirit of Helsinki e la tavola di Adrienne II; il campo `fonte` dice da quale scafo viene ogni foto. Alcune foto mostrano il nome della barca sullo scafo. `media.js`: polare, mappa delle rotte e gli otto grafici di `disegni.js`.
+- `suoni.json` e `suoni.js`: 9 ambienti in loop e 9 effetti. Il volume degli ambienti segue lo stato della scena a ogni fotogramma: la tavola, il cantiere, sottocoperta con le voci basse, le vele che sbattono quando sbattono anche nel 3D, il mare e il vento in base ai nodi, i gabbiani vicino alla costa, la pioggia con il preset pioggia. Gli effetti sono legati ai momenti: interruttore e porta quando si accendono le luci, verricello in coperta, vela che si gonfia, onda all'arrivo in mare. Tutto scende al 32% mentre l'agente parla. Senza file audio la pagina funziona lo stesso.
+- `bordo.js` (collegamento LiveKit, trascrizioni, invio di testo) e `bridge.js` (RPC). L'indice per l'agente parte come **stream di testo**: supera i 15 KB massimi di una risposta RPC.
+- `web/vite.config.js`: due ingressi nella build (landing e `/bordo/`), chiave `rolldownOptions` di Vite 8.
+- **Stile allineato alla landing** (3 ottobre): token della designer copiati in `pagina.css` (Montserrat, navy `#003660`, blu Swan, temi chiaro e scuro), titoli leggeri maiuscoli e spaziati, `.mono`, angoli vivi, logo in maschera centrato, ingresso sul navy della copertura della landing, `contrast.js` per il tono di parole chiave e gruppi dell'indice. Restano nostri i comandi di vetro e la sfera, ricolorati con i blu della casa.
+
+### Agente (`agent/`)
+
+- Tool: `vai_al_passo(passo, titolo, dati)`, `mostra_dettaglio(id, dati)`, `mostra_parole(titolo, dati)`, `mostra_immagine(id)`, `nascondi_immagine`, `cambia_mare`, `spegni`. Le parole chiave viaggiano nella stessa chiamata dello spostamento, così compaiono insieme alla scena senza un secondo giro del modello.
+- Sottoclasse `ClaudeLLM`: `output_config.effort` (default `low`), `fallbacks: "default"` con la beta `server-side-fallback-2026-07-01`, `max_tokens` 8000, caching.
+- Lo stato dello schermo (passo, capitolo, mare, foto aperta) entra in testa a ogni messaggio dell'utente come `[A schermo: ...]`, sia a voce sia dal testo (suggerimenti e puntini).
+- Interruzioni con il VAD Silero locale (`mode: "vad"`): quelle "adaptive" chiamano un servizio di LiveKit Cloud che col server locale risponde 401.
+- `genera_suoni.py`: genera gli mp3 da `suoni.json` con l'API Sound Effects (`eleven_text_to_sound_v2`, `loop: true` per gli ambienti). Salta quelli già presenti.
+- `prompt.md`: riscritto per lo schermo senza testo (parole chiave, foto, note tra parentesi quadre).
+
+### Verificato senza chiavi
+
+- Richiesta a Claude ricostruita a secco, schemi stretti dei tool compreso `dati` come lista di oggetti.
+- Con LiveKit locale: dispatch, indice via stream, avvio della sessione. Con le chiavi finte la sessione cade su Deepgram (401) e la plancia mostra "Non raggiungibile".
+- Con un finto agente Python nella stanza: dettaglio indicato con parole e dati, salto dalla tavola alla carena, foto della Whitbread, polare, dinette con le luci. Screenshot controllati.
+- Navigazione senza voce dai puntini. Build di produzione.
+
+### Avvio
+
+```
+cp agent/.env.example agent/.env           # poi le tre chiavi
+cd agent && uv run genera_suoni.py         # una volta: crea web/public/audio/bordo/
+livekit-server --dev                       # terminale 1
+cd agent && uv run token_server.py         # terminale 2
+cd agent && uv run agent.py dev            # terminale 3
+cd web && pnpm run dev                     # terminale 4, poi http://localhost:5173/bordo/
+```
+
+Opzioni in `.env`: `ELEVEN_VOICE_ID`, `ELEVEN_MODEL`, `BORDO_EFFORT`, `BORDO_TURNI` (`stt` per Flux, `audio` per il TurnDetector `v1-mini`).
+
+### Da verificare con le chiavi
+
+- Il plugin Anthropic scarta i blocchi di thinking fra un turno e l'altro: controllare che l'API lo accetti nel giro dei tool.
+- La frase di presa in carico prima di un tool deve arrivare come testo: su Opus 5.5 le note più lunghe di una frase fra un tool e l'altro diventano thinking, quindi mute.
+- Latenza alla prima parola con effort `low`; confronto `BORDO_TURNI=stt` e `audio`.
+- Qualità di voce e suoni, volumi relativi (`LIVELLI` e `DUCK` in `suoni.js`).
+- Che l'agente scelga parole chiave brevi e foto pertinenti.
+
+## Prossimi passi
+
+1. Chiavi in `agent/.env` e credenziali LiveKit Cloud in `.env.local`, poi prima prova completa a voce.
+2. Scelta della voce con `cerca_voce.py` e prova degli audio tag in streaming su v4 Turbo (la documentazione lo lascia intendere ma non lo dice).
+3. Generazione dei suoni (`genera_suoni.py`) e taratura dei volumi.
+4. Rifinire il prompt sulle conversazioni vere: dose di ironia, lunghezza, uso di foto e parole chiave.
+5. Chiazze rosate sui rivestimenti interni (anche nella landing).
+6. Prima del merge in `main`: estrarre la scena comune da `main.js` e `scena.js`.
+7. Contraddizioni nelle fonti: Swan Cup 1980 o 1984, dislocamento 34,2 o 36 t, verricelli di Lunz elettrici o idraulici, un doppione fra Kingfisher, Emocean e Indigo VI; foto con attribuzione debole (Whisper of V e Geronimo, Rosbeg forse ancora Gaetana, Show Me, Deneb).
+
+## La demo web esistente
+
+Cartella `web/`: Vite 8, three.js r186, Lenis, `postprocessing` 6.39.5 e `n8ao` 2.0.1. Avvio con `pnpm run dev` dentro `web/`, porta 5173.
+
+- **Pagina unica a scroll**: 18 passi da 100vh, ognuno con un fotogramma chiave in `web/src/story.js` (camera, taglio, vele, mare, grading, sfocatura). `main.js` interpola fra i fotogrammi.
+- **Capitoli**: 01 Blueprint (passi 1-3), 02 Esterni (4-8), 03 Interni (9-12), 04 Navigazione (13-17).
+- **Navigazione da codice**, ciò che il ponte userà: `lenis.scrollTo(passo * innerHeight)` in `main.js`; i link del menu capitoli hanno `data-go` con il passo d'arrivo.
+- **Hotspot**: array in `story.js` con passi, posizione, titolo e testo. Sono il contenuto naturale per l'agente.
+- **Parametri URL**: `?step=N` apre un passo, `?seed=N` fissa ora del giorno, vento e costa (esempi: `2` tramonto, `30` foschia, `89` pioggia, `4821` mattino).
+- **File principali**:
+  - `story.js`: fotogrammi chiave e hotspot.
+  - `ocean.js`: mare Gerstner, cielo, foschia.
+  - `post.js`: post-processing e grading per capitolo.
+  - `conditions.js`: condizioni dal seme.
+  - `landscape.js`: isole, vele lontane, gabbiani, nuvole.
+  - `seafx.js`: riflesso della barca e schiuma della scia.
+  - `materials.js`: materiali triplanari, texture CC0 di Poly Haven.
+  - `rigging.js`: scotte a catenaria, bandiera, balumina che vibra.
+- **Prestazioni**: qualità adattiva sul tempo GPU, accumulo a camera ferma, interni nascosti con lo scafo chiuso.
+- **Testi verificati**: 4 cabine ospiti, 3 bagni e 2 di equipaggio; autonomia circa 700 miglia a 7-8 nodi; polare dal certificato ORC di Lunz am Meer; Whitbread 1985-86 e Ocean Globe Race 2023 di Spirit of Helsinki. I verricelli elettrici sono di Lunz, in origine erano manuali.
+
+## Il modello 3D
+
+Generato **interamente da script Python** in Blender. Niente generazione AI: scelta dell'utente.
 
 | File | Contenuto |
 |---|---|
-| `models/swan651.glb` | Formato per il web: esterni e interni, circa 42.500 triangoli, 1,7 MB |
-| `models/swan651.fbx` | Copia per il collega esperto 3D (3ds Max, Maya, C4D, Unity). La mappa di ruvidità dello scafo non passa nell'FBX |
+| `models/swan651.glb` | Esterni e interni, circa 42.500 triangoli, 1,7 MB. Copia in `web/public/models/` |
+| `models/swan651.fbx` | Per il collega 3D. La mappa di ruvidità dello scafo non passa nell'FBX |
 | `models/swan651.blend` | Scena Blender |
-| `models/textures/` | Texture generate: vernice dello scafo (colore e ruvidità), teak di coperta, pagliolo teak e holly, cartello di poppa |
-| `renders/v7_*.png` | Ultimi render: `v7_full`, `v7_saloon`, `v7_cutaway` (più `v6_stern` per lo specchio di poppa) |
+| `scripts/blender/` | `swan651_hull.py`, `swan651_rig.py`, `swan651_interior.py`, da eseguire in quest'ordine nello stesso namespace |
 
-Ogni oggetto ha un nome chiaro, così sul web si può smontare: Hull, Deck, Coachroof, Cockpit, Keel, Skeg, Rudder, Mast, Boom, Rigging, Mainsail, Headsail, Winches, Wheel, Lifelines, DeckHardware, Toerail, Portlights, TransomSign, e la collezione `Swan651_Interior` (Interior_Sole, Lining, Bulkheads, Furniture, Headliner, MastPost).
-
-Le due vele hanno uno shape key `Luffing` (vela sgonfia), esportato come morph target per animarlo sul web.
-
-## Come rigenerare il modello
-
-Blender 5.2.2 LTS con l'add-on **MCP for Blender** (ahujasid), già registrato in Claude Code come server `blender`. In Blender va avviato il server: tasto N nella vista 3D, scheda MCP, "Start MCP Server".
-
-Gli script vanno eseguiti **in quest'ordine e nello stesso namespace**, perché ognuno riusa le funzioni del precedente:
-
-```python
-ns = {}
-base = "/Users/bilalmessaoudi/Desktop/coding/nautor-swan/scripts/blender/"
-for f in ("swan651_hull.py", "swan651_rig.py", "swan651_interior.py"):
-    exec(open(base + f).read(), ns)
-```
-
-Tutto in un colpo, anche senza aprire Blender, con `scripts/blender/build_and_export.py`: esegue i tre script, esporta GLB e FBX dalle collezioni `Swan651` e `Swan651_Interior` e salva il .blend.
+Rigenerazione completa senza aprire Blender:
 
 ```
 /Applications/Blender.app/Contents/MacOS/Blender -b models/swan651.blend --python scripts/blender/build_and_export.py
 cp models/swan651.glb web/public/models/
 ```
 
-| Script | Cosa fa |
-|---|---|
-| `scripts/blender/swan651_hull.py` | Scafo parametrico, coperta, tuga, pozzetto, oblò, falchetta, cartello di poppa, chiglia, skeg, timone, tavole di riferimento nascoste (`Ref_Profile`, `Ref_Plan`), controllo idrostatico |
-| `scripts/blender/swan651_rig.py` | Albero, boma, sartiame, vele, verricelli, ruota, candelieri e draglie, pulpiti, osteriggi |
-| `scripts/blender/swan651_interior.py` | Interni dalla pianta: pagliolo, rivestimento, paratie con porte, arredi adattati allo scafo, cielino, montante d'albero |
-| `scripts/measure_drawing.py`, `extract_outlines.py` | Misure e contorni ricavati dalla tavola, salvati in `reference/drawing_outlines_px.json` |
-| `scripts/make_transom_sign.py`, `make_wood_textures.py` | Generano le texture con PIL |
-
-## Decisioni geometriche (non rimetterle in discussione senza motivo)
-
-1. **La tavola** `reference/swan651-002-profile-layout.jpeg` è di **Adrienne II (651-002), versione allungata a circa 21 m**.
-   - Si scala su `DRAWING_LOA = 21.0`: con questa scala tornano baglio 5,31, pescaggio 3,23, slancio di prua 1,63 e galleggiamento circa 16,8.
-   - Poi si tolgono 1,02 m di poppa (`STERN_CUT`), per arrivare alla lunghezza standard di 19,98 m.
-2. **Poppa regolare come Lunz, non allungata** (richiesta esplicita dell'utente).
-   - Il 651 standard ha lo **specchio di poppa rovescio**: lo spigolo basso è l'estremo poppiero, a 0,60 m sull'acqua (`Z_KNUCKLE`), e la coperta finisce 0,89 m più a prua (`TRANSOM_DECK_X`).
-   - Fonti: il piano velico del cantiere e la foto di profilo di Second Wind.
-3. **Le sezioni dello scafo sono stimate** (non esistono linee d'acqua).
-   - Sono superellissi con esponenti `N_BOW, N_MID, N_AFT = 1.45, 2.1, 2.5`, tarati sul dislocamento IRC.
-   - Dislocamento risultante circa 36,4 t, contro 36,58 t misurate IRC.
-4. **Armo dal certificato IRC** di Lunz (`reference/irc-certificate-lunz-am-meer-AUT2895.pdf`, dati in `reference/swan651-data.json`).
-   - J 8,05, P 24,00, E 7,04, HLU 26,56, HLP 7,81, 3 coppie di crocette.
-   - Il valore I (circa 25,3 m) è stimato.
-   - Albero a 11,7 m dallo specchio.
-5. **Pozzetto e coperta dalla pianta di coperta del cantiere** (`reference/photos_web/drawings/`).
-   - Il pozzetto va da 1,15 a 8,1 m, con una piattaforma di timoneria a poppa (fino a 4,4 m) sopra la cabina armatoriale.
-   - La tuga è larga circa il 52% della coperta, con 3 coppie di verricelli.
-   - Timone e skeg sono spostati di 0,3 m verso prua rispetto alla tavola (`RUDDER_SHIFT`).
-6. **Topologia** (il collega 3D ha chiesto attenzione ai triangoli).
-   - Le superfici curve sono **solo quadrilateri**.
-   - Le fasce di colore dello scafo stanno in una **texture UV**, non in tagli della mesh: u è la distanza dalla linea di coperta, v è la quota.
-   - La coperta ha la griglia allineata ai bordi di pozzetto e tuga.
-   - Le facce piane con più di 4 lati vengono triangolate con BEAUTY (`triangulate_ngons`).
-   - Il modello non ha nessuna faccia con più di 4 lati.
-7. **Colori di Lunz am Meer.**
-   - Scafo bianco, carena rossa, filetto rosso sopra il galleggiamento e sotto la coperta.
-   - Fianchi della tuga bianchi con fascia rossa bassa.
-   - Falchetta in alluminio, coperta in teak.
-   - Cartello "Lunz am Meer" sullo specchio, come un cartello austriaco di fine paese.
-   - Vele in laminato grigio.
-8. **Interni.**
-   - Disposizione dalla pianta di Adrienne II (spostata di `STERN_CUT`).
-   - Materiali dalle foto degli scafi standard: teak miele satinato, pagliolo teak e holly, cielino bianco con listelli.
-   - **Pelle rossa** sui divani (scelta dell'utente).
-
-## Riferimenti
-
-- `RICERCA.md`: ricerca iniziale su brand, pipeline 3D, librerie web (three.js, R3F, GSAP, anime.js) e siti di ispirazione.
-- `reference/photos/`: 132 foto dei vari 651, dalla libreria dell'utente.
-- `reference/photos_web/`: 233 immagini dal web. Le cartelle `interior/`, `deck/`, `exterior/` e `drawings/` hanno ciascuna un manifest JSON con la fonte di ogni file.
-  - Interni degli scafi standard: Show Me, Aurora, 651-001.
-  - Disegni: piano velico, pianta di coperta, piante interni.
-  - Nessuna foto di uno Swan 651 a terra è disponibile online (esistono solo su Facebook e Instagram).
-- Libreria dell'utente: `~/Desktop/coding/nautor-swan-library`. È un sito Next.js "WikiSwan" con 20 scafi 651 documentati (storie, timeline, palmarès). Utile per i contenuti del museo.
-
-## Bozza web (3 ottobre 2026)
-
-Cartella `web/`: Vite 8, three.js r186, Lenis, d3-geo e d3-shape. Avvio con `pnpm run dev` dentro `web/` (porta 5173). `?step=N` apre direttamente un passo.
-
-- Pagina unica a scroll: 18 passi da 100vh, ognuno con un fotogramma chiave in `web/src/story.js` (camera, taglio, vele, mare, sfondo). `main.js` interpola fra i fotogrammi con la camera che orbita in coordinate sferiche.
-- Capitoli: 01 Blueprint (passi 1-3), 02 Esterni (4-8), 03 Interni (9-12), 04 Navigazione (13-17).
-- Blueprint: linee `EdgesGeometry` su fondo blu con griglia. Lo scafo ha soglia 3° e mostra il reticolo come un piano di costruzione. Al passo 4 un piano di taglio sostituisce le linee con il solido, da prua a poppa.
-- Interni: piano di taglio orizzontale (`cut`) a 0,95 m. Punti caldi calcolati dalle coordinate della pianta: X = (px - 444) * SP - 11,005, Z = (py - 2292) * SP.
-- Vele: il morph `Luffing` sbatte quando `luff > 0`; dissolvenza (`sails`) nella vista della coperta.
-- Mare: shader Gerstner in `web/src/ocean.js`, sbandata 16° e moto ondoso.
-- Luci: nello studio sole con ombre VSM, pavimento che raccoglie l'ombra e controluce freddo; in mare sole caldo (`SUN_DIR` in `ocean.js`), cupola del cielo e mappa d'ambiente generata dal cielo.
-- Mare: onde di Gerstner, increspature a rumore, riflesso del cielo con Fresnel, luce nelle creste, schiuma, onda di prua e scia.
-- Testi verificati il 3 ottobre 2026: 4 cabine ospiti, 3 bagni e 2 di equipaggio (Second Wind, Show Me); autonomia ~700 mn a 7-8 kn (Fraser, Second Wind); polare dal certificato ORC di Lunz am Meer (bolina ricavata dal VMG a 42°); Ocean Globe Race 2023 e Whitbread 1985-86 di Spirit of Helsinki. I verricelli elettrici sono di Lunz, in origine erano manuali.
-
-## Fotografia, post-processing e paesaggio (3 ottobre 2026)
-
-- **Post-processing** in `web/src/post.js` con `postprocessing` 6.39.5 (pmndrs) e `n8ao` 2.0.1, su WebGL. Il passaggio a WebGPU e `RenderPipeline` richiederebbe di riscrivere in TSL il mare e le linee della tavola.
-- Ordine dei passaggi: scena, occlusione N8AO, profondità di campo, tilt-shift, bloom e look, accumulo, aberrazione cromatica, SMAA con vignettatura e grana.
-- **Tone mapping Khronos PBR Neutral** dentro il look, al posto di ACES, che spingeva i rossi verso l'arancio. Il renderer ha `NoToneMapping` e niente antialias: se ne occupa il composer.
-- **Grading per capitolo** (`GRADES` in `post.js`: blueprint, studio, interior, sea). È parametrico (slope, offset, power, saturazione, ombre e luci), non una LUT, così si interpola fra i passi. Ogni preset ha la sua esposizione, e lo sfondo la compensa per mantenere i colori grafici.
-- **Fotogrammi chiave** (`story.js`), campi nuovi:
-  - `bokeh`: forza della sfocatura;
-  - `range`: metri di nitidezza attorno al fuoco;
-  - `focus`: punto a fuoco in coordinate della barca, valido solo per quel passo;
-  - `tilt`: effetto modellino, nei passi 6 e 10;
-  - `grade`: grading del capitolo.
-- **Accumulo a camera ferma**: dopo 12 fotogrammi immobili la camera oscilla di una frazione di pixel (Halton) e i fotogrammi si mediano. Dopo 48 la pagina smette di disegnare. Non si attiva in mare né con le vele che sbattono.
-- **Qualità adattiva**: sopra 19 ms per fotogramma il pixel ratio scende (2, 1,5, 1,25, 1). Su 1440×900 a 2x si stabilizza a 1,5x e 59 fps.
-- **Sfondo nel canvas**: gradiente e reticolo della tavola sono uno shader (`backdrop` in `main.js`). Gli elementi `#bg` e `#grid` non esistono più.
-- **Condizioni con seme** (`web/src/conditions.js`, `?seed=N`): 6 preset di ora del giorno (alba, mattino, mezzogiorno, pomeriggio, tramonto, foschia), vento 6-24 nodi e costa (arcipelago, costa alta, mare aperto).
-  - Il vento scala onde, sbandata, moto, velocità dell'acqua e schiuma.
-  - Il pulsante "Cambia" in alto a destra, visibile solo in Navigazione, estrae un nuovo seme e aggiorna l'URL.
-- **Paesaggio** (`web/src/landscape.js`): scogli di granito con pinete, promontori, vele lontane, gabbiani e nuvole a billboard.
-  - Disposizione con Poisson disk.
-  - Isole e barche scorrono con l'acqua e ricompaiono oltre la foschia piena.
-  - Foschia condivisa con il mare (`hazeColor` e `hazeAmount` nel chunk `SKY` di `ocean.js`).
-- In sviluppo `window.__post` espone il post-processing (accumulo, qualità).
-
-## Ispirazione dai videogiochi (3 ottobre 2026)
-
-Fonti: talk tecnico di Sea of Thieves (SIGGRAPH 2018), slide di Black Flag (GDC 2014, Wronski), FXGuide sull'oceano di AC3, analisi di Crimson Desert.
-
-- **Riflesso planare della barca** (`web/src/seafx.js`): camera specchiata, solo il layer `BOAT_LAYER` (scafo, alberatura, cime, bandiera; non gli interni), a un terzo della risoluzione. Il mare lo legge in coordinate di schermo, deformato dalle onde.
-- **Schiuma alla Sea of Thieves**: ogni fotogramma si disegna dall'alto l'impronta dello scafo tagliato a 0,12 m sull'acqua. Il bordo diventa schiuma in un buffer che si sfoca e scorre verso poppa con l'acqua (dominio `FOAM_BOX`, 72 x 36 m). Ne escono onda di prua e scia. Nel mare il buffer fa da soglia su una trama a merletto.
-- **Mare** (`ocean.js`):
-  - griglia polare (fitta vicino alla barca);
-  - maschera delle creste dallo jacobiano di Gerstner, per il turchese in controluce;
-  - sole come disco (Karis), più largo quando è basso;
-  - schiuma a tre scale con rampa (come AC3);
-  - schiuma sulle creste e strisce lungo il vento secondo la scala Beaufort (`beaufort()` in `conditions.js`).
-- **Materiali** (`web/src/materials.js`): texture in triplanare nello spazio della barca, perché scafo, coperta e alberatura non hanno UV.
-  - Teak, pelle e maglina di cotone sono texture CC0 di Poly Haven in `web/public/textures/`, normalizzate sulla loro media (convertita in lineare), così i colori di Lunz am Meer restano quelli scelti.
-  - Il resto è procedurale: buccia d'arancia del gelcoat, fibre a ventaglio e cuciture delle vele, antivegetativa a chiazze, alluminio spazzolato.
-  - Le facce interne dello scafo hanno il colore del rivestimento.
-- **Bagnato solo dove arriva l'acqua** (idea di Crimson Desert): fascia sopra il galleggiamento che segue le onde, con colature e spruzzi a prua, e coperta umida a prua. Con la pioggia è bagnato tutto.
-- **Vita a bordo** (`web/src/rigging.js`): scotte di fiocco e randa con la catenaria vera (come le cime di Sea of Thieves), bandiera austriaca di poppa in shader, balumina delle vele che vibra con il vento (attributo `aLeech`).
-- **Atmosfera**:
-  - foschia a due colori (verso il sole e opposta, come in Black Flag), più densa vicino all'acqua (`uFogHeight`);
-  - prospettiva aerea sulle coste;
-  - nuvole a volume con normali disturbate e bordo d'argento;
-  - nuovo preset "pioggia", con gocce attorno alla camera.
-- **Prestazioni**:
-  - la qualità adattiva misura il tempo GPU con `EXT_disjoint_timer_query_webgl2` (soglia 15 ms), perché il browser in risparmio energetico limita la pagina a 30 fps anche con la GPU scarica;
-  - gli interni sono nascosti quando lo scafo è chiuso;
-  - l'occlusione è spenta in mare e a metà risoluzione mentre la camera si muove.
-- **Semi di esempio** (dopo l'aggiunta della pioggia): `2` tramonto con costa alta e forza 6, `30` foschia con arcipelago, `89` pioggia con forza 5, `4821` mattino con arcipelago.
-- **Non fatto**: il bake dell'occlusione in Blender, perché Blender non era aperto. Per ora la copre N8AO.
+- Oggetti con nomi chiari (Hull, Deck, Mast, Mainsail, collezione `Swan651_Interior` e così via), quindi smontabili sul web.
+- Le vele hanno lo shape key `Luffing`, esportato come morph target.
+- **Decisioni geometriche da non rimettere in discussione:** tavola di Adrienne II scalata a 21 m e accorciata di 1,02 m di poppa; specchio di poppa rovescio come Lunz; sezioni a superellisse tarate sul dislocamento IRC (circa 36,4 t contro 36,58); armo dal certificato IRC di Lunz; colori di Lunz am Meer con pelle rossa sui divani; superfici curve solo a quadrilateri.
+- Blender 5.2.2 LTS con l'add-on MCP for Blender, registrato in Claude Code come server `blender`.
+- **Nessun cartello sullo specchio** (tolto dalla designer il 3 ottobre 2026): il museo resta generico sul 651 e non nomina Lunz am Meer, né nei testi né nel modello. `make_transom_sign.py` e la texture `lunz_transom_sign.png` non sono più usati; l'oggetto `TransomSign` non esiste più nel GLB.
 
 ## Problemi aperti
 
-- Firecrawl: piano aggiornato dall'utente il 3 ottobre 2026, di nuovo funzionante.
-- **Interni, prima rifinitura fatta** (3 ottobre 2026): cuscini e materassi arrotondati, schienali a moduli, porte con angoli ad arco, librerie con libri, fuochi, lavelli, rubinetto e ante in cucina, strumenti al carteggio, cornici degli oblò (`Interior_Trim`). Restano semplici bagni, cabine prodiere e trapuntatura dei cuscini.
-- **Avviso innocuo dell'export glTF** ("more than one tex image" sul materiale Hull_Paint): il risultato è corretto.
-- La chiglia segue la tavola, cioè la pinna con scarpa in piombo del "651 Mod". Il piano velico standard mostra una pinna trapezoidale senza bulbo. Si è scelto Lunz.
+- **Interni**: restano semplici bagni, cabine prodiere e trapuntatura dei cuscini.
+- La chiglia segue la pinna con scarpa in piombo del "651 Mod" (scelta Lunz), non la pinna trapezoidale del piano velico standard.
+- Avviso innocuo dell'export glTF ("more than one tex image" su Hull_Paint).
+- Bake dell'occlusione in Blender non fatto: per ora la copre N8AO.
 
-## Prossimi passi proposti
+## Riferimenti
 
-L'utente deve scegliere quale fare per primo:
-
-1. **Rifinire gli interni** con i dettagli delle foto (elenco sopra).
-2. **Prima scena web**: Next.js con React Three Fiber e GSAP, oppure anime.js v4. Idee concordate nella ricerca:
-   - la tavola tecnica che diventa barca allo scorrimento;
-   - la coperta che si toglie con un piano di taglio per mostrare gli interni;
-   - l'esploso dei componenti con schede al passaggio del mouse;
-   - le vele che si gonfiano grazie al morph `Luffing`.
-3. Ottimizzazione del GLB per il web: `gltf-transform optimize --compress meshopt --texture-compress ktx2`.
+- `RICERCA.md`: ricerca iniziale su brand, pipeline 3D e librerie web.
+- `reference/`: tavole, certificati IRC e ORC, 132 foto dell'utente e 233 dal web con manifest delle fonti.
+- `~/Desktop/coding/nautor-swan-library`: sito Next.js "WikiSwan" con 20 scafi 651 documentati. Fonte dei contenuti per l'agente.
 
 ## Preferenze dell'utente
 
 - Risposte in italiano, **mai il carattere em dash** (vedi `~/.claude/CLAUDE.md`).
 - pnpm 11 come gestore pacchetti.
-- Firecrawl per qualunque accesso web. curl è ammesso solo per scaricare file binari trovati tramite Firecrawl.
-- Mostrare i progressi con render o screenshot di Blender. L'utente guarda il modello anche direttamente in Blender: lasciare la vista in modalità Rendered con la barca inquadrata.
+- Firecrawl per qualunque accesso web. curl solo per scaricare file binari trovati con Firecrawl.
+- Mostrare i progressi con screenshot o render. In Blender lasciare la vista in modalità Rendered con la barca inquadrata.
