@@ -478,6 +478,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   }
 
   let lastTime = 0;
+  const rotta = new THREE.Vector2();
   let stillFrames = 0;
   const focusW = new THREE.Vector3();
 
@@ -548,6 +549,9 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     const wind = lerp(0.18, Math.min(1, cond.knots / 20), s.ocean);
     mats.update(boat, s.ocean, wind * s.sails, cond.rain ? s.ocean : 0);
     if (rigging) rigging.update(t, wind);
+    // rotta dritta: l'acqua scorre lungo la prua alla velocità delle condizioni (ocean.js non lo
+    // calcola più da solo, lo stesso che fa sailing.js nella landing fuori dal gioco)
+    ocean.setCourse(0, rotta.set(t * cond.flow, 0));
     ocean.update(t, s.ocean, m, camera);
     landscape.update(t, s.ocean, camera);
 

@@ -7,7 +7,6 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         main: resolve(import.meta.dirname, "index.html"),
-        audio: resolve(import.meta.dirname, "audio.html"),
         bordo: resolve(import.meta.dirname, "bordo/index.html"),
       },
     },
