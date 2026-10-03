@@ -1,13 +1,13 @@
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
-// Il museo 3D (index.html) offre anche la visita audio (audio.html).
+// Due ingressi: il museo 3D (index.html) e la visita guidata a voce (bordo/index.html)
 export default defineConfig({
   build: {
     rolldownOptions: {
       input: {
-        museo: resolve(import.meta.dirname, "index.html"),
-        audio: resolve(import.meta.dirname, "audio.html"),
+        main: resolve(import.meta.dirname, "index.html"),
+        bordo: resolve(import.meta.dirname, "bordo/index.html"),
       },
     },
   },
