@@ -68,6 +68,8 @@ float hazeAmount(vec3 world) {
 const oceanVert = /* glsl */ `
 uniform float uTime;
 uniform float uFlow;
+uniform vec2 uOff;
+uniform float uHeading;
 uniform float uWaveScale;
 uniform vec4 uWaves[4];
 varying vec3 vWorld;
@@ -89,7 +91,12 @@ vec3 gerstner(vec4 w, vec2 p, inout vec3 tang, inout vec3 bin) {
 
 void main() {
   vec3 p = (modelMatrix * vec4(position, 1.0)).xyz;
-  vec2 q = p.xz + vec2(uTime * uFlow, 0.0);
+  // spostamento dell'acqua rispetto alla barca, accumulato sulla CPU (setCourse): con la rotta
+  // dritta vale (tempo × velocità, 0), come prima; in navigazione libera l'acqua scorre lungo la prua
+  vec2 q = p.xz + uOff;
+  // coordinate nel riferimento della barca (che in navigazione libera ruota su se stessa)
+  float hc = cos(uHeading), hs = sin(uHeading);
+  vec2 lp = vec2(p.x * hc + p.z * hs, -p.x * hs + p.z * hc);
   vec3 tang = vec3(1.0, 0.0, 0.0);
   vec3 bin = vec3(0.0, 0.0, 1.0);
   vec3 off = vec3(0.0);
@@ -100,7 +107,7 @@ void main() {
   }
   // le onde si spengono in lontananza (e attorno alla barca restano più basse)
   float fade = 1.0 - smoothstep(300.0, 1400.0, length(p.xz));
-  fade *= mix(0.55, 1.0, smoothstep(6.0, 22.0, length(p.xz * vec2(0.55, 1.0))));
+  fade *= mix(0.55, 1.0, smoothstep(6.0, 22.0, length(lp * vec2(0.55, 1.0))));
   p += off * fade;
   vWorld = p;
   vFlow = q;
@@ -128,6 +135,7 @@ uniform float uReflOn;
 uniform vec2 uResolution;
 uniform sampler2D uFoamTex;
 uniform vec4 uFoamBox;
+uniform float uHeading;
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec2 vFlow;
@@ -204,7 +212,10 @@ void main() {
   float streak = smoothstep(0.56, 0.74, fbm(sq)) * uStreaks * (1.0 - far * 0.6);
 
   // schiuma attorno allo scafo e scia, dal buffer (seafx.js)
-  vec2 fuv = vec2((vWorld.x - uFoamBox.x) / uFoamBox.z, (uFoamBox.y + uFoamBox.w - vWorld.z) / uFoamBox.w);
+  // il buffer della schiuma segue la barca: si legge nel suo riferimento (seafx.js ruota la camera)
+  float fc = cos(uHeading), fs = sin(uHeading);
+  vec2 bl = vec2(vWorld.x * fc + vWorld.z * fs, -vWorld.x * fs + vWorld.z * fc);
+  vec2 fuv = vec2((bl.x - uFoamBox.x) / uFoamBox.z, (uFoamBox.y + uFoamBox.w - bl.y) / uFoamBox.w);
   float inside = step(0.0, fuv.x) * step(fuv.x, 1.0) * step(0.0, fuv.y) * step(fuv.y, 1.0);
   float hull = texture2D(uFoamTex, clamp(fuv, 0.0, 1.0)).r * inside;
   float churn = fbm(vFlow * 1.3 + uTime * 0.35);
@@ -296,8 +307,11 @@ export function createOcean() {
     uFogFar: { value: 1300 },
     uFogHeight: { value: 250 },
     uFlow: { value: 4.6 },
+    uOff: { value: new THREE.Vector2() },
+    uHeading: { value: 0 },
     uWaveScale: { value: 1 },
   };
+
 
   const geo = radialGrid(1.5, 1600, 190, 288);
   const mat = new THREE.ShaderMaterial({
@@ -388,6 +402,13 @@ export function createOcean() {
       mat.uniforms.uSunRadius.value = 0.025 + 0.11 * (1 - Math.min(1, c.sunDir.y / 0.5));
       envSea.color.copy(c.mid).multiplyScalar(0.6);
       foamBase = c.foam;
+    },
+    // Rotta della barca: heading in radianti (verso dritta positivo), pos lo spostamento percorso
+    // sul piano del mondo (x, z). La barca ruota su se stessa al centro della scena; onde, sole e
+    // paesaggio restano fermi e l'acqua scorre alla velocità della barca lungo la sua prua.
+    setCourse(heading, pos) {
+      shared.uHeading.value = heading;
+      shared.uOff.value.set(pos.x, pos.y);
     },
     update(t, opacity, foam, cam) {
       shared.uTime.value = t;
