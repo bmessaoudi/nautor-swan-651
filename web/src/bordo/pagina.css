@@ -109,16 +109,8 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 .grafico .albero { stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; }
 .grafico .crocetta { stroke: var(--ink); stroke-width: 0.8; }
 .grafico .strallo { stroke: var(--ink-dim); stroke-width: 0.5; }
-.legenda .lranda::before, .legenda .lnoto::before { background: var(--accent); }
+.legenda .lranda::before { background: var(--accent); }
 .legenda .lfiocco::before { background: #e0a84a; }
-.legenda .lignoto::before { background: var(--line); }
-.grafico .scafo circle { fill: none; stroke: var(--ink-dim); stroke-width: 0.8; }
-.grafico .scafo.noto circle { fill: var(--ink); stroke: none; }
-.grafico .scafo.qui circle { fill: var(--accent); }
-.grafico .num-scafo { fill: var(--ink); }
-.grafico .nome-scafo { font-family: var(--serif); font-size: 11.5px; fill: var(--ink); }
-.grafico .scafo:not(.noto) .nome-scafo { font-style: italic; fill: var(--ink-dim); }
-.grafico .scafo.qui .nome-scafo { fill: var(--accent); }
 .grafico .binario { fill: var(--line); fill-opacity: 0.35; }
 .grafico .barra { fill: var(--ink); fill-opacity: 0.55; transform-box: fill-box; transform-origin: left; transform: scaleX(0); transition: transform 1.2s var(--ease); }
 .grafico .barra.forte { fill: var(--accent); fill-opacity: 0.85; }
@@ -132,10 +124,6 @@ body.con-media .parole-dati dd { font-size: clamp(24px, 2.6vw, 36px); }
 .grafico .chip.totale { fill: var(--line); }
 .grafico text.grande { font-family: var(--serif); font-size: 40px; fill: var(--ink); }
 .grafico text.medio { font-family: var(--serif); font-size: 24px; fill: var(--ink); }
-.grafico .asse { stroke: var(--line); }
-.grafico .posizione { font-family: var(--serif); font-size: 19px; fill: var(--ink); }
-.grafico .vittoria .posizione { fill: var(--accent); }
-.grafico .vittoria text:last-child { fill: var(--ink); }
 
 /* ---------- Dettagli sulla barca ---------- */
 .hs { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform; }

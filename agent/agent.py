@@ -274,7 +274,7 @@ async def entrypoint(ctx: JobContext) -> None:
             language_hint=["it"],
             # col push to talk il turno lo chiude il rilascio: basta poco silenzio per chiudere la frase
             eot_timeout_ms=900,
-            keyterm=["Swan", "Nautor", "Frers", "Lunz am Meer", "Pietarsaari", "Whitbread", "skeg", "randa", "genoa"],
+            keyterm=["Swan", "Nautor", "Frers", "Fazer", "Pietarsaari", "Whitbread", "skeg", "randa", "genoa"],
         ),
         llm=ClaudeLLM(effort=os.environ.get("BORDO_EFFORT", "low")),
         tts=elevenlabs.TTS(
