@@ -8,7 +8,10 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { KEYS, HOTSPOTS, CHAPTERS } from "../story.js";
 import { createOcean } from "../ocean.js";
+import { createSky, SKY_PHYS } from "../sky.js";
 import { createLandscape } from "../landscape.js";
+import { createTerrain } from "../terrain.js";
+import { createFauna } from "../fauna.js";
 import { makeConditions, seedFromUrl } from "../conditions.js";
 import { createPost } from "../post.js";
 import { createAdaptiveTone } from "../contrast.js";
@@ -64,7 +67,10 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
-  const post = createPost(renderer, scene, camera);
+  // mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
+  const ocean = createOcean(renderer);
+  const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "media" });
+  const post = createPost(renderer, scene, camera, { sky });
   // parole chiave e indice scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js, come nella landing)
   const tone = createAdaptiveTone(renderer);
 
@@ -178,13 +184,20 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   let lightsOn = false;
   let lightsT = 0;
 
-  const ocean = createOcean();
-  scene.add(ocean.mesh, ocean.sky);
+  // cielo fisico di sky.js al posto della cupola di ocean.js (ocean.sky resta, non si aggiunge)
+  scene.add(ocean.mesh, sky.mesh);
   const seaFx = createSeaFx(renderer, scene, camera);
   ocean.linkSeaFx(seaFx.uniforms);
+  ocean.linkSky(sky.uniforms, SKY_PHYS);
   const mats = createMaterials(ocean.shared, ocean.waves);
   const landscape = createLandscape(ocean.shared);
-  scene.add(landscape.group, landscape.clouds, landscape.rain);
+  scene.add(landscape.group, landscape.rain);
+  // isole e coste da mappe di altezza vere
+  const terrain = createTerrain(ocean.shared);
+  scene.add(terrain.group);
+  // gabbiani e delfini con scheletro
+  const fauna = createFauna(ocean.shared);
+  scene.add(fauna.group);
 
   // ---------- Condizioni del mare ----------
   let cond = null;
@@ -192,9 +205,11 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   function applyConditions(seed) {
     cond = makeConditions(seed);
     ocean.setConditions(cond);
+    sky.setConditions(cond); // dopo il mare: ricava dal cielo fisico i colori di orizzonte e foschia
     landscape.build(cond);
-    if (seaEnv) seaEnv.dispose();
-    seaEnv = ocean.envMap(pmrem);
+    terrain.build(cond);
+    fauna.build(cond);
+    refreshSeaEnv();
     SUN_SEA.copy(cond.sunDir).multiplyScalar(70);
     SEA.sun.copy(cond.light);
     SEA.intensity = cond.intensity;
@@ -203,7 +218,13 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     SEA.hemiI = cond.ambI;
     onEvent("mare", cond);
   }
+  function refreshSeaEnv() {
+    if (seaEnv) seaEnv.dispose();
+    seaEnv = sky.envMap(pmrem);
+  }
   applyConditions(seedFromUrl());
+  // le tabelle dell'atmosfera arrivano dopo qualche istante: poi si rifà la mappa d'ambiente
+  sky.ready.then(refreshSeaEnv);
 
   // ---------- Fotogrammi chiave ----------
   // Quelli della landing, con qualche ritocco per questa pagina: qui la barca ha a disposizione
@@ -560,7 +581,10 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     mats.update(boat, s.ocean, wind * s.sails, cond.rain ? s.ocean : 0);
     if (rigging) rigging.update(t, wind);
     ocean.update(t, s.ocean, m, camera);
-    landscape.update(t, s.ocean, camera);
+    sky.update(t, dt, s.ocean);
+    landscape.update(t, s.ocean);
+    terrain.update(t, s.ocean);
+    fauna.update(t, dt, s.ocean, camera);
 
     const sea = s.ocean;
     sun.position.lerpVectors(SUN_STUDIO, SUN_SEA, sea);
