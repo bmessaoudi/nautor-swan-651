@@ -39,9 +39,7 @@ export const INDICE = [
   {
     gruppo: "Storie",
     voci: [
-      { nome: "Lunz am Meer" },
       { nome: "La Whitbread" },
-      { nome: "I diciannove scafi" },
       { nome: "Nautor's Swan" },
       { nome: "Germán Frers" },
     ],

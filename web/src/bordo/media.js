@@ -1,12 +1,12 @@
 // Grafici che il computer di bordo può mostrare come immagini: riusano charts.js della landing
 import { drawMap, drawPolar } from "../charts.js";
-import { drawScheda, drawRegistro, drawDimensioni, drawCarena, drawArmo, drawVele, drawPesi, drawPalmares } from "./disegni.js";
+import { drawScheda, drawDimensioni, drawCarena, drawArmo, drawVele, drawPesi } from "./disegni.js";
 
 export const GRAFICI = [
   {
     id: "grafico-polare",
     titolo: "Polare",
-    didascalia: "Lunz am Meer, certificato ORC",
+    didascalia: "Certificato ORC di uno Swan 651",
     descrizione: "Diagramma polare: velocità della barca per angolo al vento con 10, 16 e 20 nodi di vento reale.",
     disegna(svg) {
       svg.setAttribute("viewBox", "0 0 200 300");
@@ -36,16 +36,6 @@ export const GRAFICI = [
     },
   },
   {
-    id: "grafico-registro",
-    titolo: "Diciannove scafi",
-    didascalia: "Pietarsaari, 1982-1991",
-    descrizione: "Registro dei 19 scafi di Swan 651: i 13 con nome noto (Futuro, Adrienne II, Ichiban, Show Me, Rosbeg, Lunz am Meer, Deneb, Whisper of V, Tihama, Spirit of Helsinki, White Knight of NY, Geronimo, Aurora) e i 6 numeri senza nome identificato. Lunz am Meer in evidenza.",
-    disegna(svg) {
-      svg.setAttribute("viewBox", "0 0 400 236");
-      return drawRegistro(svg);
-    },
-  },
-  {
     id: "grafico-dimensioni",
     titolo: "Le misure",
     didascalia: "Profilo e pianta, tavola 651-002",
@@ -68,7 +58,7 @@ export const GRAFICI = [
   {
     id: "grafico-armo",
     titolo: "Il piano velico",
-    didascalia: "Misure IRC, Lunz am Meer",
+    didascalia: "Misure IRC di uno Swan 651",
     descrizione: "Piano velico quotato dello sloop in testa d'albero: P 24,00 m, E 7,04 m, J 8,05 m, I stimata circa 25,3 m, tre ordini di crocette.",
     disegna(svg) {
       svg.setAttribute("viewBox", "0 0 260 300");
@@ -93,16 +83,6 @@ export const GRAFICI = [
     disegna(svg) {
       svg.setAttribute("viewBox", "0 0 400 220");
       drawPesi(svg);
-    },
-  },
-  {
-    id: "grafico-palmares",
-    titolo: "Il palmarès",
-    didascalia: "Lunz am Meer, 2012-2026",
-    descrizione: "Linea del tempo dei risultati di Lunz am Meer: dal tredicesimo posto alla Swan Cup 2012 alle vittorie nella classe Classics by Frers del 2018 e del 2026, con Tre Golfi 2019 e Middle Sea Race 2018.",
-    disegna(svg) {
-      svg.setAttribute("viewBox", "0 0 400 248");
-      drawPalmares(svg);
     },
   },
 ];

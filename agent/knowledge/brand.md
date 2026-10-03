@@ -30,13 +30,13 @@ Germán Frers è un progettista argentino. Con Nautor lavora dagli inizi degli a
 
 Lo Swan 651 è uno dei suoi primi grandi Swan. L'associazione Swan Classic by Frers lo descrive come l'incontro fra la tecnologia dei maxi da Gran Premio e il disegno delle barche da giro del mondo della Whitbread. È il tipico maxi da regata e crociera di Frers dei primi anni Ottanta.
 
-I proprietari dei classici disegnati da Frers hanno oggi una loro associazione, la Swan Classic by Frers Association. L'ha fondata a Londra nel 2017 Marietta Strasoldo, allora armatrice di Lunz am Meer. Dal 2024 la presiede Lodovica Genghini. Alla Rolex Swan Cup esiste una classe dedicata, la Classics by Frers. Il primo trofeo, nel 2018, lo ha vinto proprio Lunz am Meer, e lo ha vinto di nuovo nel 2026.
+I proprietari dei classici disegnati da Frers hanno oggi una loro associazione, la Swan Classic by Frers Association, nata a Londra nel 2017. Alla Rolex Swan Cup esiste una classe dedicata, la Classics by Frers, con il primo trofeo assegnato nel 2018.
 
 ## La Swan Cup di Porto Cervo
 
 La Swan Cup è la grande riunione degli Swan, a Porto Cervo, in Sardegna, legata allo Yacht Club Costa Smeralda. Sull'anno della prima edizione le fonti non concordano: una indica il 1980, mentre Nautor indica il 1984 come prima edizione con Rolex.
 
-Gli Swan 651 ci sono sempre stati. Nel 1983 lo scafo numero uno, allora Yellowdrama V, vinse la Rolex Swan European Cup. Nel 2026, alla ventitreesima Rolex Swan Cup, la flotta è stata da record, e Lunz am Meer ha vinto la classe Classics by Frers.
+Gli Swan 651 la corrono fin dai primi anni Ottanta, e ancora oggi sono in regata nella classe Classics by Frers.
 
 ## Le proprietà
 
@@ -60,16 +60,20 @@ Oggi la gamma è divisa in famiglie. Gli Swan da crociera e regata: Swan 51, 55,
 
 Lo Swan 651 è un maxi di circa 20 metri, prodotto dal 1982 al 1991 in diciannove esemplari. Si colloca dopo lo Swan 65 di Sparkman & Stephens, quello della vittoria alla prima Whitbread, ed è uno dei primi grandi Swan di Frers. Anche la gamma attuale comprende uno Swan 65.
 
-Nella sua famiglia ci sono anche versioni modificate dopo il varo. Alcuni scafi sono stati allungati fino a circa 70 piedi, come Adrienne II e Sway af Tammsvik. Nei risultati svedesi del 1999 Sway compare addirittura come Swan 65, per una questione di classificazione. Le fonti che abbiamo non descrivono altri modelli venuti subito prima o subito dopo il 651, come gli Swan 59 o 76.
+Nella sua famiglia ci sono anche versioni modificate dopo il varo. Alcuni scafi sono stati allungati fino a circa 70 piedi, come Adrienne II, lo scafo della tavola da cui nasce il modello del museo. Le fonti che abbiamo non descrivono altri modelli venuti subito prima o subito dopo il 651, come gli Swan 59 o 76.
 
 Qualche numero, da dire a voce. Lunghezza fuori tutto circa 20 metri, galleggiamento circa 16,80. Larghezza circa 5,30 metri, pescaggio circa 3,50 nella versione standard. La zavorra in piombo pesa circa 14,4 tonnellate, il 40 per cento del peso della barca.
 
-Sul dislocamento le fonti non concordano. Wikipedia e Sailboatdata indicano circa 34 tonnellate, l'associazione Swan Classic by Frers 36. Diversi scafi misurati oggi stanno fra 36 e 38,5 tonnellate. Lunz am Meer, nel suo certificato IRC, pesa circa 36,6 tonnellate.
+Sul dislocamento le fonti non concordano. Wikipedia e Sailboatdata indicano circa 34 tonnellate, l'associazione Swan Classic by Frers 36. Diversi scafi misurati oggi stanno fra 36 e 38,5 tonnellate. Uno Swan 651 misurato di recente per il certificato IRC pesa circa 36,6 tonnellate.
 
 L'armo è a sloop in testa d'albero. La randa misura 86 metri quadrati, il fiocco 108, il genoa grande circa 162. Lo spinnaker arriva a 388 metri quadrati. Il motore originale è un diesel Perkins 6.354 da 116 cavalli, secondo l'associazione. Altre fonti generiche parlano di 120 fino a 135 cavalli. Il serbatoio contiene circa 1.100 litri di gasolio. L'autonomia indicata è di circa 700 miglia, a 7 o 8 nodi.
 
-Lo scafo è in vetroresina, con chiglia a pinna e timone sostenuto da uno skeg, come sulle barche da giro del mondo. Gli interni hanno quattro cabine per gli ospiti, tre bagni e due posti per l'equipaggio. In origine i verricelli erano manuali.
+Lo scafo è in vetroresina, con chiglia a pinna e timone sostenuto da uno skeg, come sulle barche da giro del mondo. Gli interni hanno quattro cabine per gli ospiti, tre bagni e due posti per l'equipaggio. In origine i verricelli erano manuali; su diversi scafi oggi alcuni sono elettrici.
+
+Le misure dell'armo (P 24,00 metri, E 7,04, J 8,05) vengono dal certificato IRC di uno Swan 651, la polare dal certificato ORC di uno Swan 651. Gli interni sono documentati da Second Wind e Show Me; alcuni scafi hanno disposizioni diverse.
 
 ## Uno Swan 651 al giro del mondo
 
-La storia più forte del modello è quella dello scafo numero 11. Come Fazer Finland arrivò terzo alla Whitbread 1985-86. Quasi quarant'anni dopo, come Spirit of Helsinki, è arrivato secondo assoluto all'Ocean Globe Race 2023-24, la rievocazione di quella regata. Un ponte fra la prima Whitbread, vinta da uno Swan 65, e quella di oggi.
+La storia più forte del modello è quella di Fazer Finland, che oggi si chiama Spirit of Helsinki. Nacque nel 1984 per un progetto britannico legato alla Whitbread, il giro del mondo a tappe, rimasto senza fondi. La rilevò il finlandese Michael Berner, detto Mikki, imprenditore e velista, che trovò lo sponsor nella Fazer, l'azienda dolciaria.
+
+Il 28 settembre 1985 partì da Southampton per la Whitbread 1985-86, con numero velico L 71 e Berner skipper. Arrivò terza assoluta su quindici barche, dietro L'Esprit d'Équipe e Philips Innovator. Un maxi da crociera di serie sul podio del giro del mondo, dodici anni dopo la vittoria di uno Swan 65 alla prima edizione. Berner raccontò la campagna in un libro, uscito nel 1986.

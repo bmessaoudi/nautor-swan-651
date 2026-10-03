@@ -81,36 +81,6 @@ export function drawScheda(svg) {
   });
 }
 
-// ---------- Registro degli scafi ----------
-const SCAFI = {
-  1: "Futuro", 2: "Adrienne II", 4: "Ichiban", 5: "Show Me", 6: "Rosbeg", 7: "Lunz am Meer",
-  8: "Deneb", 9: "Whisper of V", 10: "Tihama", 11: "Spirit of Helsinki", 14: "White Knight of NY",
-  16: "Geronimo", 17: "Aurora",
-};
-function aCapo(nome) {
-  if (nome.length <= 13) return [nome];
-  const spazi = [...nome.matchAll(/ /g)].map((m) => m.index);
-  const meta = nome.length / 2;
-  const i = spazi.reduce((a, b) => (Math.abs(b - meta) < Math.abs(a - meta) ? b : a));
-  return [nome.slice(0, i), nome.slice(i + 1)];
-}
-export function drawRegistro(svg) {
-  const col = 5;
-  const w = 80;
-  const h = 56;
-  for (let n = 1; n <= 19; n++) {
-    const i = n - 1;
-    const x = (i % col) * w + 8;
-    const y = Math.floor(i / col) * h + 14;
-    const nome = SCAFI[n];
-    const g = entra(el("g", { class: `scafo${nome ? " noto" : ""}${n === 7 ? " qui" : ""}` }, svg), i * 0.5);
-    el("circle", { cx: x + 4, cy: y, r: 3.2 }, g);
-    testo(g, x + 12, y + 3, `651-${String(n).padStart(3, "0")}`, { class: "num-scafo" });
-    aCapo(nome || "non identificato").forEach((riga, k) => testo(g, x, y + 18 + k * 11, riga, { class: "nome-scafo" }));
-  }
-  return `<span class="lnoto">13 identificati</span><span class="lignoto">6 senza nome</span>`;
-}
-
 // ---------- Dimensioni: profilo e pianta ----------
 export function drawDimensioni(svg) {
   const k = 17.5;
@@ -160,7 +130,7 @@ export function drawCarena(svg) {
 }
 
 // ---------- Armo: piano velico quotato ----------
-// Misure dal certificato IRC di Lunz am Meer; I non è nel certificato ed è stimata.
+// Misure dal certificato IRC di uno Swan 651; I non è nel certificato ed è stimata.
 export function drawArmo(svg) {
   const k = 8.6;
   const x0 = 34;
@@ -242,29 +212,4 @@ export function drawPesi(svg) {
   riga(72, "14,4 t", "ZAVORRA IN PIOMBO", "zavorra", 0);
   riga(130, "36,0 t", "DISLOCAMENTO", "totale", 1);
   testo(svg, 222, 182, "PESCAGGIO 3,23 M");
-}
-
-// ---------- Palmarès di Lunz am Meer ----------
-const PALMARES = [
-  ["2012", "13ª", "Rolex Swan Cup"],
-  ["2016", "7ª", "Swan Cup, Mini Maxi"],
-  ["2018", "1ª", "Swan Cup, Classics by Frers"],
-  ["2018", "4ª", "Middle Sea Race, IRC"],
-  ["2019", "1ª", "Tre Golfi, classe Maxi"],
-  ["2019", "2ª", "Maxi Yacht Rolex Cup"],
-  ["2022", "5ª", "Rolex Swan Cup"],
-  ["2026", "1ª", "Swan Cup, Classics by Frers"],
-];
-export function drawPalmares(svg) {
-  const x = 64;
-  const passo = 31;
-  el("line", { class: "asse", x1: x, y1: 12, x2: x, y2: 12 + passo * (PALMARES.length - 1) + 8 }, svg);
-  PALMARES.forEach(([anno, pos, gara], i) => {
-    const y = 18 + i * passo;
-    const g = entra(el("g", { class: pos === "1ª" ? "vittoria" : "" }, svg), i);
-    if (anno !== PALMARES[i - 1]?.[0]) testo(g, x - 14, y + 3, anno, { "text-anchor": "end" });
-    el("circle", { class: "punto", cx: x, cy: y, r: pos === "1ª" ? 4 : 2.6 }, g);
-    testo(g, x + 16, y + 6, pos, { class: "posizione" });
-    testo(g, x + 54, y + 3, gara.toUpperCase());
-  });
 }

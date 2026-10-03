@@ -45,7 +45,7 @@ export const PASSI = [
     "sezione": "01 / Blueprint",
     "titolo": "L'armo",
     "pannello": "grafico-armo",
-    "testo": "Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su Lunz am Meer oggi quattro verricelli sono elettrici. Misure dal certificato IRC di Lunz am Meer (651-007).",
+    "testo": "Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su diversi scafi oggi alcuni verricelli sono elettrici. Misure dal certificato IRC di uno Swan 651.",
     "dati": [
       {
         "etichetta": "P (randa)",
@@ -68,8 +68,8 @@ export const PASSI = [
   {
     "sezione": "02",
     "titolo": "Esterni",
-    "pannello": "lunz-am-meer-swan-cup",
-    "testo": "La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta: i colori di Lunz am Meer.",
+    "pannello": "swan-cup-porto-cervo",
+    "testo": "La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta.",
     "dati": []
   },
   {
@@ -137,7 +137,7 @@ export const PASSI = [
   {
     "sezione": "03",
     "titolo": "Interni",
-    "pannello": "adrienne-ii-dinette",
+    "pannello": "dinette",
     "testo": "Si toglie la coperta. Sotto, quindici metri di spazio vivibile disegnati come una casa: zona armatore a poppa, vita comune al centro, ospiti e vele a prua.",
     "dati": []
   },
@@ -151,7 +151,7 @@ export const PASSI = [
   {
     "sezione": "03 / Ospiti",
     "titolo": "Otto ospiti, due di equipaggio",
-    "pannello": "cabina-armatore-651-001",
+    "pannello": "cabina-armatore",
     "testo": "Nella configurazione tipica quattro cabine ospiti, tre bagni e una cabina per due di equipaggio. La cabina armatoriale è separata dal resto della barca dalla sala macchine: chi possiede il 651 ha la sua casa nella casa. Fonti: Second Wind (Fraser) e Show Me (Brewer). Alcuni scafi hanno layout diversi; il modello segue la tavola di Adrienne II, scafo modificato.",
     "dati": [
       {
@@ -171,14 +171,14 @@ export const PASSI = [
   {
     "sezione": "03 / Materiali",
     "titolo": "Teak, holly, pelle",
-    "pannello": "show-me-barografo",
+    "pannello": "barografo",
     "testo": "La ricerca stilistica Swan di quegli anni è nordica e calda: teak miele satinato in ogni superficie, pagliolo a listelli di teak e holly, cielino bianco a doghe, divani in pelle rossa. Prima rifinitura degli interni: cuscini a moduli, porte ad arco, librerie, cucina e carteggio. Bagni e cabine restano semplificati.",
     "dati": []
   },
   {
     "sezione": "04",
     "titolo": "Navigazione",
-    "pannello": "futuro-regata",
+    "pannello": "di-bolina-sbandata",
     "testo": "Fuori dal cantiere, in mare aperto. È qui che il disegno di Frers si spiega.",
     "dati": []
   },
@@ -186,7 +186,7 @@ export const PASSI = [
     "sezione": "04 / Velocità",
     "titolo": "Otto nodi di media, per settimane",
     "pannello": "grafico-polare",
-    "testo": "Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera. Nel 2023 Spirit of Helsinki ha vinto in tempo reale la prima tappa della Ocean Globe Race: 7.672 miglia a circa 8 nodi di media. Polare dal certificato ORC di Lunz am Meer. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.",
+    "testo": "Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera. Polare dal certificato ORC di uno Swan 651. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.",
     "dati": []
   },
   {
@@ -221,10 +221,10 @@ export const PASSI = [
     ]
   },
   {
-    "sezione": "Scafo 651-007",
-    "titolo": "Lunz am Meer",
-    "pannello": "grafico-palmares",
-    "testo": "Il prossimo capitolo: la storia dei diciannove scafi.",
+    "sezione": "Germán Frers, 1982-1991",
+    "titolo": "Diciannove scafi",
+    "pannello": "ritratto-ad-acquerello",
+    "testo": "Il prossimo capitolo: la storia di ognuno di loro.",
     "dati": []
   }
 ];
