@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swan 651, computer di bordo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body data-fase="ingresso">
+  <canvas id="gl"></canvas>
+  <div id="hotspots"></div>
+
+  <!-- Parole chiave e dati: li sceglie l'agente mentre parla -->
+  <div id="parole" aria-live="polite">
+    <h2 class="parole-titolo"></h2>
+    <dl class="parole-dati"></dl>
+  </div>
+
+  <!-- Foto e grafici richiamati dall'agente -->
+  <figure id="media" aria-live="polite">
+    <div class="media-corpo"></div>
+    <figcaption><span class="media-titolo"></span><span class="media-didascalia mono"></span></figcaption>
+  </figure>
+
+  <header id="top">
+    <a class="brand" href="/">Nautor's Swan <em>651</em></a>
+  </header>
+
+  <!-- Indice: gli argomenti di cui si può chiedere -->
+  <nav id="indice" aria-label="Argomenti della visita">
+    <span class="mono indice-titolo">Chiedimi di</span>
+    <div class="indice-voci"></div>
+  </nav>
+
+  <!-- Ingresso: tutto spento, si accende dal pulsante di vetro -->
+  <section id="ingresso">
+    <span class="mono kicker">Nautor's Swan 651, Germán Frers 1982</span>
+    <p class="invito">Tocca il pulsante di <b>accensione</b> per svegliare il computer di bordo.</p>
+  </section>
+  <section id="ingresso-sotto">
+    <p class="mono nota"><span class="carico">Caricamento della barca <b class="pct">0%</b></span><span class="pronto">Ti servirà il microfono. Puoi interrompermi quando vuoi.</span></p>
+  </section>
+
+  <div id="plancia" data-state="off"></div>
+  <p id="cc" aria-live="off"></p>
+
+  <script type="module" src="/src/bordo/pagina.js"></script>
+</body>
+</html>
