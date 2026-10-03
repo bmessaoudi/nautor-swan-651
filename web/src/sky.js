@@ -36,14 +36,16 @@ const ORIGIN = new Geodetic(radians(22.62), radians(63.7), 0);
 
 // Qualità: preset della libreria più risoluzione delle nuvole, relativa al buffer del composer
 // (che su uno schermo retina è già a 2x: 0,5 vuol dire circa un punto per pixel CSS; le nuvole
-// sono morbide e l'upscaling temporale fa il resto). "spenta" toglie le nuvole e tiene il cielo
+// sono morbide). Niente upscaling temporale della libreria: ricostruisce le nuvole da 16 fotogrammi
+// e lasciava un fantasma sulle vele quando la camera gira (limite noto di three-clouds). Al suo
+// posto un antialiasing temporale corto, a risoluzione più bassa. "spenta" toglie le nuvole e tiene il cielo
 // fisico. Si sceglie con ?cielo=alta|media|bassa|spenta; la qualità adattiva di post.js scende di
 // un gradino (mai fino a "spenta") prima di abbassare la risoluzione di tutto.
 export const SKY_QUALITY = ["alta", "media", "bassa", "spenta"];
 const QUALITY = {
-  alta: { preset: "high", scale: 0.75, shafts: true },
-  media: { preset: "medium", scale: 0.5, shafts: false },
-  bassa: { preset: "low", scale: 0.35, shafts: false },
+  alta: { preset: "high", scale: 0.5, shafts: true },
+  media: { preset: "medium", scale: 0.35, shafts: false },
+  bassa: { preset: "low", scale: 0.25, shafts: false },
   spenta: null,
 };
 
@@ -313,13 +315,19 @@ export function createSky(renderer, camera, shared, { quality = "media" } = {}) 
     cloudsPass.enabled = !!Q && active;
     if (Q) {
       clouds.qualityPreset = Q.preset;
+      clouds.temporalUpscale = false;
       clouds.resolutionScale = Q.scale;
       clouds.lightShafts = Q.shafts;
+      // peso del fotogramma nuovo nell'antialiasing: 0,1 della libreria lascia ancora una scia
+      clouds.cloudsPass.resolveMaterial.uniforms.temporalAlpha.value = 0.3;
     }
     link();
   }
 
   let active = true;
+  // secondi in cui la qualità adattiva non deve misurare: arrivo in mare, dissolvenza dallo studio
+  // e cambio di qualità hanno picchi di carico (shader, tabelle) che non dicono nulla del regime
+  let settle = 0;
 
   // Nuvole per preset. Copertura dalla condizione; la pioggia e la foschia abbassano gli strati e
   // aggiungono foschia volumetrica (approssimata, costa poco).
@@ -442,6 +450,11 @@ export function createSky(renderer, camera, shared, { quality = "media" } = {}) 
       if (!SKY_QUALITY.includes(level)) return;
       q = level;
       applyQuality();
+      settle = 2;
+    },
+    // vero mentre la misura dei tempi va ignorata (vedi settle)
+    get settling() {
+      return settle > 0;
     },
     // un gradino in meno (dalla qualità adattiva di post.js); restituisce true se ha cambiato
     degrade() {
@@ -463,7 +476,9 @@ export function createSky(renderer, camera, shared, { quality = "media" } = {}) 
       if (on !== active) {
         active = on;
         applyQuality();
+        settle = 3;
       }
+      settle = on && opacity < 0.999 ? 3 : Math.max(0, settle - dt);
       mesh.visible = on;
       // la composizione del cielo segue la dissolvenza fra studio e mare
       aerial.blendMode.opacity.value = opacity;

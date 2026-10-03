@@ -291,9 +291,20 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         query = null;
       }
       if (warm++ < 120) return;
+      // durante l'arrivo in mare il cielo carica e compila: quei picchi non contano
+      if (sky && sky.settling) {
+        slow = 0;
+        return;
+      }
       const useGpu = timer && gpuMs >= 0;
-      ema += (Math.min(useGpu ? gpuMs : ms, 100) - ema) * 0.05;
-      slow = ema > (useGpu ? 15 : 19) ? slow + 1 : 0;
+      // la GPU non può metterci più del tempo fra due fotogrammi: su Mac (WebGL su Metal) le timer
+      // query danno valori gonfiati, 13 ms a 115 fps, e facevano scendere la risoluzione per niente.
+      // Il minimo tiene buono anche il caso opposto, la pagina limitata a 30 fps con la GPU scarica.
+      // Quando il minimo è il tempo fra fotogrammi vale la soglia larga: su uno schermo a 60 Hz
+      // quel tempo non scende mai sotto 16,7 ms anche con la GPU scarica.
+      const gpuBound = useGpu && gpuMs < ms;
+      ema += (Math.min(gpuBound ? gpuMs : ms, 100) - ema) * 0.05;
+      slow = ema > (gpuBound ? 15 : 19) ? slow + 1 : 0;
       // prima si alleggeriscono le nuvole (sono la parte più cara del mare), poi la risoluzione
       if (slow > 90 && sky && sky.degrade()) {
         slow = 0;
