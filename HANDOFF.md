@@ -4,7 +4,7 @@ Aggiornato al 3 ottobre 2026. Leggi questo file prima di toccare qualcosa.
 
 ## Dove siamo
 
-Demo **a uso interno** di un museo web dedicato **solo allo Swan 651** (Nautor's Swan, Germán Frers, 1982-1991, 19 esemplari). Riferimento principale: **Lunz am Meer**, scafo 651-007, AUT 2895. Non servono consensi né licenze: lo ha detto l'utente, non riproporre il tema.
+Demo **a uso interno** di un museo web dedicato **solo allo Swan 651** (Nautor's Swan, Germán Frers, 1982-1991, 19 esemplari). **Museo generico sul 651**: si racconta il progetto, non i singoli scafi (scelta della designer, estesa all'agente il 3 ottobre 2026). Le uniche barche citate per nome sono quelle della landing: Fazer Finland, oggi Spirit of Helsinki, per la Whitbread 1985-86, e Second Wind, Show Me e Adrienne II come fonti. Lunz am Meer resta solo come fonte interna del modello 3D (armo, colori, specchio di poppa). Non servono consensi né licenze: lo ha detto l'utente, non riproporre il tema.
 
 Il team è diviso in due e lavora su due branch:
 
@@ -16,8 +16,10 @@ Il team è diviso in due e lavora su due branch:
 Più avanti i due branch verranno uniti in `main`, che conterrà entrambe le esperienze.
 
 - Questo branch è nato da `main` al commit `0d9bb57` ed è pubblicato su `origin`.
-- Al 3 ottobre `dev` non esisteva ancora sul remoto. Non crearlo e non toccarlo: è lo spazio della designer.
-- **Regola per il merge:** il codice dell'agente vive in file e cartelle propri. Sui file condivisi (`web/src/main.js`, `web/index.html`, `web/src/style.css`) solo modifiche piccole e circoscritte.
+- **3 ottobre 2026: `origin/dev` unito in questo branch** (commit `cac2d9b`), poi PR verso `dev`. Il branch `dev` non si tocca direttamente: è lo spazio della designer.
+- Il pulsante "Esperienza audio" dell'ingresso della landing porta a `/bordo/` (`AUDIO_HREF` in `main.js`, l'unica riga cambiata nel suo codice). Il segnaposto `audio.html` è stato tolto.
+- **Regola:** il codice dell'agente vive in file e cartelle propri. Sui file condivisi (`web/src/main.js`, `web/index.html`, `web/src/style.css`) solo modifiche piccole e circoscritte.
+- **Trappola nei moduli condivisi:** dopo il gioco di navigazione della designer, `ocean.js` non fa più scorrere l'acqua da solo: lo scorrimento arriva da `ocean.setCourse(heading, pos)`. `scena.js` lo chiama a rotta dritta; senza, il mare di `/bordo/` resta fermo.
 
 ## Obiettivo del branch: il "computer di bordo"
 
@@ -57,7 +59,7 @@ Anthropic, Deepgram, ElevenLabs. Vanno in `agent/.env`, mai committate.
 
 ## Stato al 3 ottobre 2026 (notte)
 
-Il computer di bordo ha una **pagina tutta sua, `/bordo/`**, riprogettata per la voce. La landing (`/`, `index.html`, `main.js`, `style.css`) è identica a `main`: è lo spazio della designer. **Manca ancora la prova con le chiavi vere** e i suoni non sono stati generati.
+Il computer di bordo ha una **pagina tutta sua, `/bordo/`**, riprogettata per la voce, con lo stile della landing (vedi sotto). La landing (`/`, `index.html`, `main.js`, `style.css`) è della designer. **Manca ancora la prova con le chiavi vere** e i suoni non sono stati generati.
 
 ### Scelte dell'utente per la pagina a voce (3 ottobre)
 
@@ -85,11 +87,12 @@ Il computer di bordo ha una **pagina tutta sua, `/bordo/`**, riprogettata per la
 - `scena.js`: copia della scena della landing guidata dalla regia invece che dallo scroll. Ogni spostamento va dallo stato attuale a quello d'arrivo senza attraversare i passi intermedi (da 1,8 a 3,6 secondi). Negli interni si accendono cinque luci di cabina calde, con un breve sfarfallio. **Da unificare con `main.js` in un modulo comune al merge.**
 - `pagina.js` e `pagina.css`: ingresso con il pulsante di accensione (sblocca audio e microfono), unico modo di entrare: l'ingresso senza voce è stato tolto; parole chiave sul lato libero dell'inquadratura; pannello per foto e grafici; plancia in basso al centro (vedi il secondo giro).
 - `passi.js`: i testi delle 18 schede della landing, ora conoscenza dell'agente e non testo a schermo. Ogni passo ha un campo `pannello`: la foto o il grafico che riempie la colonna di destra all'arrivo della camera, così la colonna non resta mai vuota. Una foto aperta dall'agente prende il suo posto fino allo spostamento successivo; se l'agente non dà parole chiave resta il titolo del passo. Sul telefono (sotto 901 px) il pannello fisso non compare, per non coprire la barca.
-- `disegni.js` e `contorni.js`: otto grafici SVG nuovi (scheda tecnica generale, pannello d'apertura; registro dei 19 scafi, misure, carena, piano velico quotato, superfici delle vele, zavorra, palmarès di Lunz am Meer). I contorni dello scafo in metri sono ricavati da `reference/drawing_outlines_px.json`. In `scena.js` la camera allarga il campo (fino a 1,6 volte) quando la barca intera non entra fra indice e colonna di destra.
-- `immagini.js` e `public/img/bordo/`: 42 foto (aggiunte la pianta degli interni e il barografo di Show Me) scelte da `reference/` (circa 10 MB, massimo 400 KB l'una), con titolo, didascalia e una descrizione per l'agente. `media.js`: polare, mappa delle rotte e gli otto grafici di `disegni.js`.
+- `disegni.js` e `contorni.js`: sei grafici SVG nuovi (scheda tecnica generale, pannello d'apertura; misure, carena, piano velico quotato, superfici delle vele, zavorra). Registro dei 19 scafi e palmarès di Lunz am Meer tolti con il museo generico. I contorni dello scafo in metri sono ricavati da `reference/drawing_outlines_px.json`. In `scena.js` la camera allarga il campo (fino a 1,6 volte) quando la barca intera non entra fra indice e colonna di destra.
+- `immagini.js` e `public/img/bordo/`: 42 foto scelte da `reference/` (circa 10 MB, massimo 400 KB l'una), con titolo, didascalia e una descrizione per l'agente. Id, file e testi sono generici ("uno Swan 651"), tranne Fazer Finland e Spirit of Helsinki e la tavola di Adrienne II; il campo `fonte` dice da quale scafo viene ogni foto. Alcune foto mostrano il nome della barca sullo scafo. `media.js`: polare, mappa delle rotte e gli otto grafici di `disegni.js`.
 - `suoni.json` e `suoni.js`: 9 ambienti in loop e 9 effetti. Il volume degli ambienti segue lo stato della scena a ogni fotogramma: la tavola, il cantiere, sottocoperta con le voci basse, le vele che sbattono quando sbattono anche nel 3D, il mare e il vento in base ai nodi, i gabbiani vicino alla costa, la pioggia con il preset pioggia. Gli effetti sono legati ai momenti: interruttore e porta quando si accendono le luci, verricello in coperta, vela che si gonfia, onda all'arrivo in mare. Tutto scende al 32% mentre l'agente parla. Senza file audio la pagina funziona lo stesso.
 - `bordo.js` (collegamento LiveKit, trascrizioni, invio di testo) e `bridge.js` (RPC). L'indice per l'agente parte come **stream di testo**: supera i 15 KB massimi di una risposta RPC.
-- `web/vite.config.js`: due ingressi nella build (landing e `/bordo/`).
+- `web/vite.config.js`: due ingressi nella build (landing e `/bordo/`), chiave `rolldownOptions` di Vite 8.
+- **Stile allineato alla landing** (3 ottobre): token della designer copiati in `pagina.css` (Montserrat, navy `#003660`, blu Swan, temi chiaro e scuro), titoli leggeri maiuscoli e spaziati, `.mono`, angoli vivi, logo in maschera centrato, ingresso sul navy della copertura della landing, `contrast.js` per il tono di parole chiave e gruppi dell'indice. Restano nostri i comandi di vetro e la sfera, ricolorati con i blu della casa.
 
 ### Agente (`agent/`)
 
