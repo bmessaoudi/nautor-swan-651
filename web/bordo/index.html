@@ -7,6 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Arrivando dalla landing la pagina parte già navy, come la copertura che si è appena chiusa:
+       lo stile vero arriva con pagina.js, che poi fa comparire il contenuto con una sfumatura -->
+  <style>
+    html { background: #003660; }
+    /* html body: più specifico di body in pagina.css, che ha già la sua transizione del colore */
+    html body { margin: 0; opacity: 0; transition: opacity 0.8s ease, color 0.6s ease; }
+    html body.visibile { opacity: 1; }
+  </style>
 </head>
 <body data-fase="ingresso">
   <canvas id="gl"></canvas>
@@ -24,6 +32,12 @@
     <figcaption><span class="media-titolo"></span><span class="media-didascalia mono"></span></figcaption>
   </figure>
 
+  <!-- Indietro: sempre visibile, anche al buio dell'ingresso; riporta alla scelta della visita -->
+  <a id="indietro" href="/?scelta" aria-label="Torna alla scelta della visita">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+    <span>Scegli la visita</span>
+  </a>
+
   <header id="top">
     <a class="brand" href="/" aria-label="Nautor Swan, torna all'inizio"></a>
   </header>
@@ -37,7 +51,6 @@
 
   <!-- Ingresso: tutto spento, si accende dal pulsante di vetro -->
   <section id="ingresso">
-    <span class="mono kicker">Nautor's Swan 651, Germán Frers 1982</span>
     <p class="invito">Tocca il pulsante di <b>accensione</b> per svegliare il computer di bordo.</p>
   </section>
   <section id="ingresso-sotto">
