@@ -293,6 +293,75 @@ void main() {
 }
 `;
 
+// ---------- Galleggiamento ----------
+// Le stesse onde di Gerstner del vertex shader, rifatte sulla CPU: l'altezza dell'acqua in alcuni
+// punti sotto lo scafo dà sollevamento, beccheggio e rollio. Lo scafo (19,98 × 5,31 m, centrato
+// nell'origine, prua verso +X) si campiona su una griglia 5 × 3 dentro la linea di galleggiamento:
+// le onde più corte della barca si compensano fra i punti, come su uno scafo vero.
+const HULL_X = [-7, -3.5, 0, 3.5, 7];
+const HULL_Z = [-2.1, 0, 2.1];
+const smoothstep = (a, b, x) => {
+  const u = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return u * u * (3 - 2 * u);
+};
+
+// spostamento dell'onda nel punto p del piano (x, z), come gerstner() nello shader
+function waveOffset(px, pz, t, sh, waves, out) {
+  let ox = 0, oy = 0, oz = 0;
+  const qx = px + sh.uOff.value.x, qz = pz + sh.uOff.value.y;
+  for (const w of waves) {
+    const k = (2 * Math.PI) / w.w;
+    const c = Math.sqrt(9.8 / k);
+    const len = Math.hypot(w.x, w.y);
+    const dx = w.x / len, dz = w.y / len;
+    const f = k * (dx * qx + dz * qz - c * t);
+    const a = (w.z * sh.uWaveScale.value) / k;
+    const co = Math.cos(f);
+    ox += dx * a * co;
+    oy += a * Math.sin(f);
+    oz += dz * a * co;
+  }
+  // stessa attenuazione dello shader: in lontananza e attorno allo scafo
+  const hc = Math.cos(sh.uHeading.value), hs = Math.sin(sh.uHeading.value);
+  const lx = px * hc + pz * hs, lz = -px * hs + pz * hc;
+  let fade = 1 - smoothstep(300, 1400, Math.hypot(px, pz));
+  fade *= 0.55 + 0.45 * smoothstep(6, 22, Math.hypot(lx * 0.55, lz));
+  out.x = ox * fade; out.y = oy * fade; out.z = oz * fade;
+  return out;
+}
+
+// altezza dell'acqua nel punto del mondo (x, z): le onde spostano anche in orizzontale, quindi si
+// cerca il punto del piano che finisce lì (tre passi bastano, le onde sono poco ripide)
+const tmpOff = { x: 0, y: 0, z: 0 };
+function waterHeight(x, z, t, sh, waves) {
+  let px = x, pz = z;
+  for (let i = 0; i < 3; i++) {
+    waveOffset(px, pz, t, sh, waves, tmpOff);
+    px = x - tmpOff.x;
+    pz = z - tmpOff.z;
+  }
+  return waveOffset(px, pz, t, sh, waves, tmpOff).y;
+}
+
+function floatOn(t, sh, waves, out) {
+  // assi della barca nel mondo: prua (cos h, sin h), dritta (-sin h, cos h), come lp nello shader
+  const hc = Math.cos(sh.uHeading.value), hs = Math.sin(sh.uHeading.value);
+  let sum = 0, sx = 0, sz = 0, sxx = 0, szz = 0, n = 0;
+  for (const bx of HULL_X) {
+    for (const bz of HULL_Z) {
+      const h = waterHeight(bx * hc - bz * hs, bx * hs + bz * hc, t, sh, waves);
+      sum += h; sx += bx * h; sz += bz * h; sxx += bx * bx; szz += bz * bz; n++;
+    }
+  }
+  // piano ai minimi quadrati sulla griglia simmetrica: la media è il sollevamento, le pendenze
+  // lungo la prua e lungo il baglio danno beccheggio e rollio
+  // (rollio col segno della sbandata, rotation.x: positivo è la dritta che scende)
+  out.heave = sum / n;
+  out.pitch = Math.atan(sx / sxx);
+  out.roll = -Math.atan(sz / szz);
+  return out;
+}
+
 export function createOcean() {
   // Uniformi condivise fra mare, cielo e paesaggio
   const shared = {
@@ -355,6 +424,9 @@ export function createOcean() {
   // il "mare" visto dal basso nella mappa d'ambiente: un disco scuro sotto l'orizzonte
   const envSea = new THREE.MeshBasicMaterial({ color: 0x0b3048 });
   let foamBase = 1;
+  const floatRaw = { heave: 0, pitch: 0, roll: 0 };
+  const floatState = { heave: 0, pitch: 0, roll: 0 };
+  let floatReady = false;
 
   return {
     mesh,
@@ -409,6 +481,23 @@ export function createOcean() {
     setCourse(heading, pos) {
       shared.uHeading.value = heading;
       shared.uOff.value.set(pos.x, pos.y);
+    },
+    // Galleggiamento: come sta la barca sull'acqua disegnata dallo shader, al tempo t (dopo
+    // setCourse, che sposta l'acqua). Restituisce sollevamento (m), beccheggio e rollio (radianti,
+    // prua che sale e dritta che scende positivi), con un filo d'inerzia: 30 tonnellate non
+    // seguono ogni increspatura. dt è il passo del fotogramma.
+    float(t, dt) {
+      floatOn(t, shared, mat.uniforms.uWaves.value, floatRaw);
+      // il sollevamento segue l'acqua più da vicino (lo scafo non deve affondare né staccarsi),
+      // beccheggio e rollio con più inerzia
+      const step = Math.min(dt, 0.1);
+      const kh = floatReady ? 1 - Math.exp(-step / 0.2) : 1;
+      const ka = floatReady ? 1 - Math.exp(-step / 0.5) : 1;
+      floatReady = true;
+      floatState.heave += (floatRaw.heave - floatState.heave) * kh;
+      floatState.pitch += (floatRaw.pitch * 0.85 - floatState.pitch) * ka;
+      floatState.roll += (floatRaw.roll * 0.85 - floatState.roll) * ka;
+      return floatState;
     },
     update(t, opacity, foam, cam) {
       shared.uTime.value = t;

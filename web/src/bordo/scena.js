@@ -544,17 +544,21 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       m.visible = s.sails > 0.01 || s.lines > 0.01;
     }
 
+    // rotta dritta: l'acqua scorre lungo la prua alla velocità delle condizioni (ocean.js non lo
+    // calcola più da solo, lo stesso che fa sailing.js nella landing fuori dal gioco). Prima del
+    // galleggiamento, che legge le onde nel punto in cui l'acqua è arrivata.
+    ocean.setCourse(0, rotta.set(t * cond.flow, 0));
+    // sbandata dal vento, beccheggio, rollio e sollevamento dalle onde che la barca ha sotto
     const m = s.motion * lerp(1, cond.motion, s.ocean);
-    boat.rotation.x = THREE.MathUtils.degToRad(s.heel * lerp(1, cond.heel / 16, s.ocean) + m * 1.8 * Math.sin(t * 0.47));
-    boat.rotation.z = THREE.MathUtils.degToRad(m * 1.4 * Math.sin(t * 0.61 + 1.2));
-    boat.position.y = m * 0.14 * Math.sin(t * 0.83);
+    const onda = ocean.float(t, dt);
+    const mare = s.motion * s.ocean;
+    boat.rotation.x = THREE.MathUtils.degToRad(s.heel * lerp(1, cond.heel / 16, s.ocean)) + mare * onda.roll;
+    boat.rotation.z = mare * onda.pitch;
+    boat.position.y = mare * onda.heave;
     boat.updateMatrixWorld();
     const wind = lerp(0.18, Math.min(1, cond.knots / 20), s.ocean);
     mats.update(boat, s.ocean, wind * s.sails, cond.rain ? s.ocean : 0);
     if (rigging) rigging.update(t, wind);
-    // rotta dritta: l'acqua scorre lungo la prua alla velocità delle condizioni (ocean.js non lo
-    // calcola più da solo, lo stesso che fa sailing.js nella landing fuori dal gioco)
-    ocean.setCourse(0, rotta.set(t * cond.flow, 0));
     ocean.update(t, s.ocean, m, camera);
     landscape.update(t, s.ocean, camera);
 

@@ -285,7 +285,13 @@ html.choosing { overflow: hidden; }
 body.logo-white .brand { background: #fff; }
 
 /* Esplorazione libera: CTA in alto a sinistra e barra esterni/interni in basso (main.js) */
-.explore-btn { grid-column: 1; justify-self: start; padding: 11px 18px; font-size: 11px; }
+.top-left { grid-column: 1; justify-self: start; display: flex; align-items: center; gap: 10px; }
+.explore-btn { padding: 11px 18px; font-size: 11px; }
+/* Scegli la visita: stessa CTA, con la freccia; in esplorazione libera lascia il posto a "Torna alla visita" */
+.back-btn { gap: 8px; padding-left: 14px; text-decoration: none; }
+.back-btn svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.back-btn:hover svg { transform: translateX(-3px); }
+html.exploring .back-btn { display: none; }
 #explore-bar {
   position: fixed; left: 50%; bottom: 28px; z-index: 10; transform: translateX(-50%);
   display: none; align-items: center; gap: 4px; padding: 4px;
@@ -636,6 +642,8 @@ h2.big { font-size: clamp(44px, 6.5vw, 96px); line-height: 1; }
   #cond span { display: none; }
   #top { padding: 8px 16px 0; }
   .explore-btn { padding: 9px 12px; font-size: 10px; }
+  .back-btn span, .explore-long { display: none; }
+  .top-left { gap: 6px; }
   #sail-hud { left: 12px; right: 12px; bottom: 76px; width: auto; padding: 12px; gap: 10px; }
   .hud-top { grid-template-columns: 84px 1fr; gap: 12px; }
   .hud-dial { width: 84px; height: 84px; }

@@ -31,6 +31,23 @@ let collegamento = null;
 // ---------- Comandi ----------
 const plancia = createPlancia($("#plancia"));
 const statoEl = $("#plancia .stato");
+// lo stile è caricato e la plancia c'è: la pagina sfuma dal navy (vedi lo stile in bordo/index.html)
+// (la lettura di offsetHeight fissa prima l'opacità 0, così la transizione parte davvero)
+void document.body.offsetHeight;
+document.body.classList.add("visibile");
+// Indietro verso la landing: la pagina sfuma nel navy prima di cambiare, come all'arrivo
+$("#indietro").addEventListener("click", (e) => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+  e.preventDefault();
+  const href = e.currentTarget.href;
+  document.body.classList.remove("visibile");
+  setTimeout(() => location.assign(href), 800);
+});
+// Tornando con il pulsante indietro del browser la pagina arriva dalla cache sfumata e senza
+// collegamento: si ricarica da capo
+addEventListener("pageshow", (e) => {
+  if (e.persisted) location.reload();
+});
 
 // ---------- Scena ----------
 // spazio occupato da indice e comandi, misurato una volta e a ogni ridimensionamento
@@ -51,6 +68,22 @@ function misuraMargini() {
 }
 addEventListener("resize", misuraMargini);
 misuraMargini();
+
+// Ingresso centrato in verticale: la sfera scende (o sale) di metà della differenza fra invito e nota.
+// Le misure offset* ignorano la scala della plancia, che il CSS applica da sé.
+function centraIngresso() {
+  const spinta = ($("#ingresso").offsetHeight - $("#ingresso-sotto").offsetHeight) / 2;
+  const dock = $("#plancia .dock");
+  const sottoSfera = $("#plancia").offsetHeight - dock.offsetTop - dock.offsetHeight / 2;
+  document.body.style.setProperty("--spinta", `${spinta}px`);
+  document.body.style.setProperty("--sotto-sfera", `${sottoSfera}px`);
+}
+// ricalcolo quando invito o nota cambiano altezza: finestra, font caricato, nota che a barca
+// pronta passa da "Caricamento" all'avviso del microfono
+const osservaIngresso = new ResizeObserver(centraIngresso);
+osservaIngresso.observe($("#ingresso"));
+osservaIngresso.observe($("#ingresso-sotto"));
+centraIngresso();
 const pct = $("#ingresso-sotto .pct");
 const scena = createScena({
   canvas: $("#gl"),
