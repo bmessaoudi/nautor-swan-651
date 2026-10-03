@@ -928,7 +928,11 @@ def build_all():
     cut_cockpit_opening(deck)
     build_cockpit(col)
     build_toerail(col, xs)
-    build_transom_sign(col)
+    # Niente cartello di poppa: il museo racconta il 651 in generale, non un singolo scafo.
+    # Le scene costruite prima lo contengono ancora, quindi lo si toglie.
+    old_sign = bpy.data.objects.get("TransomSign")
+    if old_sign:
+        bpy.data.objects.remove(old_sign, do_unlink=True)
     build_keel(col)
     build_skeg_and_rudder(col)
     build_references(ref)

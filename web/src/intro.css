@@ -1,0 +1,145 @@
+/* Pagina di intro, portata dalla home di Wikiswan (cartella "Team building"):
+   stessa palette Nautor Swan, Montserrat al posto di Gotham, angoli vivi. */
+:root {
+  --ink: #003660;
+  --abyss: #00223d;
+  --paper: #ffffff;
+  --signal: #157aac;
+  /* Fondo del loader di modello.html: la dissolvenza ci arriva senza stacchi. */
+  --museum: #003660;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: var(--ink); }
+body {
+  font-family: "Montserrat", system-ui, sans-serif;
+  color: var(--paper);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Margini laterali e larghezze massime approvati: 16 / 24 / 32 / 48 / 64px, cap a 1440px. */
+.container { width: 100%; margin-inline: auto; padding-inline: 16px; }
+@media (min-width: 640px)  { .container { padding-inline: 24px; max-width: 640px; } }
+@media (min-width: 768px)  { .container { padding-inline: 32px; max-width: 768px; } }
+@media (min-width: 1024px) { .container { padding-inline: 48px; max-width: 1024px; } }
+@media (min-width: 1280px) { .container { padding-inline: 64px; max-width: 1280px; } }
+@media (min-width: 1536px) { .container { max-width: 1440px; } }
+
+/* Testata: sopra il video, senza fondo; logo centrato. */
+.site-header {
+  position: fixed; inset: 0 0 auto; z-index: 50;
+  display: flex; justify-content: center; align-items: center;
+  height: 80px; padding-top: 8px;
+}
+/* Il file del logo è bianco su trasparente: usato come maschera prende il colore del testo. */
+.site-logo {
+  display: block; width: 71px; height: 48px;
+  background: currentColor; color: var(--paper);
+  -webkit-mask: url(/intro/logo-white.png) no-repeat center / contain;
+  mask: url(/intro/logo-white.png) no-repeat center / contain;
+}
+
+.hero {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 100svh; padding: 128px 0 64px;
+  background: var(--ink);
+}
+.hero-video, .hero-ripple, .hero-shade, .hero-gradient {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+.hero-video { object-fit: cover; }
+.hero-ripple { pointer-events: none; opacity: 0; transition: opacity 0.7s; }
+.hero-ripple.ready { opacity: 1; }
+.hero-shade { background: rgb(0 34 61 / 0.7); }
+.hero-gradient {
+  background: linear-gradient(to bottom, rgb(0 34 61 / 0.6), rgb(0 34 61 / 0.1), rgb(0 34 61 / 0.85));
+}
+
+.hero-content {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+  text-align: center;
+}
+.eyebrow {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.25em; text-transform: uppercase;
+  color: rgb(255 255 255 / 0.8);
+}
+/* Titoli della casa: leggeri, maiuscoli, spaziati. */
+h1 {
+  max-width: 56rem;
+  font-size: 1.875rem; line-height: 1.25; font-weight: 300;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.hero-intro {
+  max-width: 42rem;
+  font-size: 1rem; line-height: 1.5rem; font-weight: 300;
+  color: rgb(255 255 255 / 0.85);
+}
+@media (min-width: 640px) {
+  h1 { font-size: 3rem; }
+  .hero-intro { font-size: 1.125rem; line-height: 1.75rem; }
+}
+@media (min-width: 1024px) { h1 { font-size: 3.75rem; } }
+
+.hero-cta { padding-top: 8px; }
+.cta {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 14px 28px;
+  font-size: 0.75rem; line-height: 1rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
+  color: var(--paper); background: var(--signal); text-decoration: none;
+  outline: none; transition: background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.cta:hover { background: rgb(21 122 172 / 0.9); }
+.cta:focus-visible { box-shadow: 0 0 0 3px rgb(21 122 172 / 0.5); }
+.cta:active { transform: translateY(1px); }
+
+/* Ingresso dei testi: salgono di 16px e compaiono, uno dopo l'altro. */
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(16px); }
+}
+.reveal { animation: reveal 0.5s var(--ease-out) var(--delay, 0s) both; }
+
+/* Luccichio della CTA: una banda di luce attraversa il bottone ogni pochi secondi,
+   e una volta subito all'hover/focus. */
+@keyframes cta-shine {
+  from { transform: translateX(-120%) skewX(-20deg); }
+  to { transform: translateX(320%) skewX(-20deg); }
+}
+/* A riposo: un passaggio, poi una pausa (il passaggio occupa il primo 20% di ogni ciclo da 5s). */
+@keyframes cta-shine-idle {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  20%, 100% { transform: translateX(320%) skewX(-20deg); }
+}
+.cta-shine { position: relative; overflow: hidden; isolation: isolate; }
+.cta-shine::before,
+.cta-shine::after {
+  content: "";
+  position: absolute; inset-block: 0; left: 0; width: 40%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+}
+.cta-shine::before { animation: cta-shine-idle 5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s infinite; }
+.cta-shine:hover::after,
+.cta-shine:focus-visible::after { animation: cta-shine 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Uscita: lo schermo sfuma lentamente nel fondo del museo, poi si cambia pagina. */
+.page-fade {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--museum);
+  opacity: 0; pointer-events: none;
+  transition: opacity 900ms ease-in;
+}
+body.leaving .page-fade { opacity: 1; pointer-events: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; }
+  .cta-shine::before,
+  .cta-shine::after { animation: none !important; }
+  .page-fade { transition: none; }
+}

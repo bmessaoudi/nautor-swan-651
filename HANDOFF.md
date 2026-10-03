@@ -19,10 +19,10 @@ Il modello completo esiste ed è generato **interamente da script Python** esegu
 | `models/swan651.glb` | Formato per il web: esterni e interni, circa 42.500 triangoli, 1,7 MB |
 | `models/swan651.fbx` | Copia per il collega esperto 3D (3ds Max, Maya, C4D, Unity). La mappa di ruvidità dello scafo non passa nell'FBX |
 | `models/swan651.blend` | Scena Blender |
-| `models/textures/` | Texture generate: vernice dello scafo (colore e ruvidità), teak di coperta, pagliolo teak e holly, cartello di poppa |
+| `models/textures/` | Texture generate: vernice dello scafo (colore e ruvidità), teak di coperta, pagliolo teak e holly |
 | `renders/v7_*.png` | Ultimi render: `v7_full`, `v7_saloon`, `v7_cutaway` (più `v6_stern` per lo specchio di poppa) |
 
-Ogni oggetto ha un nome chiaro, così sul web si può smontare: Hull, Deck, Coachroof, Cockpit, Keel, Skeg, Rudder, Mast, Boom, Rigging, Mainsail, Headsail, Winches, Wheel, Lifelines, DeckHardware, Toerail, Portlights, TransomSign, e la collezione `Swan651_Interior` (Interior_Sole, Lining, Bulkheads, Furniture, Headliner, MastPost).
+Ogni oggetto ha un nome chiaro, così sul web si può smontare: Hull, Deck, Coachroof, Cockpit, Keel, Skeg, Rudder, Mast, Boom, Rigging, Mainsail, Headsail, Winches, Wheel, Lifelines, DeckHardware, Toerail, Portlights, e la collezione `Swan651_Interior` (Interior_Sole, Lining, Bulkheads, Furniture, Headliner, MastPost).
 
 Le due vele hanno uno shape key `Luffing` (vela sgonfia), esportato come morph target per animarlo sul web.
 
@@ -83,7 +83,7 @@ cp models/swan651.glb web/public/models/
    - Scafo bianco, carena rossa, filetto rosso sopra il galleggiamento e sotto la coperta.
    - Fianchi della tuga bianchi con fascia rossa bassa.
    - Falchetta in alluminio, coperta in teak.
-   - Cartello "Lunz am Meer" sullo specchio, come un cartello austriaco di fine paese.
+   - Nessun cartello sullo specchio (tolto il 3 ottobre 2026): il museo resta generico sul 651, senza nominare Lunz am Meer né nei testi né nel modello. `make_transom_sign.py` e la texture `lunz_transom_sign.png` non sono più usati.
    - Vele in laminato grigio.
 8. **Interni.**
    - Disposizione dalla pianta di Adrienne II (spostata di `STERN_CUT`).

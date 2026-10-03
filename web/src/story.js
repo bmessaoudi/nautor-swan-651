@@ -52,14 +52,14 @@ export const KEYS = [
 export const HOTSPOTS = [
   // Scafo
   { steps: [5], at: [9.4, 1.5, 0], title: "Slancio di prua", text: "1,63 m di slancio: la barca si allunga quando sbanda e guadagna galleggiamento." },
-  { steps: [5], at: [-9.55, 1.0, 0.4], title: "Specchio rovescio", text: "Lo spigolo basso è l'estremo poppiero, a 0,60 m sull'acqua. Il cartello è quello di Lunz am Meer." },
+  { steps: [5], at: [-9.55, 1.0, 0.4], title: "Specchio rovescio", text: "Lo spigolo basso è l'estremo poppiero, a 0,60 m sull'acqua." },
   { steps: [5], at: [0.2, -2.6, 0.27], title: "Pinna e piombo", text: "Pinna con scarpa in piombo, pescaggio 3,23 m nella versione Mod." },
   { steps: [5], at: [-8.6, -1.4, 0.08], title: "Timone su skeg", text: "Lo skeg sostiene e protegge la pala: una scelta da oceano più che da regata." },
   // Coperta
   { steps: [6], at: [-5.2, 1.2, 0], title: "Pozzetto", text: "Pozzetto di manovra profondo e protetto, con i coffee grinder." },
   { steps: [6], at: [-7.5, 3.1, 0], title: "Timoneria", text: "Piattaforma rialzata a poppa, sopra la cabina armatoriale." },
   { steps: [6], at: [3.5, 1.9, 0], title: "Tuga", text: "Larga circa il 52% della coperta: passavanti ampi per lavorare a prua." },
-  { steps: [6], at: [-0.5, 2.0, 1.75], title: "Verricelli", text: "Tre coppie sulla tuga e in pozzetto. In origine manuali, su Lunz am Meer quattro sono elettrici." },
+  { steps: [6], at: [-0.5, 2.0, 1.75], title: "Verricelli", text: "Tre coppie sulla tuga e in pozzetto. In origine manuali, su diversi scafi oggi alcuni sono elettrici." },
   { steps: [6], at: [7, 1.75, -1.6], title: "Teak", text: "Coperta interamente in teak, doghe allineate alla falchetta." },
   // Vele
   { steps: [7], at: [-2, 11, 0.7], title: "Randa", text: "86,1 m², P 24,00 m, E 7,04 m." },
