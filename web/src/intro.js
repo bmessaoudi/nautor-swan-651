@@ -47,8 +47,17 @@ function prefetch(href, crossOrigin = null) {
   document.head.appendChild(link);
 }
 
+/** Texture dei materiali del museo: stesso elenco di recipes() in materials.js. */
+const MUSEUM_TEXTURES = [
+  "teak_veneer_diff.jpg", "teak_veneer_nor_gl.jpg", "teak_veneer_rough.jpg",
+  "leather_red_02_nor_gl.jpg", "leather_red_02_rough.jpg",
+  "cotton_jersey_diff.jpg", "cotton_jersey_nor_gl.jpg", "cotton_jersey_rough.jpg",
+  "teak_deck.png",
+];
+
 function preloadMuseum() {
   prefetch("/models/swan651.glb");
+  for (const name of MUSEUM_TEXTURES) prefetch(`/textures/${name}`);
   fetch(MUSEUM_HREF)
     .then((response) => response.text())
     .then((html) => {

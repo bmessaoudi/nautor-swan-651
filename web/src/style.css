@@ -49,19 +49,8 @@ body {
 .mono { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; }
 a { color: inherit; cursor: pointer; text-decoration: none; }
 
-#bg, #grid, #gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
-#bg { z-index: 0; }
-#grid {
-  z-index: 1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(190, 220, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190, 220, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(rgba(190, 220, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190, 220, 255, 0.06) 1px, transparent 1px);
-  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-  background-position: center;
-}
+/* Sfondo e reticolo della tavola sono disegnati nel canvas (main.js) */
+#gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 #gl { z-index: 2; display: block; }
 #hotspots { z-index: 3; pointer-events: none; }
 
@@ -93,6 +82,22 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
   transition: background-color 0.6s ease;
 }
 body.logo-white .brand { background: #fff; }
+.top-right { grid-column: 3; justify-self: end; display: flex; gap: 10px; align-items: center; }
+
+/* Condizioni del mare: compaiono solo nel capitolo Navigazione */
+#cond {
+  display: flex; gap: 12px; align-items: center;
+  border: 1px solid var(--line); padding: 4px 4px 4px 14px; color: var(--ink-dim);
+  background: var(--card); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; visibility: hidden; transition: opacity 0.5s, visibility 0.5s;
+}
+#cond.on { opacity: 1; visibility: visible; }
+#cond button {
+  font: inherit; letter-spacing: inherit; text-transform: inherit; color: #fff;
+  background: var(--signal); border: 0; padding: 7px 12px; cursor: pointer;
+  transition: background-color 0.15s;
+}
+#cond button:hover { background: rgba(21, 122, 172, 0.9); }
 
 #chapters {
   position: fixed; left: 32px; top: 50%; transform: translateY(-50%); z-index: 10;
@@ -285,6 +290,7 @@ h2.big { font-size: clamp(44px, 6.5vw, 96px); line-height: 1; }
   #chapters .lab { display: none; }
   #chapters .progress { display: none; }
   #readout { display: none; }
+  #cond span { display: none; }
   #top { padding: 8px 16px 0; }
   .step, .step[data-side="right"] { padding: 0 16px; align-items: flex-end; padding-bottom: 70px; justify-content: center; }
   .step.outro { align-items: center; padding-bottom: 0; }
