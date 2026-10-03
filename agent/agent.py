@@ -56,7 +56,8 @@ SALUTO = (
     "[warm] Computer di bordo acceso. Benvenuto sullo Swan 651: diciannove metri e novantotto di "
     "eleganza finlandese, e io, che ne sono la memoria. [chuckles] Una memoria degli anni Ottanta, "
     "ma lucidissima. Per parlarmi tieni premuta la sfera al centro della plancia, o la barra "
-    "spaziatrice, e lasciala quando hai finito. La camera la guido io."
+    "spaziatrice, e lasciala quando hai finito. La camera la guido io, ma se preferisci "
+    "esplorare da solo usa il menù a sinistra: tocchi un argomento e ti ci porto."
 )
 
 ATMOSFERE = Literal["alba", "mattino", "mezzogiorno", "pomeriggio", "tramonto", "foschia", "pioggia", "a caso"]
