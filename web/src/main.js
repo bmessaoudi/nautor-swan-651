@@ -34,7 +34,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
 // mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
 const ocean = createOcean(renderer);
-const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "media" });
+const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "bassa" });
 const post = createPost(renderer, scene, camera, { sky });
 // testi senza card sulla scena: scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js)
 const tone = createAdaptiveTone(renderer);
@@ -644,6 +644,11 @@ const focusW = new THREE.Vector3();
 
 function frame(time) {
   lenis.raf(time);
+  // in mare si disegna a ritmo ridotto (post.pace); lo scroll di Lenis va avanti comunque
+  if (!post.pace(time, (lastS?.ocean ?? 0) > 0.5)) {
+    requestAnimationFrame(frame);
+    return;
+  }
   clock.update(time);
   const t = clock.getElapsed();
   const dt = clock.getDelta();
