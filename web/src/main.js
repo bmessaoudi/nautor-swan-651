@@ -86,9 +86,8 @@ const ocean = createOcean();
 scene.add(ocean.mesh, ocean.sky);
 const seaEnv = ocean.envMap(pmrem);
 
+// Il modello arriva di solito già in cache, precaricato dall'intro (index.html).
 const loaderEl = document.getElementById("loader");
-const bar = loaderEl.querySelector(".loader-bar i");
-const pct = loaderEl.querySelector(".loader-pct");
 
 new GLTFLoader().load(
   "/models/swan651.glb",
@@ -136,14 +135,9 @@ new GLTFLoader().load(
     const go = new URLSearchParams(location.search).get("step");
     if (go) lenis.scrollTo(+go * innerHeight, { immediate: true });
   },
-  (e) => {
-    if (!e.total) return;
-    const p = Math.round((e.loaded / e.total) * 100);
-    bar.style.width = p + "%";
-    pct.textContent = p + "%";
-  },
+  undefined,
   (err) => {
-    pct.textContent = "Errore nel caricamento del modello";
+    loaderEl.querySelector(".loader-error").textContent = "Errore nel caricamento del modello";
     console.error(err);
   }
 );
@@ -157,8 +151,8 @@ KEYS.forEach((k, i) => {
 const N = FRAMES.length;
 
 const BG = {
-  blueprint: [[14, 40, 70], [8, 24, 42]],
-  studio: [[236, 233, 226], [205, 200, 190]],
+  blueprint: [[0, 54, 96], [0, 34, 61]],
+  studio: [[246, 246, 246], [222, 226, 230]],
   sky: [[104, 150, 196], [222, 231, 234]],
 };
 
@@ -349,6 +343,8 @@ function frame(time) {
   bgEl.style.background = `linear-gradient(180deg, ${rgb(s.bgTop)} 0%, ${rgb(s.bgBot)} 100%)`;
   gridEl.style.opacity = (s.grid * 0.9).toFixed(3);
   document.body.classList.toggle("light", s.theme > 0.5);
+  // Nel capitolo Navigazione il logo diventa bianco sul cielo e sul mare; torna blu sulla schermata finale
+  document.body.classList.toggle("logo-white", p > CHAPTERS[3] - 0.5 && p < N - 1.5);
 
   renderer.render(scene, camera);
   updateHotspots(p, W, H);

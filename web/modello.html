@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nautor Swan - Swan 651</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="grid"></div>
+  <canvas id="gl"></canvas>
+  <div id="hotspots"></div>
+
+  <!-- Copertura navy: continua la dissolvenza dell'intro e si apre quando il modello è pronto. -->
+  <div id="loader"><span class="mono loader-error"></span></div>
+
+  <header id="top">
+    <span aria-hidden="true"></span>
+    <a class="brand" href="/" aria-label="Nautor Swan, torna all'intro"></a>
+  </header>
+
+  <nav id="chapters">
+    <a data-go="1"><span class="num">01</span><span class="lab">Blueprint</span></a>
+    <a data-go="4"><span class="num">02</span><span class="lab">Esterni</span></a>
+    <a data-go="9"><span class="num">03</span><span class="lab">Interni</span></a>
+    <a data-go="13"><span class="num">04</span><span class="lab">Navigazione</span></a>
+    <div class="progress"><i></i></div>
+  </nav>
+
+  <div id="readout" class="mono">
+    <span data-r="x">X 0.00</span><span data-r="fov">FOV 0</span><span data-r="step">00 / 17</span>
+  </div>
+
+  <main id="steps">
+    <!-- 0. Apertura -->
+    <section class="step hero" id="s0">
+      <div class="hero-txt">
+        <span class="mono kicker">Germán Frers per Nautor's Swan, 1982-1991</span>
+        <h1>Swan <em>651</em></h1>
+        <p>Diciannove scafi. Un maxi da regata pensato per attraversare gli oceani.</p>
+        <span class="mono scroll-hint">Scorri per aprire la tavola</span>
+      </div>
+    </section>
+
+    <!-- 1. Blueprint -->
+    <section class="step" data-side="left" id="s1">
+      <div class="card">
+        <span class="mono kicker">01 / Blueprint</span>
+        <h2>Da che idea nasce</h2>
+        <p>All'inizio degli anni Ottanta Frers porta in un cruiser di serie la tecnologia dei <strong>maxi Grand Prix</strong> e l'esperienza della <strong>Whitbread</strong>, il giro del mondo a tappe. Il cantiere di Pietarsaari chiede una barca che vinca in regata senza smettere di essere una casa sul mare.</p>
+        <figure class="drawing">
+          <img src="/img/tavola-651-002.jpg" alt="Tavola Nautor Profile Layout dello scafo 651-002" loading="lazy" />
+          <figcaption class="mono">Profile Layout, scafo 651-002. Il modello 3D è ricostruito su questa tavola.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s2">
+      <div class="card">
+        <span class="mono kicker">01 / Blueprint</span>
+        <h2>Per chi è stata pensata</h2>
+        <p>Per un armatore che naviga con la famiglia e un piccolo equipaggio professionale. Per chi vuole correre a Porto Cervo a settembre e attraversare l'Atlantico a novembre, sulla stessa barca e con lo stesso comfort.</p>
+        <dl class="specs">
+          <div><dt>Lunghezza</dt><dd>19,98 m</dd></div>
+          <div><dt>Baglio</dt><dd>5,31 m</dd></div>
+          <div><dt>Galleggiamento</dt><dd>16,80 m</dd></div>
+          <div><dt>Esemplari</dt><dd>19</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="step" data-side="left" id="s3">
+      <div class="card">
+        <span class="mono kicker">01 / Blueprint</span>
+        <h2>L'armo</h2>
+        <p>Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su diversi scafi oggi alcuni verricelli sono elettrici.</p>
+        <dl class="specs">
+          <div><dt>P (randa)</dt><dd>24,00 m</dd></div>
+          <div><dt>E (base randa)</dt><dd>7,04 m</dd></div>
+          <div><dt>J</dt><dd>8,05 m</dd></div>
+          <div><dt>Superficie di bolina</dt><dd>~194 m²</dd></div>
+        </dl>
+        <p class="note mono">Misure dal certificato IRC di uno Swan 651.</p>
+      </div>
+    </section>
+
+    <!-- 2. Esterni -->
+    <section class="step chapter" data-side="right" id="s4">
+      <div class="card">
+        <span class="mono kicker">02</span>
+        <h2 class="big">Esterni</h2>
+        <p>La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s5">
+      <div class="card">
+        <span class="mono kicker">02 / Lo scafo</span>
+        <h2>Uno scafo da maxi</h2>
+        <p>Slancio di prua lungo, poppa a specchio rovescio che lascia lo spigolo basso a sessanta centimetri dall'acqua. Sotto, una pinna con scarpa in piombo e il timone appeso allo skeg, che lo protegge in oceano.</p>
+        <p class="hint mono">Passa sui punti per i dettagli</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="left" id="s6">
+      <div class="card">
+        <span class="mono kicker">02 / Il piano di coperta</span>
+        <h2>Una coperta per manovrare</h2>
+        <p>Un pozzetto di manovra profondo e protetto, con la timoneria rialzata a poppa sopra la cabina armatoriale. La tuga è stretta, larga circa metà della coperta, per lasciare passavanti ampi. Teak su tutta la superficie.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="left" id="s7">
+      <div class="card">
+        <span class="mono kicker">02 / Le vele</span>
+        <h2>Le vele si gonfiano</h2>
+        <p>Randa e genoa in laminato. Con il vento in poppa entra in gioco lo spinnaker da 388 m², il doppio dell'intera superficie di bolina.</p>
+        <dl class="specs">
+          <div><dt>Randa</dt><dd>86,1 m²</dd></div>
+          <div><dt>Fiocco</dt><dd>107,9 m²</dd></div>
+          <div><dt>Genoa 150%</dt><dd>161,8 m²</dd></div>
+          <div><dt>Spinnaker</dt><dd>388 m²</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s8">
+      <div class="card">
+        <span class="mono kicker">02 / Caratteristiche marine</span>
+        <h2>Peso dove serve</h2>
+        <p>Quattordici tonnellate di piombo, il 40% del dislocamento, tutte sotto il galleggiamento. È ciò che permette alla barca di portare tela con vento forte senza sbandare troppo.</p>
+        <dl class="specs">
+          <div><dt>Dislocamento</dt><dd>36,0 t</dd></div>
+          <div><dt>Zavorra</dt><dd>14,4 t</dd></div>
+          <div><dt>Pescaggio</dt><dd>3,23 m</dd></div>
+          <div><dt>Rapporto D/L</dt><dd>212</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 3. Interni -->
+    <section class="step chapter" data-side="left" id="s9">
+      <div class="card">
+        <span class="mono kicker">03</span>
+        <h2 class="big">Interni</h2>
+        <p>Si toglie la coperta. Sotto, quindici metri di spazio vivibile disegnati come una casa: zona armatore a poppa, vita comune al centro, ospiti e vele a prua.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s10">
+      <div class="card">
+        <span class="mono kicker">03 / Disposizione</span>
+        <h2>Da poppa a prua</h2>
+        <ol class="layout-list">
+          <li><b>Cabina armatoriale</b> a poppa, con bagno e doccia</li>
+          <li><b>Sala macchine</b> sotto il pozzetto</li>
+          <li><b>Cucina</b> a sinistra, <b>carteggio</b> e cabina ospiti a dritta</li>
+          <li><b>Dinette</b> con tavolo a U attorno all'albero</li>
+          <li><b>Due cabine</b> e due bagni prodieri</li>
+          <li><b>Cabina a V</b> e gavone delle vele</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="step" data-side="left" id="s11">
+      <div class="card">
+        <span class="mono kicker">03 / Ospiti</span>
+        <h2>Otto ospiti, due di equipaggio</h2>
+        <p>Nella configurazione tipica quattro cabine ospiti, tre bagni e una cabina per due di equipaggio. La cabina armatoriale è separata dal resto della barca dalla sala macchine: chi possiede il 651 ha la sua casa nella casa.</p>
+        <div class="berths">
+          <div><b>4</b><span>Cabine ospiti</span></div>
+          <div><b>3</b><span>Bagni</span></div>
+          <div><b>2</b><span>Equipaggio</span></div>
+        </div>
+        <p class="note mono">Fonti: Second Wind (Fraser) e Show Me (Brewer). Alcuni scafi hanno layout diversi; il modello segue la tavola di Adrienne II, scafo modificato.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s12">
+      <div class="card">
+        <span class="mono kicker">03 / Materiali</span>
+        <h2>Teak, holly, pelle</h2>
+        <p>La ricerca stilistica Swan di quegli anni è nordica e calda: teak miele satinato in ogni superficie, pagliolo a listelli di teak e holly, cielino bianco a doghe, divani in pelle rossa.</p>
+        <div class="swatches">
+          <div><i style="background:#b9783f"></i><span>Teak miele</span></div>
+          <div><i class="tex-holly"></i><span>Teak e holly</span></div>
+          <div><i style="background:#8e1d1d"></i><span>Pelle rossa</span></div>
+          <div><i style="background:#e6e1d6"></i><span>Cielino</span></div>
+        </div>
+        <p class="note mono">Prima rifinitura degli interni: cuscini a moduli, porte ad arco, librerie, cucina e carteggio. Bagni e cabine restano semplificati.</p>
+      </div>
+    </section>
+
+    <!-- 4. Navigazione -->
+    <section class="step chapter" data-side="left" id="s13">
+      <div class="card">
+        <span class="mono kicker">04</span>
+        <h2 class="big">Navigazione</h2>
+        <p>Fuori dal cantiere, in mare aperto. È qui che il disegno di Frers si spiega.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s14">
+      <div class="card">
+        <span class="mono kicker">04 / Velocità</span>
+        <h2>Otto nodi di media, per settimane</h2>
+        <p>Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera.</p>
+        <svg id="polar" viewBox="0 0 200 300" aria-label="Diagramma polare stimato"></svg>
+        <div class="legend mono"><span class="l10">10 kn</span><span class="l16">16 kn</span><span class="l20">20 kn</span></div>
+        <p class="note mono">Polare dal certificato ORC di uno Swan 651. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.</p>
+      </div>
+    </section>
+
+    <section class="step" data-side="left" id="s15">
+      <div class="card wide">
+        <span class="mono kicker">04 / Rotte</span>
+        <h2>Dove può andare</h2>
+        <svg id="map" viewBox="0 0 640 360" aria-label="Mappa delle rotte"></svg>
+        <ul class="routes mono">
+          <li data-route="med"><i></i>Mediterraneo, Porto Cervo e Capri, ~260 mn</li>
+          <li data-route="atl"><i></i>Traversata atlantica, Canarie e Antigua, ~2.700 mn</li>
+          <li data-route="pac"><i></i>Pacifico, Panama e Marchesi, ~4.000 mn</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="step" data-side="right" id="s16">
+      <div class="card">
+        <span class="mono kicker">04 / Blue water</span>
+        <h2>Progettata per l'oceano</h2>
+        <p>Blue water vuol dire poter stare settimane lontano da un porto. Timone protetto dallo skeg, pozzetto profondo e sicuro, 1.100 litri di gasolio e circa 1.300 di acqua, un diesel Perkins da 116 cavalli. Spirit of Helsinki, che allora si chiamava Fazer Finland, arrivò terza alla Whitbread 1985-86.</p>
+        <dl class="specs">
+          <div><dt>Autonomia a 7-8 kn</dt><dd>~700 mn</dd></div>
+          <div><dt>Zavorra / dislocamento</dt><dd>40%</dd></div>
+          <div><dt>SA/D</dt><dd>18,1</dd></div>
+          <div><dt>Motore</dt><dd>116 hp</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="step outro" id="s17">
+      <div class="hero-txt">
+        <span class="mono kicker">Germán Frers, 1982-1991</span>
+        <h1>Diciannove <em>scafi</em></h1>
+        <p>Il prossimo capitolo: la storia di ognuno di loro.</p>
+        <a class="mono restart" data-go="0">Torna alla tavola</a>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
