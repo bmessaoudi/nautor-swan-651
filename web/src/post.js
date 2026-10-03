@@ -7,7 +7,7 @@ import {
 import { N8AOPostPass } from "n8ao";
 
 // Post-processing con pmndrs/postprocessing (WebGL). Ordine dei passaggi:
-//   scena > occlusione (N8AO) > profondità di campo > tilt-shift > bloom e look
+//   scena > occlusione (N8AO) > nuvole e prospettiva aerea (sky.js) > profondità di campo > tilt-shift > bloom e look
 //   > accumulo a camera ferma > aberrazione cromatica > SMAA, vignettatura, grana
 // Il look fa il tone mapping Khronos PBR Neutral (rispetta i rossi di Lunz am Meer, ACES li
 // spingeva verso l'arancio) e poi il grading del capitolo. Grana e aberrazione vengono dopo
@@ -136,7 +136,8 @@ const halton = (i, b) => {
 };
 
 // ---------- Pipeline ----------
-export function createPost(renderer, scene, camera) {
+// sky (facoltativo): il cielo di sky.js, con le passate di nuvole e prospettiva aerea
+export function createPost(renderer, scene, camera, { sky = null } = {}) {
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));
 
@@ -153,6 +154,10 @@ export function createPost(renderer, scene, camera) {
     transparencyAware: false,
   });
   composer.addPass(ao);
+
+  // nuvole e atmosfera dopo l'occlusione (che scurisce solo la scena) e prima della profondità di
+  // campo, così le nuvole si sfocano come il resto dello sfondo
+  if (sky) for (const p of sky.passes) composer.addPass(p);
 
   // Dosaggio generale della sfocatura sopra i valori dei passi in story.js: meno bokeh,
   // zona a fuoco più ampia, tilt-shift più leggero. 1 = come scritto nei passi.
@@ -289,7 +294,10 @@ export function createPost(renderer, scene, camera) {
       const useGpu = timer && gpuMs >= 0;
       ema += (Math.min(useGpu ? gpuMs : ms, 100) - ema) * 0.05;
       slow = ema > (useGpu ? 15 : 19) ? slow + 1 : 0;
-      if (slow > 90 && level < LEVELS.length - 1) {
+      // prima si alleggeriscono le nuvole (sono la parte più cara del mare), poi la risoluzione
+      if (slow > 90 && sky && sky.degrade()) {
+        slow = 0;
+      } else if (slow > 90 && level < LEVELS.length - 1) {
         level++;
         slow = 0;
         renderer.setPixelRatio(LEVELS[level]);

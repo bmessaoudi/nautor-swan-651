@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { WATER_GLSL } from "./ocean.js";
 
 // Materiali del modello, rifiniti nel browser senza toccare il GLB.
 // Molte mesh (coperta, scafo esterno, alberatura) non hanno UV: le texture si proiettano in
@@ -12,24 +13,11 @@ import * as THREE from "three";
 
 const TEX = "/textures/";
 
-// Onde: stessa formula del vertex shader del mare (ocean.js), solo l'altezza
+// Onde: la stessa acqua FFT del mare (ocean.js), solo l'altezza. Vicino allo scafo le onde sono
+// già più basse (waterFade), come nel mare disegnato
 const WAVE_GLSL = /* glsl */ `
 uniform float uTime;
-uniform float uFlow;
-uniform float uWaveScale;
-uniform vec4 uWaves[4];
-float waterHeight(vec2 p) {
-  vec2 q = p + vec2(uTime * uFlow, 0.0);
-  float h = 0.0;
-  for (int i = 0; i < 4; i++) {
-    vec4 w = uWaves[i];
-    float k = 6.2831853 / w.w;
-    float c = sqrt(9.8 / k);
-    vec2 d = normalize(w.xy);
-    h += (w.z * uWaveScale / k) * sin(k * (dot(d, q) - c * uTime));
-  }
-  return h * 0.55; // vicino allo scafo le onde sono più basse (vedi fade nel mare)
-}
+${WATER_GLSL}
 `;
 
 const NOISE_GLSL = /* glsl */ `
@@ -118,7 +106,7 @@ function recipes() {
   };
 }
 
-export function createMaterials(oceanShared, waveUniform) {
+export function createMaterials(oceanShared, water) {
   const R = recipes();
   // uniformi comuni: la barca (per lo spazio triplanare) e lo stato del mare
   const common = {
@@ -129,8 +117,8 @@ export function createMaterials(oceanShared, waveUniform) {
     uRain: { value: 0 },
     uTime: oceanShared.uTime,
     uFlow: oceanShared.uFlow,
-    uWaveScale: oceanShared.uWaveScale,
-    uWaves: waveUniform,
+    // mappe dell'acqua FFT, lati delle cascate e rotta (ocean.waves, da leggere con WATER_GLSL)
+    ...water,
   };
 
   function patch(mat, r) {

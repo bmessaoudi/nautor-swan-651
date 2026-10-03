@@ -1,20 +1,65 @@
 import * as THREE from "three";
+import { createFFT } from "./fft/simulation.js";
 
 // Mare e cielo del capitolo Navigazione.
-// Il mare è un piano con onde di Gerstner nel vertex shader; il dettaglio fine (increspature,
-// schiuma, onda di prua e scia) è nel fragment shader. L'acqua scorre verso poppa (-X) per
-// dare l'idea che la barca avanzi. Il cielo è una cupola che segue la camera: lo stesso
-// colore d'orizzonte chiude la nebbia del mare, così non resta una riga sull'orizzonte.
+// Il mare è un oceano FFT (fft/simulation.js): tre cascate di onde calcolate sulla GPU da uno
+// spettro JONSWAP guidato dal vento delle condizioni. Il vertex shader sposta la griglia con le
+// mappe di spostamento, il fragment shader legge pendenze, Jacobiano e schiuma dalle stesse mappe.
+// L'acqua scorre verso poppa (-X) per dare l'idea che la barca avanzi. Il cielo è una cupola che
+// segue la camera: lo stesso colore d'orizzonte chiude la nebbia del mare, così non resta una riga
+// sull'orizzonte.
 
 // Sole, colori, vento e foschia arrivano dalle condizioni (conditions.js) con setConditions.
 
-const WAVES = [
-  // direzione xy, ripidità, lunghezza d'onda (m)
-  [1.0, 0.25, 0.11, 38],
-  [0.7, -0.6, 0.09, 19],
-  [0.9, 0.9, 0.07, 10],
-  [-0.3, 1.0, 0.05, 6],
-];
+// Lato della FFT: 256 di base, ?fft=128 per i portatili lenti (un quarto del lavoro sulla GPU)
+const FFT_SIZE = (() => {
+  const v = parseInt(new URLSearchParams(location.search).get("fft"), 10);
+  return [64, 128, 256, 512].includes(v) ? v : 256;
+})();
+
+// Direzione del vento nel piano x-z: come le onde di Gerstner di prima, quasi lungo la prua
+const WIND_DIR = Math.atan2(0.25, 1);
+// fetch per costa: nell'arcipelago le isole spezzano il mare, in mare aperto l'onda si allunga
+const FETCH = { arcipelago: 25000, costa: 60000, aperto: 120000 };
+
+// Spostamento dell'acqua nel punto p del piano (x, z del mondo), dalle tre cascate FFT.
+// Lo usano il vertex shader del mare, il campionamento per il galleggiamento (simulation.js) e la
+// fascia bagnata dello scafo (materials.js): tutti vedono la stessa acqua.
+// spacing è il passo della griglia in quel punto: le cascate si leggono al livello di mipmap
+// adatto, così i vertici radi in lontananza non campionano onde più corte di loro.
+export const WATER_GLSL = /* glsl */ `
+uniform sampler2D uDisp0;
+uniform sampler2D uDisp1;
+uniform sampler2D uDisp2;
+uniform vec3 uCascade;
+uniform vec2 uOff;
+uniform float uHeading;
+// le onde si spengono in lontananza e attorno alla barca restano più basse
+float waterFade(vec2 p) {
+  float hc = cos(uHeading), hs = sin(uHeading);
+  vec2 lp = vec2(p.x * hc + p.y * hs, -p.x * hs + p.y * hc);
+  float fade = 1.0 - smoothstep(300.0, 1400.0, length(p));
+  return fade * mix(0.55, 1.0, smoothstep(6.0, 22.0, length(lp * vec2(0.55, 1.0))));
+}
+float waterLod(float spacing, float L) {
+  return max(0.0, log2(spacing * ${FFT_SIZE.toFixed(1)} / L));
+}
+vec3 waterOffset(vec2 p, float spacing) {
+  vec2 q = p + uOff;
+  vec3 d = textureLod(uDisp0, q / uCascade.x, waterLod(spacing, uCascade.x)).xyz;
+  d += textureLod(uDisp1, q / uCascade.y, waterLod(spacing, uCascade.y)).xyz;
+  d += textureLod(uDisp2, q / uCascade.z, waterLod(spacing, uCascade.z)).xyz;
+  return d * waterFade(p);
+}
+// altezza dell'acqua nel punto del mondo: le onde spostano anche in orizzontale, quindi si cerca
+// il punto del piano che finisce lì (due passi bastano per la fascia bagnata)
+float waterHeight(vec2 x) {
+  vec2 p = x;
+  for (int k = 0; k < 2; k++) p = x - waterOffset(p, 0.0).xz;
+  return waterOffset(p, 0.0).y;
+}
+`;
+
 const NOISE = /* glsl */ `
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -65,57 +110,26 @@ float hazeAmount(vec3 world) {
 }
 `;
 
+
 const oceanVert = /* glsl */ `
 uniform float uTime;
-uniform float uFlow;
-uniform vec2 uOff;
-uniform float uHeading;
-uniform float uWaveScale;
-uniform vec4 uWaves[4];
 varying vec3 vWorld;
-varying vec3 vNormal;
 varying vec2 vFlow;
-varying float vPeak;
-
-vec3 gerstner(vec4 w, vec2 p, inout vec3 tang, inout vec3 bin) {
-  float k = 6.2831853 / w.w;
-  float c = sqrt(9.8 / k);
-  vec2 d = normalize(w.xy);
-  float f = k * (dot(d, p) - c * uTime);
-  float a = w.z / k;
-  float s = sin(f), co = cos(f);
-  tang += vec3(-d.x * d.x * w.z * s, d.x * w.z * co, -d.x * d.y * w.z * s);
-  bin  += vec3(-d.x * d.y * w.z * s, d.y * w.z * co, -d.y * d.y * w.z * s);
-  return vec3(d.x * a * co, a * s, d.y * a * co);
-}
+varying float vFade;
+${WATER_GLSL}
 
 void main() {
   vec3 p = (modelMatrix * vec4(position, 1.0)).xyz;
-  // spostamento dell'acqua rispetto alla barca, accumulato sulla CPU (setCourse): con la rotta
-  // dritta vale (tempo × velocità, 0), come prima; in navigazione libera l'acqua scorre lungo la prua
-  vec2 q = p.xz + uOff;
-  // coordinate nel riferimento della barca (che in navigazione libera ruota su se stessa)
-  float hc = cos(uHeading), hs = sin(uHeading);
-  vec2 lp = vec2(p.x * hc + p.z * hs, -p.x * hs + p.z * hc);
-  vec3 tang = vec3(1.0, 0.0, 0.0);
-  vec3 bin = vec3(0.0, 0.0, 1.0);
-  vec3 off = vec3(0.0);
-  for (int i = 0; i < 4; i++) {
-    vec4 w = uWaves[i];
-    w.z *= uWaveScale;
-    off += gerstner(w, q, tang, bin);
-  }
-  // le onde si spengono in lontananza (e attorno alla barca restano più basse)
-  float fade = 1.0 - smoothstep(300.0, 1400.0, length(p.xz));
-  fade *= mix(0.55, 1.0, smoothstep(6.0, 22.0, length(lp * vec2(0.55, 1.0))));
-  p += off * fade;
+  // passo della griglia radiale in quel punto (anelli in progressione geometrica, vedi radialGrid)
+  float spacing = 0.03 * length(p.xz) + 0.02;
+  vec3 off = waterOffset(p.xz, spacing);
+  // le mappe di pendenze e schiuma sono legate all'acqua, non al punto spostato: il fragment
+  // shader le legge nel punto di partenza. uOff è lo spostamento dell'acqua rispetto alla barca
+  // (setCourse): con la rotta dritta vale (tempo × velocità, 0)
+  vFlow = p.xz + uOff;
+  vFade = waterFade(p.xz);
+  p += off;
   vWorld = p;
-  vFlow = q;
-  vNormal = normalize(mix(vec3(0.0, 1.0, 0.0), normalize(cross(bin, tang)), fade));
-  // maschera delle creste (Sea of Thieves): dove le onde comprimono la superficie,
-  // lo jacobiano orizzontale scende sotto 1. Lì la luce attraversa meno acqua.
-  float jac = tang.x * bin.z - tang.z * bin.x;
-  vPeak = clamp((1.0 - jac) * 1.6, 0.0, 1.0) * fade;
   gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
 }
 `;
@@ -136,10 +150,13 @@ uniform vec2 uResolution;
 uniform sampler2D uFoamTex;
 uniform vec4 uFoamBox;
 uniform float uHeading;
+uniform sampler2D uDeriv0;
+uniform sampler2D uDeriv1;
+uniform sampler2D uDeriv2;
+uniform vec3 uCascade;
 varying vec3 vWorld;
-varying vec3 vNormal;
 varying vec2 vFlow;
-varying float vPeak;
+varying float vFade;
 ${NOISE}
 ${SKY}
 
@@ -164,15 +181,18 @@ void main() {
   float d = length(vWorld.xz - cameraPosition.xz);
   float far = smoothstep(25.0, 260.0, d);
 
-  // increspature: normale perturbata da rumore che scorre con l'acqua
-  vec2 q = vFlow * 0.2 + vec2(0.0, uTime * 0.05);
-  float e = 0.12;
-  float h0 = fbm(q);
-  float hx = fbm(q + vec2(e, 0.0));
-  float hz = fbm(q + vec2(0.0, e));
-  vec3 rip = vec3(-(hx - h0) / e, 0.0, -(hz - h0) / e) * 0.16 * (1.0 - far);
-  vec3 n = normalize(vNormal + rip);
-  n = normalize(mix(n, vec3(0.0, 1.0, 0.0), far * 0.7));
+  // pendenze, Jacobiano e schiuma delle tre cascate (con mipmap: in lontananza si mediano da sole)
+  vec4 c0 = texture2D(uDeriv0, vFlow / uCascade.x);
+  vec4 c1 = texture2D(uDeriv1, vFlow / uCascade.y);
+  vec4 c2 = texture2D(uDeriv2, vFlow / uCascade.z);
+  vec2 slope = (c0.xy + c1.xy + c2.xy) * vFade;
+  vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+  // in lontananza un filo più piatta: il riflesso del cielo non deve sfarfallare
+  n = normalize(mix(n, vec3(0.0, 1.0, 0.0), far * 0.35));
+  // maschera delle creste (Sea of Thieves): dove le onde comprimono la superficie il Jacobiano
+  // scende sotto 1. Lì la luce attraversa meno acqua. Le cascate si sommano come scarti da 1
+  float jac = 1.0 + (c0.z + c1.z + c2.z - 3.0) * vFade;
+  float peak = clamp((1.0 - jac) * 1.4, 0.0, 1.0);
 
   vec3 vdir = normalize(cameraPosition - vWorld);
   float ndv = max(dot(n, vdir), 0.0);
@@ -190,7 +210,7 @@ void main() {
   vec3 sunH = normalize(vec3(uSunDir.x, 0.0, uSunDir.z));
   float back = pow(clamp(dot(-vdir, sunH) * 0.5 + 0.5, 0.0, 1.0), 3.0);
   float crest = clamp(vWorld.y * 0.45 + 0.4, 0.0, 1.0);
-  float sssAmt = clamp(vPeak * (0.35 + back * 0.9) + crest * back * 0.45 + pow(1.0 - ndv, 3.0) * vPeak * 0.3, 0.0, 1.0);
+  float sssAmt = clamp(peak * (0.35 + back * 0.9) + crest * back * 0.45 + pow(1.0 - ndv, 3.0) * peak * 0.3, 0.0, 1.0);
   vec3 body = mix(uDeep, uMid, crest * 0.6);
   body = mix(body, uSss * (0.6 + uSunCol * 0.6), sssAmt * (1.0 - far * 0.8));
 
@@ -204,8 +224,12 @@ void main() {
   float coarse = fbm(vFlow * 0.18);
   float medium = fbm(vFlow * 0.9 + 3.1);
   float sparse = smoothstep(0.55, 0.8, noise(vFlow * 3.3));
-  // creste: compaiono con il vento, dove la superficie si comprime
-  float crestFoam = smoothstep(0.38, 0.85, vPeak + coarse * 0.4 - 0.1) * uCrestFoam;
+  // creste: la schiuma della FFT, dove l'onda si ripiega e nei secondi dopo (si spegne piano)
+  float fftFoam = clamp(c0.a + c1.a * 0.8 + c2.a * 0.35, 0.0, 1.0) * vFade;
+  // come per la scia: il valore della mappa fa da soglia su una trama, compatta dove la schiuma è
+  // fresca e a merletto mentre si spegne (la mappa da sola, a un texel per metro, darebbe macchie lisce)
+  float crestLace = fbm(vFlow * 1.1 + 7.3) * 0.6 + noise(vFlow * 4.2) * 0.4;
+  float crestFoam = smoothstep(crestLace * 0.8, crestLace * 0.8 + 0.2, fftFoam * (0.7 + 0.6 * coarse)) * step(0.001, uCrestFoam);
   // strisce lungo il vento da forza 5 in su
   vec2 wd = normalize(vec2(1.0, 0.25));
   vec2 sq = vec2(dot(vFlow, wd) * 0.03, dot(vFlow, vec2(-wd.y, wd.x)) * 0.55);
@@ -220,8 +244,11 @@ void main() {
   float hull = texture2D(uFoamTex, clamp(fuv, 0.0, 1.0)).r * inside;
   float churn = fbm(vFlow * 1.3 + uTime * 0.35);
   // merletto: il buffer fa da soglia su una trama fine, compatta solo dove la schiuma è fresca
-  float lace = fbm(vFlow * 2.4 + uTime * 0.2) * 0.65 + noise(vFlow * 7.0) * 0.35;
-  float hullFoam = smoothstep(lace * 0.85, lace * 0.85 + 0.18, hull * 1.25);
+  // coordinate ruotate: il value noise allineato agli assi, tagliato da una soglia stretta,
+  // faceva una scia a quadretti
+  vec2 lq = mat2(0.8, -0.6, 0.6, 0.8) * vFlow;
+  float lace = fbm(lq * 2.4 + uTime * 0.2) * 0.7 + fbm(mat2(0.6, 0.8, -0.8, 0.6) * vFlow * 5.5) * 0.3;
+  float hullFoam = smoothstep(lace * 0.85 - 0.06, lace * 0.85 + 0.26, hull * 1.25);
 
   float amount = clamp(crestFoam + streak * 0.5 + hullFoam, 0.0, 1.0);
   float pattern = mix(sparse, mix(medium, 1.0, smoothstep(0.5, 1.0, amount)), smoothstep(0.1, 0.6, amount));
@@ -293,76 +320,34 @@ void main() {
 }
 `;
 
+
 // ---------- Galleggiamento ----------
-// Le stesse onde di Gerstner del vertex shader, rifatte sulla CPU: l'altezza dell'acqua in alcuni
-// punti sotto lo scafo dà sollevamento, beccheggio e rollio. Lo scafo (19,98 × 5,31 m, centrato
-// nell'origine, prua verso +X) si campiona su una griglia 5 × 3 dentro la linea di galleggiamento:
-// le onde più corte della barca si compensano fra i punti, come su uno scafo vero.
+// L'altezza dell'acqua sotto lo scafo si legge dalla GPU, con la stessa funzione del vertex shader
+// (waterOffset): la barca galleggia sull'acqua disegnata, cascata fine compresa. La lettura è
+// asincrona (PBO e fence): il dato arriva uno o due fotogrammi dopo, meno del filo d'inerzia
+// che float() aggiunge comunque. Lo scafo (19,98 × 5,31 m, centrato nell'origine, prua verso +X)
+// si campiona su una griglia 5 × 3 dentro la linea di galleggiamento: le onde più corte della
+// barca si compensano fra i punti, come su uno scafo vero.
 const HULL_X = [-7, -3.5, 0, 3.5, 7];
 const HULL_Z = [-2.1, 0, 2.1];
-const smoothstep = (a, b, x) => {
-  const u = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return u * u * (3 - 2 * u);
-};
+const HULL = HULL_X.flatMap((bx) => HULL_Z.map((bz) => [bx, bz]));
 
-// spostamento dell'onda nel punto p del piano (x, z), come gerstner() nello shader
-function waveOffset(px, pz, t, sh, waves, out) {
-  let ox = 0, oy = 0, oz = 0;
-  const qx = px + sh.uOff.value.x, qz = pz + sh.uOff.value.y;
-  for (const w of waves) {
-    const k = (2 * Math.PI) / w.w;
-    const c = Math.sqrt(9.8 / k);
-    const len = Math.hypot(w.x, w.y);
-    const dx = w.x / len, dz = w.y / len;
-    const f = k * (dx * qx + dz * qz - c * t);
-    const a = (w.z * sh.uWaveScale.value) / k;
-    const co = Math.cos(f);
-    ox += dx * a * co;
-    oy += a * Math.sin(f);
-    oz += dz * a * co;
-  }
-  // stessa attenuazione dello shader: in lontananza e attorno allo scafo
-  const hc = Math.cos(sh.uHeading.value), hs = Math.sin(sh.uHeading.value);
-  const lx = px * hc + pz * hs, lz = -px * hs + pz * hc;
-  let fade = 1 - smoothstep(300, 1400, Math.hypot(px, pz));
-  fade *= 0.55 + 0.45 * smoothstep(6, 22, Math.hypot(lx * 0.55, lz));
-  out.x = ox * fade; out.y = oy * fade; out.z = oz * fade;
-  return out;
-}
-
-// altezza dell'acqua nel punto del mondo (x, z): le onde spostano anche in orizzontale, quindi si
-// cerca il punto del piano che finisce lì (tre passi bastano, le onde sono poco ripide)
-const tmpOff = { x: 0, y: 0, z: 0 };
-function waterHeight(x, z, t, sh, waves) {
-  let px = x, pz = z;
-  for (let i = 0; i < 3; i++) {
-    waveOffset(px, pz, t, sh, waves, tmpOff);
-    px = x - tmpOff.x;
-    pz = z - tmpOff.z;
-  }
-  return waveOffset(px, pz, t, sh, waves, tmpOff).y;
-}
-
-function floatOn(t, sh, waves, out) {
-  // assi della barca nel mondo: prua (cos h, sin h), dritta (-sin h, cos h), come lp nello shader
-  const hc = Math.cos(sh.uHeading.value), hs = Math.sin(sh.uHeading.value);
-  let sum = 0, sx = 0, sz = 0, sxx = 0, szz = 0, n = 0;
-  for (const bx of HULL_X) {
-    for (const bz of HULL_Z) {
-      const h = waterHeight(bx * hc - bz * hs, bx * hs + bz * hc, t, sh, waves);
-      sum += h; sx += bx * h; sz += bz * h; sxx += bx * bx; szz += bz * bz; n++;
-    }
-  }
-  // piano ai minimi quadrati sulla griglia simmetrica: la media è il sollevamento, le pendenze
-  // lungo la prua e lungo il baglio danno beccheggio e rollio
-  // (rollio col segno della sbandata, rotation.x: positivo è la dritta che scende)
-  out.heave = sum / n;
+// piano ai minimi quadrati sulla griglia simmetrica: la media è il sollevamento, le pendenze
+// lungo la prua e lungo il baglio danno beccheggio e rollio
+// (rollio col segno della sbandata, rotation.x: positivo è la dritta che scende)
+function fitPlane(heights, out) {
+  let sum = 0, sx = 0, sz = 0, sxx = 0, szz = 0;
+  HULL.forEach(([bx, bz], i) => {
+    const h = heights[i];
+    sum += h; sx += bx * h; sz += bz * h; sxx += bx * bx; szz += bz * bz;
+  });
+  out.heave = sum / HULL.length;
   out.pitch = Math.atan(sx / sxx);
   out.roll = -Math.atan(sz / szz);
   return out;
 }
 
-export function createOcean() {
+export function createOcean(renderer) {
   // Uniformi condivise fra mare, cielo e paesaggio
   const shared = {
     uTime: { value: 0 },
@@ -381,6 +366,9 @@ export function createOcean() {
     uWaveScale: { value: 1 },
   };
 
+  const fft = createFFT(renderer, { size: FFT_SIZE, water: { glsl: WATER_GLSL, uniforms: { uOff: shared.uOff, uHeading: shared.uHeading } } });
+  // uniformi dell'acqua per chi deve conoscerne l'altezza (materials.js, con WATER_GLSL)
+  const water = { ...fft.uniforms, uOff: shared.uOff, uHeading: shared.uHeading };
 
   const geo = radialGrid(1.5, 1600, 190, 288);
   const mat = new THREE.ShaderMaterial({
@@ -389,7 +377,7 @@ export function createOcean() {
     transparent: true,
     uniforms: {
       ...shared,
-      uWaves: { value: WAVES.map((w) => new THREE.Vector4(...w)) },
+      ...water,
       uFoam: { value: 1 },
       uDeep: { value: new THREE.Color(0x03182b) },
       uMid: { value: new THREE.Color(0x0d4566) },
@@ -424,18 +412,35 @@ export function createOcean() {
   // il "mare" visto dal basso nella mappa d'ambiente: un disco scuro sotto l'orizzonte
   const envSea = new THREE.MeshBasicMaterial({ color: 0x0b3048 });
   let foamBase = 1;
+  // ripidità delle creste e soglia della schiuma, dalle condizioni
+  let choppy = 0.8;
+  const foamParams = { bias: 0.75, gain: 6 };
   const floatRaw = { heave: 0, pitch: 0, roll: 0 };
   const floatState = { heave: 0, pitch: 0, roll: 0 };
   let floatReady = false;
+  const hullPts = HULL.map(() => [0, 0]);
 
   return {
     mesh,
     sky,
     shared,
-    waves: mat.uniforms.uWaves,
+    // uniformi dell'acqua FFT (mappe di spostamento, lati delle cascate, rotta): con WATER_GLSL
+    // danno waterHeight(xz) a chi deve sapere dov'è il pelo dell'acqua (materials.js)
+    waves: water,
+    fft,
     // collega le uniformi di seafx.js (stessi oggetti, si aggiornano da sole)
     linkSeaFx(u) {
       Object.assign(mat.uniforms, u);
+    },
+    // collega il cielo fisico di sky.js: il riflesso dell'acqua passa da skyColor (la cupola
+    // dipinta) a skyReflect (cubemap del cielo più nuvole volumetriche lette sullo schermo).
+    // La chunk arriva da fuori perché sky.js importa già SKY da qui (import circolare).
+    linkSky(uniforms, chunk) {
+      Object.assign(mat.uniforms, uniforms);
+      mat.fragmentShader = mat.fragmentShader
+        .replace("void main() {", `${chunk}\nvoid main() {`)
+        .replace("vec3 refl = skyColor(r);", "vec3 refl = skyReflect(r);");
+      mat.needsUpdate = true;
     },
     // Mappa d'ambiente del cielo per i riflessi su scafo e cromature
     envMap(pmrem) {
@@ -474,6 +479,12 @@ export function createOcean() {
       mat.uniforms.uSunRadius.value = 0.025 + 0.11 * (1 - Math.min(1, c.sunDir.y / 0.5));
       envSea.color.copy(c.mid).multiplyScalar(0.6);
       foamBase = c.foam;
+      // Spettro: il vento in nodi dà energia e lunghezza delle onde, la costa il fetch.
+      // waveScale (0,6 con vento leggero, 1,35 con vento forte) dà la ripidità delle creste
+      fft.setSpectrum({ speed: Math.max(2, c.knots * 0.5144), dir: WIND_DIR, fetch: FETCH[c.coast] ?? 60000 }, c.seed);
+      choppy = 0.6 + 0.5 * c.waveScale;
+      // schiuma dal Jacobiano: assente fino a forza 3, sulle creste che frangono con vento fresco
+      foamParams.bias = c.crestFoam > 0 ? 0.62 + 0.16 * c.crestFoam : -1;
     },
     // Rotta della barca: heading in radianti (verso dritta positivo), pos lo spostamento percorso
     // sul piano del mondo (x, z). La barca ruota su se stessa al centro della scena; onde, sole e
@@ -482,12 +493,14 @@ export function createOcean() {
       shared.uHeading.value = heading;
       shared.uOff.value.set(pos.x, pos.y);
     },
-    // Galleggiamento: come sta la barca sull'acqua disegnata dallo shader, al tempo t (dopo
-    // setCourse, che sposta l'acqua). Restituisce sollevamento (m), beccheggio e rollio (radianti,
-    // prua che sale e dritta che scende positivi), con un filo d'inerzia: 30 tonnellate non
-    // seguono ogni increspatura. dt è il passo del fotogramma.
+    // Galleggiamento: come sta la barca sull'acqua disegnata dallo shader (letta dalla GPU, vedi
+    // sopra). Restituisce sollevamento (m), beccheggio e rollio (radianti, prua che sale e dritta
+    // che scende positivi), con un filo d'inerzia: 30 tonnellate non seguono ogni increspatura.
+    // dt è il passo del fotogramma.
     float(t, dt) {
-      floatOn(t, shared, mat.uniforms.uWaves.value, floatRaw);
+      const h = fft.heights;
+      if (!h) return floatState;
+      fitPlane(h, floatRaw);
       // il sollevamento segue l'acqua più da vicino (lo scafo non deve affondare né staccarsi),
       // beccheggio e rollio con più inerzia
       const step = Math.min(dt, 0.1);
@@ -505,6 +518,16 @@ export function createOcean() {
       mat.uniforms.uFoam.value = foam * foamBase;
       mesh.visible = sky.visible = opacity > 0.005;
       sky.position.copy(cam.position);
+      // nello studio il mare non si vede: niente FFT
+      if (!mesh.visible) return;
+      fft.update(t, choppy, foamParams);
+      // punti dello scafo nel mondo con la rotta di adesso: prua (cos h, sin h), dritta (-sin h, cos h)
+      const hc = Math.cos(shared.uHeading.value), hs = Math.sin(shared.uHeading.value);
+      HULL.forEach(([bx, bz], i) => {
+        hullPts[i][0] = bx * hc - bz * hs;
+        hullPts[i][1] = bx * hs + bz * hc;
+      });
+      fft.sample(hullPts);
     },
   };
 }

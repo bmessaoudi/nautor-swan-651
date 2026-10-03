@@ -1,0 +1,466 @@
+{
+ "encoding": {
+  "offset": 30.0,
+  "scale": 100.0,
+  "sea": -6.0
+ },
+ "fonti": {
+  "arcipelago": "Copernicus DEM GLO-30, N63 E022 (Pietarsaari, Finlandia)",
+  "costa": "AWS Terrain Tiles Terrarium z13 (Sardegna: Tavolara e Molara, golfo di Orosei)",
+  "texture": {
+   "roccia": "Poly Haven aerial_rocks_02 (CC0)",
+   "lichene": "Poly Haven aerial_grass_rock (CC0)",
+   "suolo": "Poly Haven rocky_terrain_02 (CC0)",
+   "riva": "Poly Haven coast_sand_01 (CC0)"
+  }
+ },
+ "arcipelago": {
+  "atlas": "arcipelago.png",
+  "width": 1024,
+  "height": 385,
+  "chips": [
+   {
+    "kind": "isola",
+    "x": 0,
+    "y": 0,
+    "n": 128,
+    "mpp": 9.703,
+    "hmax": 6.4,
+    "size": 1242,
+    "forest": 0.186
+   },
+   {
+    "kind": "isola",
+    "x": 129,
+    "y": 0,
+    "n": 128,
+    "mpp": 12.281,
+    "hmax": 6.0,
+    "size": 1572,
+    "forest": 0.129
+   },
+   {
+    "kind": "isola",
+    "x": 258,
+    "y": 0,
+    "n": 128,
+    "mpp": 9.844,
+    "hmax": 7.4,
+    "size": 1260,
+    "forest": 0.309
+   },
+   {
+    "kind": "isola",
+    "x": 387,
+    "y": 0,
+    "n": 128,
+    "mpp": 9.422,
+    "hmax": 6.4,
+    "size": 1206,
+    "forest": 0.366
+   },
+   {
+    "kind": "isola",
+    "x": 516,
+    "y": 0,
+    "n": 128,
+    "mpp": 8.906,
+    "hmax": 5.9,
+    "size": 1140,
+    "forest": 0.127
+   },
+   {
+    "kind": "isola",
+    "x": 645,
+    "y": 0,
+    "n": 128,
+    "mpp": 8.391,
+    "hmax": 8.2,
+    "size": 1074,
+    "forest": 0.669
+   },
+   {
+    "kind": "isola",
+    "x": 774,
+    "y": 0,
+    "n": 128,
+    "mpp": 12.609,
+    "hmax": 6.8,
+    "size": 1614,
+    "forest": 0.48
+   },
+   {
+    "kind": "isola",
+    "x": 0,
+    "y": 129,
+    "n": 128,
+    "mpp": 9.422,
+    "hmax": 5.6,
+    "size": 1206,
+    "forest": 0.084
+   },
+   {
+    "kind": "isola",
+    "x": 129,
+    "y": 129,
+    "n": 128,
+    "mpp": 8.062,
+    "hmax": 8.2,
+    "size": 1032,
+    "forest": 0.595
+   },
+   {
+    "kind": "isola",
+    "x": 258,
+    "y": 129,
+    "n": 128,
+    "mpp": 6.938,
+    "hmax": 6.6,
+    "size": 888,
+    "forest": 0.193
+   },
+   {
+    "kind": "isola",
+    "x": 387,
+    "y": 129,
+    "n": 128,
+    "mpp": 9.516,
+    "hmax": 8.9,
+    "size": 1218,
+    "forest": 0.629
+   },
+   {
+    "kind": "isola",
+    "x": 516,
+    "y": 129,
+    "n": 128,
+    "mpp": 9.281,
+    "hmax": 6.7,
+    "size": 1188,
+    "forest": 0.293
+   },
+   {
+    "kind": "isola",
+    "x": 645,
+    "y": 129,
+    "n": 128,
+    "mpp": 7.078,
+    "hmax": 6.3,
+    "size": 906,
+    "forest": 0.171
+   },
+   {
+    "kind": "isola",
+    "x": 774,
+    "y": 129,
+    "n": 128,
+    "mpp": 8.438,
+    "hmax": 5.2,
+    "size": 1080,
+    "forest": 0.124
+   },
+   {
+    "kind": "isola",
+    "x": 0,
+    "y": 258,
+    "n": 126,
+    "mpp": 6.0,
+    "hmax": 4.8,
+    "size": 756,
+    "forest": 0.041
+   },
+   {
+    "kind": "isola",
+    "x": 127,
+    "y": 258,
+    "n": 118,
+    "mpp": 6.0,
+    "hmax": 6.8,
+    "size": 708,
+    "forest": 0.572
+   },
+   {
+    "kind": "isola",
+    "x": 246,
+    "y": 258,
+    "n": 110,
+    "mpp": 6.0,
+    "hmax": 8.0,
+    "size": 660,
+    "forest": 0.728
+   },
+   {
+    "kind": "isola",
+    "x": 357,
+    "y": 258,
+    "n": 75,
+    "mpp": 6.0,
+    "hmax": 6.9,
+    "size": 450,
+    "forest": 0.299
+   },
+   {
+    "kind": "isola",
+    "x": 433,
+    "y": 258,
+    "n": 73,
+    "mpp": 6.0,
+    "hmax": 5.3,
+    "size": 438,
+    "forest": 0.089
+   },
+   {
+    "kind": "isola",
+    "x": 507,
+    "y": 258,
+    "n": 66,
+    "mpp": 6.0,
+    "hmax": 4.9,
+    "size": 396,
+    "forest": 0.019
+   },
+   {
+    "kind": "isola",
+    "x": 574,
+    "y": 258,
+    "n": 58,
+    "mpp": 6.0,
+    "hmax": 3.3,
+    "size": 348,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 633,
+    "y": 258,
+    "n": 56,
+    "mpp": 6.0,
+    "hmax": 7.5,
+    "size": 336,
+    "forest": 0.543
+   },
+   {
+    "kind": "isola",
+    "x": 690,
+    "y": 258,
+    "n": 48,
+    "mpp": 6.0,
+    "hmax": 4.5,
+    "size": 288,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 739,
+    "y": 258,
+    "n": 45,
+    "mpp": 6.0,
+    "hmax": 4.8,
+    "size": 270,
+    "forest": 0.024
+   },
+   {
+    "kind": "isola",
+    "x": 785,
+    "y": 258,
+    "n": 43,
+    "mpp": 6.0,
+    "hmax": 4.1,
+    "size": 258,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 829,
+    "y": 258,
+    "n": 35,
+    "mpp": 6.0,
+    "hmax": 3.1,
+    "size": 210,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 865,
+    "y": 258,
+    "n": 34,
+    "mpp": 6.0,
+    "hmax": 2.7,
+    "size": 204,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 900,
+    "y": 258,
+    "n": 33,
+    "mpp": 6.0,
+    "hmax": 2.7,
+    "size": 198,
+    "forest": 0.0
+   }
+  ]
+ },
+ "costa": {
+  "atlas": "costa.png",
+  "width": 1024,
+  "height": 771,
+  "chips": [
+   {
+    "kind": "isola",
+    "x": 0,
+    "y": 0,
+    "n": 256,
+    "mpp": 24.929,
+    "hmax": 525.4,
+    "size": 6382,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 257,
+    "y": 0,
+    "n": 256,
+    "mpp": 12.577,
+    "hmax": 151.7,
+    "size": 3220,
+    "forest": 0.0
+   },
+   {
+    "kind": "costa",
+    "name": "costa_1",
+    "x": 514,
+    "y": 0,
+    "n": 256,
+    "mpp": 16.406,
+    "hmax": 558.2,
+    "size": 4200,
+    "forest": 0.0
+   },
+   {
+    "kind": "costa",
+    "name": "costa_2",
+    "x": 0,
+    "y": 257,
+    "n": 256,
+    "mpp": 16.406,
+    "hmax": 622.9,
+    "size": 4200,
+    "forest": 0.0
+   },
+   {
+    "kind": "costa",
+    "name": "costa_3",
+    "x": 257,
+    "y": 257,
+    "n": 256,
+    "mpp": 16.406,
+    "hmax": 361.1,
+    "size": 4200,
+    "forest": 0.0
+   },
+   {
+    "kind": "costa",
+    "name": "costa_4",
+    "x": 514,
+    "y": 257,
+    "n": 256,
+    "mpp": 16.406,
+    "hmax": 394.1,
+    "size": 4200,
+    "forest": 0.0
+   },
+   {
+    "kind": "costa",
+    "name": "costa_5",
+    "x": 0,
+    "y": 514,
+    "n": 256,
+    "mpp": 16.406,
+    "hmax": 421.7,
+    "size": 4200,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 257,
+    "y": 514,
+    "n": 110,
+    "mpp": 9.976,
+    "hmax": 7.7,
+    "size": 1097,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 368,
+    "y": 514,
+    "n": 67,
+    "mpp": 9.913,
+    "hmax": 9.3,
+    "size": 664,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 436,
+    "y": 514,
+    "n": 64,
+    "mpp": 9.926,
+    "hmax": 112.7,
+    "size": 635,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 501,
+    "y": 514,
+    "n": 60,
+    "mpp": 9.866,
+    "hmax": 5.4,
+    "size": 592,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 562,
+    "y": 514,
+    "n": 35,
+    "mpp": 9.901,
+    "hmax": 6.4,
+    "size": 347,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 598,
+    "y": 514,
+    "n": 32,
+    "mpp": 9.926,
+    "hmax": 1.6,
+    "size": 318,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 631,
+    "y": 514,
+    "n": 24,
+    "mpp": 9.024,
+    "hmax": 49.9,
+    "size": 217,
+    "forest": 0.0
+   },
+   {
+    "kind": "isola",
+    "x": 656,
+    "y": 514,
+    "n": 24,
+    "mpp": 7.821,
+    "hmax": 5.9,
+    "size": 188,
+    "forest": 0.0
+   }
+  ]
+ }
+}
