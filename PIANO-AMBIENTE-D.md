@@ -1,5 +1,7 @@
 # D. Fauna animata: report
 
+> **4 ottobre 2026:** i delfini sono stati tolti dal progetto (codice, modello e script). Le parti di questo report che li riguardano restano solo come storia.
+
 Branch `worktree-agent-a9708e6d11f5db48c`, nato da `feature/ambiente-realistico` (36a8d18). 4 ottobre 2026.
 
 ## Cosa ho fatto

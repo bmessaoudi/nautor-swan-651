@@ -150,7 +150,7 @@ Branch `ambiente/integrazione` (da `feature/ambiente-realistico`), da portare in
 | `ocean.js` + `fft/` | Mare FFT (JONSWAP, tre cascate) sulla GPU in WebGL2, choppy, schiuma dal Jacobiano. `float()` legge l'altezza sotto lo scafo dalla GPU (asincrona). `createOcean(renderer)`; `?fft=128` per la qualità. `linkSky()` aggancia i riflessi al cielo fisico |
 | `sky.js` | Atmosfera e nuvole volumetriche takram (`@takram/three-atmosphere` 0.19.1, `three-clouds` 0.7.6, versioni esatte: la prossima API è solo WebGPU). Tabelle e texture in `web/public/sky`. `?cielo=alta\|media\|bassa\|spenta`; la qualità adattiva di `post.js` abbassa prima le nuvole |
 | `terrain.js` | Isole vere davanti a Pietarsaari (Copernicus GLO-30) e falesie del golfo di Orosei (tile Terrarium), texture CC0 Poly Haven, pini in istanza. Asset in `web/public/terrain`, rigenerabili con `uv run scripts/terrain/build_terrain.py` |
-| `fauna.js` | Gabbiani e delfini con scheletro, generati in Blender da `scripts/blender/fauna.py` (`web/public/models/fauna`, 176 KB) |
+| `fauna.js` | Gabbiani con scheletro, generati in Blender da `scripts/blender/fauna.py` (`web/public/models/fauna`, 140 KB). I delfini sono stati tolti dal progetto il 4 ottobre: poco realistici |
 | `landscape.js` | Restano solo vele lontane e pioggia |
 
 Verificato a schermo (landing passo 13 con tramonto e costa alta, mattino e arcipelago, pioggia; `/bordo/?passo=13`): nessun errore in console, circa 116 fps a dpr 2 con il cielo in `media` su questo Mac.
@@ -159,8 +159,8 @@ Da fare:
 - Alone chiaro sui crinali dove le nuvole passano dietro la costa alta (nuvole a risoluzione ridotta).
 - La qualità adattiva può abbassare il cielo durante il salto fra capitoli (picco di carico) e non lo rialza più.
 - Terra e vele lontane scorrono solo lungo -X: nelle virate del gioco non seguono `uOff`.
-- I delfini usano il livello medio dell'acqua, non l'onda FFT; la fascia bagnata della terra (`wetTop`) va ritarata sulle onde FFT.
-- Gabbiano e delfino d'autore da Sketchfab richiedono la chiave API nell'add-on BlenderMCP.
+- La fascia bagnata della terra (`wetTop`) va ritarata sulle onde FFT.
+- Un gabbiano d'autore da Sketchfab richiede la chiave API nell'add-on BlenderMCP.
 - Con lo stesso `?seed=N` restano ora, vento e costa, ma cambiano vele lontane e pioggia rispetto a prima.
 
 ## La demo web esistente

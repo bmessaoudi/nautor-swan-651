@@ -74,7 +74,7 @@ Ogni lavoro è affidato a un agente diverso, in un suo worktree, partendo da zer
 ### D. Fauna animata
 
 - Sostituire i gabbiani di codice con **modelli GLTF animati** (volo battuto e planata), presi da Sketchfab (licenza CC0 o CC-BY, scaricabili) o da Poly Haven. Si può usare Blender via MCP (`mcp__blender__*`, con Sketchfab e Poly Haven integrati) per pulire, ridurre i poligoni, sistemare le animazioni ed esportare in GLB compresso. **Blender è un'istanza unica condivisa**: lo usa solo questo lavoro.
-- Comportamento: stormo di 3-8 gabbiani attorno all'albero come oggi, più qualcuno lontano. Opzionale: **delfini** che saltano ogni tanto vicino alla prua, solo con mare calmo o medio.
+- Comportamento: stormo di 3-8 gabbiani attorno all'albero come oggi, più qualcuno lontano.
 - Animazioni con `AnimationMixer`, fasi sfalsate. Illuminazione coerente con la scena (materiali standard, luce del sole e mappa d'ambiente).
 - Pesi: sotto ~5 MB in tutto. Caricamento asincrono che non blocca la pagina.
 - Lasciare dov'è il codice dei gabbiani di `landscape.js`: basta spegnerli nel collegamento. La rimozione la fa l'integrazione.

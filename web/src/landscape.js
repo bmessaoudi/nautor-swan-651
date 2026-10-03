@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { SKY } from "./ocean.js";
 
 // Paesaggio del capitolo Navigazione, generato dal seme delle condizioni: vele lontane e pioggia.
-// Isole e coste sono in terrain.js, nuvole e cielo in sky.js, gabbiani e delfini in fauna.js.
+// Isole e coste sono in terrain.js, nuvole e cielo in sky.js, gabbiani in fauna.js.
 // La barca è ferma all'origine e l'acqua scorre verso -X: anche le barche scorrono, e
 // ricompaiono dall'altra parte oltre la foschia, dove sono già del colore del cielo.
 // Le posizioni usano un campionamento Poisson disk, così gli oggetti non si ammucchiano.

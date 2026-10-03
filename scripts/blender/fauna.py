@@ -1,12 +1,12 @@
-"""Fauna del capitolo Navigazione: gabbiano reale e tursiope, con scheletro e animazioni.
+"""Fauna del capitolo Navigazione: gabbiano reale, con scheletro e animazioni.
 
-Generati da script come lo scafo (niente generazione AI). Esporta due GLB in web/public/models/fauna/,
+Generati da script come lo scafo (niente generazione AI). Esporta un GLB in web/public/models/fauna/,
 già compressi con meshopt dall'esportatore di Blender.
 
 Dentro Blender (anche via MCP):  exec(open(".../scripts/blender/fauna.py").read())
 Da riga di comando:              Blender -b --factory-startup --python scripts/blender/fauna.py
 
-Convenzioni: X in avanti (becco, rostro), Z in alto, metri. L'esportatore glTF porta Z in Y, quindi
+Convenzioni: X in avanti (becco), Z in alto, metri. L'esportatore glTF porta Z in Y, quindi
 sul web il muso guarda +X e le ali stanno lungo Z, come i vecchi gabbiani di landscape.js.
 I colori sono attributi di colore per vertice in lineare (COLOR_0 nel GLB): niente texture, pesi minimi.
 """
@@ -437,131 +437,11 @@ def build_gull():
     return arm, body
 
 
-# ---------- Tursiope (Tursiops truncatus) ----------
-# Lunghezza 2,5 m. Dorso grigio ardesia, fianchi più chiari, ventre quasi bianco.
-
-DOL_BACK = srgb(0x4b5560)
-DOL_FLANK = srgb(0x7d8893)
-DOL_BELLY = srgb(0xd9dde0)
-DOL_EYE = srgb(0x0d0f12)
-
-
-def build_dolphin():
-    bm = bmesh.new()
-    L = 2.5
-    # sezioni dal rostro alla coda (x verso la testa)
-    prof = [
-        (1.25, 0.012, 0.012, -0.02),
-        (1.20, 0.035, 0.030, -0.025),    # rostro
-        (1.12, 0.055, 0.050, -0.02),
-        (1.06, 0.090, 0.095, 0.02),      # melone
-        (0.95, 0.150, 0.165, 0.03),
-        (0.75, 0.205, 0.215, 0.02),
-        (0.45, 0.235, 0.245, 0.0),
-        (0.10, 0.225, 0.235, -0.01),
-        (-0.25, 0.180, 0.195, 0.0),
-        (-0.55, 0.115, 0.140, 0.01),
-        (-0.80, 0.060, 0.090, 0.015),    # peduncolo, alto e stretto
-        (-0.98, 0.035, 0.050, 0.015),
-        (-1.06, 0.025, 0.025, 0.015),
-    ]
-    loft(bm, prof, ring=16, flat_bottom=0.05)
-
-    def fin(pts, thick, axis):
-        """Pinna piatta da un contorno: due facce scostate lungo axis (Y per la dorsale, Z per le altre)."""
-        a = [bm.verts.new(p + axis * thick) for p in pts]
-        b = [bm.verts.new(p - axis * thick) for p in pts]
-        bm.faces.new(a)
-        bm.faces.new(list(reversed(b)))
-        n = len(pts)
-        for i in range(n):
-            j = (i + 1) % n
-            bm.faces.new((a[i], b[i], b[j], a[j]))
-
-    V = Vector
-    # pinna dorsale falcata
-    fin([V((0.20, 0, 0.20)), V((-0.02, 0, 0.42)), V((-0.16, 0, 0.47)), V((-0.08, 0, 0.36)), V((-0.22, 0, 0.18))], 0.016, V((0, 1, 0)))
-    # pinne pettorali
-    for s in (1, -1):
-        fin([V((0.62, s * 0.17, -0.12)), V((0.42, s * 0.40, -0.26)), V((0.33, s * 0.44, -0.28)), V((0.40, s * 0.18, -0.15))], 0.012, V((0, 0, 1)))
-    # pinna caudale orizzontale, a mezzaluna
-    fin([V((-0.96, 0, 0.015)), V((-1.10, 0.30, 0.015)), V((-1.24, 0.33, 0.015)), V((-1.13, 0.10, 0.015)), V((-1.16, 0, 0.015)),
-         V((-1.13, -0.10, 0.015)), V((-1.24, -0.33, 0.015)), V((-1.10, -0.30, 0.015))], 0.014, V((0, 0, 1)))
-    body = finalize("Dolphin", bm, subdiv=1)
-
-    def col(co):
-        x, y, z = co
-        r = max(abs(y), 1e-4)
-        # quota relativa sul corpo: in alto scuro, fascia chiara sui fianchi, ventre bianco
-        h = z / (0.24 * (1 - smooth(-0.6, -1.1, x) * 0.6) + 0.02)
-        c = DOL_FLANK.lerp(DOL_BACK, smooth(0.05, 0.55, h))
-        c = c.lerp(DOL_BELLY, smooth(-0.15, -0.55, h) * (1 - smooth(-0.6, -0.95, x)))
-        if z > 0.19 or x < -1.0 or abs(y) > 0.24:
-            c = DOL_BACK.copy()  # pinne
-        return c
-
-    paint(body, col)
-    eyes = []
-    for s in (1, -1):
-        ebm = bmesh.new()
-        bmesh.ops.create_uvsphere(ebm, u_segments=8, v_segments=6, radius=0.016)
-        bmesh.ops.translate(ebm, verts=ebm.verts, vec=(0.98, s * 0.145, 0.0))
-        eo = finalize("Eye", ebm, subdiv=0)
-        paint(eo, lambda co: DOL_EYE)
-        eyes.append(eo)
-    bpy.ops.object.select_all(action="DESELECT")
-    for o in [body] + eyes:
-        o.select_set(True)
-    bpy.context.view_layer.objects.active = body
-    bpy.ops.object.join()
-    body.data.materials.append(vertex_material("Dolphin", 0.32))
-
-    # spina dorsale: cinque ossa dalla testa alla coda
-    xs = [1.25, 0.55, 0.0, -0.45, -0.82, -1.25]
-    names = ["Head", "Chest", "Belly", "Tail1", "Tail2"]
-    bones = []
-    for i, n in enumerate(names):
-        bones.append((n, (xs[i], 0, 0), (xs[i + 1], 0, 0), names[i - 1] if i else None))
-    arm = rig("DolphinRig", bones)
-
-    def weights(co):
-        x = co[0]
-        out = {}
-        for i, n in enumerate(names):
-            mid = (xs[i] + xs[i + 1]) / 2
-            half = (xs[i] - xs[i + 1]) / 2
-            out[n] = max(0.0, 1 - abs(x - mid) / (half * 1.6))
-        if sum(out.values()) < 1e-3:
-            out["Head" if x > 0 else "Tail2"] = 1
-        return out
-
-    skin(body, arm, weights)
-
-    def swim(p):
-        # nuoto dei cetacei: ondulazione verticale che cresce verso la coda
-        w = math.tau * p
-        return {
-            "Head": qy(0.03 * math.sin(w)),
-            "Chest": qy(0.04 * math.sin(w - 0.5)),
-            "Belly": qy(0.10 * math.sin(w - 1.0)),
-            "Tail1": qy(0.20 * math.sin(w - 1.6)),
-            "Tail2": qy(0.32 * math.sin(w - 2.2)),
-        }
-
-    bake_action(arm, "Swim", 18, swim)  # 0,6 s per colpo di coda
-    return arm, body
-
-
 def main():
     clean_scene()
     arm, body = build_gull()
     s1 = export([arm, body], os.path.join(OUT, "gull.glb"))
-    arm.location.y = 3
-    arm2, body2 = build_dolphin()
-    s2 = export([arm2, body2], os.path.join(OUT, "dolphin.glb"))
-    arm2.location.y = -3
     print("gabbiano", len(body.data.polygons), "facce", s1, "byte")
-    print("delfino", len(body2.data.polygons), "facce", s2, "byte")
 
 
 main()
