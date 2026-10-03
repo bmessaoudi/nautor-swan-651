@@ -88,6 +88,11 @@ export function createRigging({ boat, clipping, layer }) {
     return m;
   }
 
+  // le scotte sono disegnate per una sola regolazione delle vele: in navigazione libera (sailing.js),
+  // quando boma e fiocco si muovono, si nascondono
+  const sheets = [];
+  const sheetsStart = group.children.length;
+
   // Scotta del fiocco: dalla bugna al passascotte sul binario, poi al winch primario di dritta
   const clew = V(1.39, 3.12, 1.09);
   const lead = V(-0.7, 1.84, 1.6);
@@ -107,6 +112,7 @@ export function createRigging({ boat, clipping, layer }) {
   const winchM = V(-4.69, 1.76, 1.69);
   rope(catenary(traveller, winchM, 0.05));
   rope(catenary(winchM, V(-4.4, 1.0, 1.2), 0.15));
+  sheets.push(...group.children.slice(sheetsStart));
 
   // Bandiera di poppa su un'asta inclinata verso poppa, sul giardinetto di sinistra
   const staffBase = V(-8.85, 1.42, -0.95);
@@ -203,6 +209,7 @@ export function createRigging({ boat, clipping, layer }) {
       }
       g.setAttribute("aLeech", new THREE.BufferAttribute(arr, 1));
     },
+    sheets,
     update(t, wind) {
       flagUniforms.uTime.value = t;
       flagUniforms.uWind.value = wind;
