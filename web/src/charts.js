@@ -50,12 +50,13 @@ export function drawMap(svg) {
   }
 }
 
-// ---------- Polare stimata ----------
-// Velocità della barca (nodi) per angolo al vento reale, con 10, 16 e 20 nodi di vento
+// ---------- Polare ORC ----------
+// Velocità della barca (nodi) per angolo al vento reale, dal certificato ORC di Lunz am Meer.
+// La bolina è il VMG diviso per cos(42°): l'angolo di bolina è stimato.
 const POLAR = {
-  10: [[38, 6.4], [45, 7.0], [60, 7.9], [90, 8.6], [120, 8.4], [150, 7.0], [180, 6.0]],
-  16: [[36, 7.6], [45, 8.3], [60, 9.2], [90, 10.1], [120, 10.6], [150, 9.6], [180, 8.4]],
-  20: [[35, 8.0], [45, 8.6], [60, 9.6], [90, 10.8], [120, 11.6], [150, 10.9], [180, 9.6]],
+  10: [[42, 7.55], [90, 8.93], [120, 9.05], [135, 8.5]],
+  16: [[42, 8.81], [90, 9.98], [120, 10.38], [135, 10.16]],
+  20: [[42, 9.08], [90, 10.28], [120, 10.98], [135, 10.94]],
 };
 
 export function drawPolar(svg) {

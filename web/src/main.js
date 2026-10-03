@@ -3,7 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import Lenis from "lenis";
 import { KEYS, HOTSPOTS, CHAPTERS } from "./story.js";
-import { createOcean } from "./ocean.js";
+import { createOcean, SUN_DIR } from "./ocean.js";
 import { drawMap, drawPolar } from "./charts.js";
 
 // ---------- Renderer, camera, luci ----------
@@ -14,18 +14,49 @@ renderer.setClearColor(0x000000, 0);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.localClippingEnabled = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.VSMShadowMap;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(22, 1, 0.1, 5000);
 
+// ---------- Luci ----------
+// Due ambienti: lo studio (luce morbida da softbox, ombra a terra, controluce freddo) e il mare
+// (sole basso e caldo, cielo come mappa d'ambiente). Si passa dall'uno all'altro con s.ocean.
 const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.9;
+const studioEnv = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = studioEnv;
 
-const sun = new THREE.DirectionalLight(0xfff4e2, 2.2);
-sun.position.set(-30, 50, 40);
-scene.add(sun);
-scene.add(new THREE.HemisphereLight(0xdfe9f5, 0x6b5a48, 0.5));
+const SUN_STUDIO = new THREE.Vector3(-30, 52, 38);
+const SUN_SEA = SUN_DIR.clone().multiplyScalar(70);
+const sun = new THREE.DirectionalLight(0xfff4e2, 2.4);
+sun.position.copy(SUN_STUDIO);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.radius = 9;
+sun.shadow.blurSamples = 16;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.03;
+Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 160 });
+scene.add(sun, sun.target);
+
+// controluce freddo che disegna il profilo di scafo e vele sullo sfondo chiaro
+const rim = new THREE.DirectionalLight(0xcfe0ff, 1.1);
+rim.position.set(25, 18, -45);
+scene.add(rim);
+
+const hemi = new THREE.HemisphereLight(0xdfe9f5, 0x6b5a48, 0.45);
+scene.add(hemi);
+
+const STUDIO = { sun: new THREE.Color(0xfff4e2), hemiSky: new THREE.Color(0xdfe9f5), hemiGround: new THREE.Color(0x6b5a48) };
+const SEA = { sun: new THREE.Color(0xffe1b5), hemiSky: new THREE.Color(0x9cc6ec), hemiGround: new THREE.Color(0x0d3550) };
+
+// pavimento dello studio che raccoglie solo l'ombra
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), new THREE.ShadowMaterial({ opacity: 0.22 }));
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -3.26;
+floor.receiveShadow = true;
+scene.add(floor);
 
 // ---------- Piani di taglio ----------
 // solid: lo scafo compare da prua (x >= sweep); line: la tavola resta a poppa (x <= sweep)
@@ -49,9 +80,11 @@ lineMatInterior.clippingPlanes = LINE_PLANES;
 const boat = new THREE.Group();
 scene.add(boat);
 const sails = [];
+const headliner = []; // il cielino sotto il pozzetto coprirebbe la pianta nella vista sezionata
 
 const ocean = createOcean();
-scene.add(ocean.mesh);
+scene.add(ocean.mesh, ocean.sky);
+const seaEnv = ocean.envMap(pmrem);
 
 const loaderEl = document.getElementById("loader");
 const bar = loaderEl.querySelector(".loader-bar i");
@@ -69,12 +102,20 @@ new GLTFLoader().load(
         if (seen.has(m)) continue;
         seen.add(m);
         m.clippingPlanes = SOLID_PLANES;
+        m.clipShadows = true;
         // Nel taglio si vede l'interno dei gusci: servono entrambe le facce
         m.side = THREE.DoubleSide;
         // Antivegetativa di chiglia e timone allineata al rosso della carena
         if (/Antifoul/.test(m.name)) m.color.set(0x5a1414);
-        if (m.name === "Upholstery_Leather_Red") m.color.set(0x6e1212);
+        if (m.name === "Upholstery_Leather_Red") {
+          m.color.set(0x6a1010);
+          m.roughness = 0.62;
+        }
       }
+      // con più materiali GLTFLoader crea un gruppo: le mesh figlie hanno il nome con un suffisso
+      if (o.name.startsWith("Interior_Headliner")) headliner.push(o);
+      o.castShadow = true;
+      o.receiveShadow = !o.morphTargetInfluences;
       if (o.morphTargetInfluences) {
         sails.push(o);
         o.material.transparent = true;
@@ -258,6 +299,7 @@ function frame(time) {
   planeSolid.constant = -sweepX;
   planeLine.constant = sweepX;
   planeCut.constant = s.cut;
+  for (const h of headliner) h.visible = s.cut > 1.5;
   lineMat.opacity = 0.85 * s.lines;
   lineMatInterior.opacity = 0.32 * s.lines;
   lineMat.visible = lineMatInterior.visible = s.lines > 0.01;
@@ -276,7 +318,21 @@ function frame(time) {
   boat.rotation.x = THREE.MathUtils.degToRad(s.heel + m * 1.8 * Math.sin(t * 0.47));
   boat.rotation.z = THREE.MathUtils.degToRad(m * 1.4 * Math.sin(t * 0.61 + 1.2));
   boat.position.y = m * 0.14 * Math.sin(t * 0.83);
-  ocean.update(t, s.ocean, camera);
+  ocean.update(t, s.ocean, m, camera);
+
+  // Luci: dallo studio al mare
+  const sea = s.ocean;
+  sun.position.lerpVectors(SUN_STUDIO, SUN_SEA, sea);
+  sun.color.lerpColors(STUDIO.sun, SEA.sun, sea);
+  sun.intensity = lerp(2.4, 3.4, sea);
+  rim.intensity = lerp(1.1, 0.25, sea);
+  hemi.color.lerpColors(STUDIO.hemiSky, SEA.hemiSky, sea);
+  hemi.groundColor.lerpColors(STUDIO.hemiGround, SEA.hemiGround, sea);
+  hemi.intensity = lerp(0.45, 0.7, sea);
+  scene.environment = sea > 0.5 ? seaEnv : studioEnv;
+  scene.environmentIntensity = sea > 0.5 ? lerp(0.6, 1.0, (sea - 0.5) * 2) : lerp(0.9, 0.6, sea * 2);
+  floor.material.opacity = 0.22 * s.solid * (1 - sea) * (s.cut > 50 ? 1 : 0.3);
+  floor.visible = floor.material.opacity > 0.005;
 
   // Camera
   mouse.sx += (mouse.x - mouse.sx) * 0.04;
@@ -293,7 +349,6 @@ function frame(time) {
   bgEl.style.background = `linear-gradient(180deg, ${rgb(s.bgTop)} 0%, ${rgb(s.bgBot)} 100%)`;
   gridEl.style.opacity = (s.grid * 0.9).toFixed(3);
   document.body.classList.toggle("light", s.theme > 0.5);
-  ocean.setHorizon(s.bgBot);
 
   renderer.render(scene, camera);
   updateHotspots(p, W, H);

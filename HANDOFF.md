@@ -39,7 +39,12 @@ for f in ("swan651_hull.py", "swan651_rig.py", "swan651_interior.py"):
     exec(open(base + f).read(), ns)
 ```
 
-Poi si esporta: si selezionano le collezioni `Swan651` e `Swan651_Interior` e si lancia `export_scene.gltf` (GLB, `export_apply`, `export_morph`) più `export_scene.fbx` (`embed_textures`, `path_mode` COPY, Y su). L'ultimo blocco di export usato è nella conversazione precedente; va rifatto uguale.
+Tutto in un colpo, anche senza aprire Blender, con `scripts/blender/build_and_export.py`: esegue i tre script, esporta GLB e FBX dalle collezioni `Swan651` e `Swan651_Interior` e salva il .blend.
+
+```
+/Applications/Blender.app/Contents/MacOS/Blender -b models/swan651.blend --python scripts/blender/build_and_export.py
+cp models/swan651.glb web/public/models/
+```
 
 | Script | Cosa fa |
 |---|---|
@@ -105,12 +110,14 @@ Cartella `web/`: Vite 8, three.js r186, Lenis, d3-geo e d3-shape. Avvio con `pnp
 - Interni: piano di taglio orizzontale (`cut`) a 0,95 m. Punti caldi calcolati dalle coordinate della pianta: X = (px - 444) * SP - 11,005, Z = (py - 2292) * SP.
 - Vele: il morph `Luffing` sbatte quando `luff > 0`; dissolvenza (`sails`) nella vista della coperta.
 - Mare: shader Gerstner in `web/src/ocean.js`, sbandata 16° e moto ondoso.
-- Testi in italiano, numeri da IRC e WikiSwan. Da verificare: posti letto (scritto 8 ospiti più 2 di equipaggio), autonomia a motore (~600 mn, stimata), polare (stimata).
+- Luci: nello studio sole con ombre VSM, pavimento che raccoglie l'ombra e controluce freddo; in mare sole caldo (`SUN_DIR` in `ocean.js`), cupola del cielo e mappa d'ambiente generata dal cielo.
+- Mare: onde di Gerstner, increspature a rumore, riflesso del cielo con Fresnel, luce nelle creste, schiuma, onda di prua e scia.
+- Testi verificati il 3 ottobre 2026: 4 cabine ospiti, 3 bagni e 2 di equipaggio (Second Wind, Show Me); autonomia ~700 mn a 7-8 kn (Fraser, Second Wind); polare dal certificato ORC di Lunz am Meer (bolina ricavata dal VMG a 42°); Ocean Globe Race 2023 e Whitbread 1985-86 di Spirit of Helsinki. I verricelli elettrici sono di Lunz, in origine erano manuali.
 
 ## Problemi aperti
 
 - **Firecrawl ha il credito quasi esaurito**: ricaricarlo prima di altre ricerche web.
-- **Interni ancora a blocchi**: da vicino sembrano un plastico. Da fare: cuscini arrotondati e trapuntati, porte ad arco, librerie sopra i divani, cornici degli oblò all'interno, cucina e carteggio più dettagliati.
+- **Interni, prima rifinitura fatta** (3 ottobre 2026): cuscini e materassi arrotondati, schienali a moduli, porte con angoli ad arco, librerie con libri, fuochi, lavelli, rubinetto e ante in cucina, strumenti al carteggio, cornici degli oblò (`Interior_Trim`). Restano semplici bagni, cabine prodiere e trapuntatura dei cuscini.
 - **Avviso innocuo dell'export glTF** ("more than one tex image" sul materiale Hull_Paint): il risultato è corretto.
 - La chiglia segue la tavola, cioè la pinna con scarpa in piombo del "651 Mod". Il piano velico standard mostra una pinna trapezoidale senza bulbo. Si è scelto Lunz.
 
