@@ -69,7 +69,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
   // mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
   const ocean = createOcean(renderer);
-  const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "media" });
+  const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "bassa" });
   const post = createPost(renderer, scene, camera, { sky });
   // parole chiave e indice scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js, come nella landing)
   const tone = createAdaptiveTone(renderer);
@@ -507,6 +507,11 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   const focusW = new THREE.Vector3();
 
   function frame(time) {
+    // in mare si disegna a ritmo ridotto (post.pace)
+    if (!post.pace(time, (cur?.ocean ?? 0) > 0.5)) {
+      requestAnimationFrame(frame);
+      return;
+    }
     clock.update(time);
     const t = clock.getElapsed();
     const dt = clock.getDelta();

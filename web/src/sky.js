@@ -305,6 +305,7 @@ export function createSky(renderer, camera, shared, { quality = "media" } = {}) 
 
   let cond = null;
   let q = QUALITY[quality] ? quality : "media";
+  const start = q;
   const tint = new THREE.Vector3(1, 1, 1);
   const sunTint = new THREE.Vector3(1, 1, 1);
   const sunLight = new THREE.Color();
@@ -462,6 +463,14 @@ export function createSky(renderer, camera, shared, { quality = "media" } = {}) 
       const i = SKY_QUALITY.indexOf(q);
       if (i >= SKY_QUALITY.length - 2) return false; // "spenta" solo a mano
       api.setQuality(SKY_QUALITY[i + 1]);
+      return true;
+    },
+    // il contrario di degrade, fino alla qualità di partenza
+    restore() {
+      if (!active) return false;
+      const i = SKY_QUALITY.indexOf(q);
+      if (i <= SKY_QUALITY.indexOf(start)) return false;
+      api.setQuality(SKY_QUALITY[i - 1]);
       return true;
     },
     setConditions,

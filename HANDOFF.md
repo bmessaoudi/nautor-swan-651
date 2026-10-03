@@ -148,16 +148,17 @@ Branch `ambiente/integrazione` (da `feature/ambiente-realistico`), da portare in
 | Modulo | Cosa fa |
 |---|---|
 | `ocean.js` + `fft/` | Mare FFT (JONSWAP, tre cascate) sulla GPU in WebGL2, choppy, schiuma dal Jacobiano. `float()` legge l'altezza sotto lo scafo dalla GPU (asincrona). `createOcean(renderer)`; `?fft=128` per la qualità. `linkSky()` aggancia i riflessi al cielo fisico |
-| `sky.js` | Atmosfera e nuvole volumetriche takram (`@takram/three-atmosphere` 0.19.1, `three-clouds` 0.7.6, versioni esatte: la prossima API è solo WebGPU). Tabelle e texture in `web/public/sky`. `?cielo=alta\|media\|bassa\|spenta`; la qualità adattiva di `post.js` abbassa prima le nuvole |
+| `sky.js` | Atmosfera e nuvole volumetriche takram (`@takram/three-atmosphere` 0.19.1, `three-clouds` 0.7.6, versioni esatte: la prossima API è solo WebGPU). Tabelle e texture in `web/public/sky`. `?cielo=alta\|media\|bassa\|spenta`, predefinita `bassa`. Niente upscaling temporale della libreria (lasciava un fantasma sulle vele). La qualità adattiva di `post.js` abbassa prima le nuvole |
 | `terrain.js` | Isole vere davanti a Pietarsaari (Copernicus GLO-30) e falesie del golfo di Orosei (tile Terrarium), texture CC0 Poly Haven, pini in istanza. Asset in `web/public/terrain`, rigenerabili con `uv run scripts/terrain/build_terrain.py` |
 | `fauna.js` | Gabbiani con scheletro, generati in Blender da `scripts/blender/fauna.py` (`web/public/models/fauna`, 140 KB). I delfini sono stati tolti dal progetto il 4 ottobre: poco realistici |
 | `landscape.js` | Restano solo vele lontane e pioggia |
 
-Verificato a schermo (landing passo 13 con tramonto e costa alta, mattino e arcipelago, pioggia; `/bordo/?passo=13`): nessun errore in console, circa 116 fps a dpr 2 con il cielo in `media` su questo Mac.
+Verificato a schermo (landing passo 13 con tramonto e costa alta, mattino e arcipelago, pioggia; `/bordo/?passo=13`): nessun errore in console.
+
+**Prestazioni (scelta dell'utente, 4 ottobre): leggerezza prima della fluidità.** Con tutto al massimo la GPU stava al 97%. In mare (`post.pace`) si disegna al massimo un fotogramma ogni ~22 ms (40 fps a 120 Hz, 30 fps a 60 Hz) e a risoluzione 1,5x al massimo; nuvole in qualità `bassa`. Fuori dal mare resta tutto come prima. La qualità adattiva non usa le timer query in mare (su Mac sono gonfiate) ma il ritardo dei fotogrammi rispetto al ritmo previsto, e ignora i primi secondi dopo l'arrivo in mare (`sky.settling`). Dopo un periodo tranquillo risale di un gradino (prima la risoluzione, poi le nuvole); se riscende subito, il tentativo dopo aspetta il doppio.
 
 Da fare:
 - Alone chiaro sui crinali dove le nuvole passano dietro la costa alta (nuvole a risoluzione ridotta).
-- La qualità adattiva può abbassare il cielo durante il salto fra capitoli (picco di carico) e non lo rialza più.
 - Terra e vele lontane scorrono solo lungo -X: nelle virate del gioco non seguono `uOff`.
 - La fascia bagnata della terra (`wetTop`) va ritarata sulle onde FFT.
 - Un gabbiano d'autore da Sketchfab richiede la chiave API nell'add-on BlenderMCP.

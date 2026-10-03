@@ -208,7 +208,25 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
   let ema = 16;
   let slow = 0;
   let warm = 0;
+  // recupero: dopo un periodo tranquillo si risale di un gradino. Se si riscende subito, il
+  // tentativo dopo aspetta il doppio, così una macchina al limite non oscilla.
+  let calm = 0;
+  let calmNeed = 600;
+  let raisedAt = -1;
+  let frames = 0;
   renderer.setPixelRatio(LEVELS[0]);
+
+  // ---------- Ritmo in mare ----------
+  // In mare la scena si muove sempre (onde, nuvole) e la GPU lavorerebbe a ogni refresh dello
+  // schermo. Lì si disegna al massimo un fotogramma ogni ~22 ms (40 fps a 120 Hz, 30 fps a 60 Hz)
+  // e a risoluzione 1,5x al massimo: il sito deve girare anche su portatili modesti.
+  const SEA_FRAME_MS = 22;
+  const SEA_MAX_DPR = 1.5;
+  let refresh = 16.7; // periodo dello schermo, stimato dal minimo fra due callback
+  let lastRaf = 0;
+  let lastDraw = -1e9;
+  let sea = false;
+  const dpr = () => (sea ? Math.min(LEVELS[level], SEA_MAX_DPR) : LEVELS[level]);
 
   let W = 1;
   let H = 1;
@@ -283,6 +301,22 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
       }
       composer.render(dt);
     },
+    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare. atSea accende il
+    // limite di fotogrammi e di risoluzione del mare.
+    pace(time, atSea) {
+      const raw = time - lastRaf;
+      lastRaf = time;
+      if (raw > 3 && raw < 40) refresh = Math.min(refresh * 1.002, raw);
+      if (atSea !== sea) {
+        sea = atSea;
+        slow = 0;
+        renderer.setPixelRatio(dpr());
+        composer.setSize(W, H, false);
+      }
+      if (sea && time - lastDraw < SEA_FRAME_MS - 1) return false;
+      lastDraw = time;
+      return true;
+    },
     // ms del fotogramma precedente; si misura solo quando la scena si muove davvero
     measure(ms) {
       if (query && !query.open && gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE)) {
@@ -296,24 +330,50 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         slow = 0;
         return;
       }
-      const useGpu = timer && gpuMs >= 0;
-      // la GPU non può metterci più del tempo fra due fotogrammi: su Mac (WebGL su Metal) le timer
-      // query danno valori gonfiati, 13 ms a 115 fps, e facevano scendere la risoluzione per niente.
-      // Il minimo tiene buono anche il caso opposto, la pagina limitata a 30 fps con la GPU scarica.
-      // Quando il minimo è il tempo fra fotogrammi vale la soglia larga: su uno schermo a 60 Hz
-      // quel tempo non scende mai sotto 16,7 ms anche con la GPU scarica.
-      const gpuBound = useGpu && gpuMs < ms;
-      ema += (Math.min(gpuBound ? gpuMs : ms, 100) - ema) * 0.05;
-      slow = ema > (gpuBound ? 15 : 19) ? slow + 1 : 0;
-      // prima si alleggeriscono le nuvole (sono la parte più cara del mare), poi la risoluzione
-      if (slow > 90 && sky && sky.degrade()) {
-        slow = 0;
-      } else if (slow > 90 && level < LEVELS.length - 1) {
-        level++;
-        slow = 0;
-        renderer.setPixelRatio(LEVELS[level]);
+      let value, limit;
+      if (sea) {
+        // in mare il ritmo è limitato: conta solo se il fotogramma arriva più tardi del previsto
+        // (le timer query di Mac sono gonfiate, qui non servono)
+        value = ms;
+        limit = Math.ceil((SEA_FRAME_MS - 1) / refresh) * refresh * 1.25;
+      } else {
+        // la GPU non può metterci più del tempo fra due fotogrammi: su Mac (WebGL su Metal) le
+        // timer query danno valori gonfiati, 13 ms a 115 fps, e facevano scendere la risoluzione
+        // per niente. Quando conta il tempo fra fotogrammi vale la soglia larga: su uno schermo a
+        // 60 Hz quel tempo non scende mai sotto 16,7 ms anche con la GPU scarica.
+        const gpuBound = timer && gpuMs >= 0 && gpuMs < ms;
+        value = gpuBound ? gpuMs : ms;
+        limit = gpuBound ? 15 : 19;
+      }
+      ema += (Math.min(value, 100) - ema) * 0.05;
+      slow = ema > limit ? slow + 1 : 0;
+      calm = ema < limit * 0.85 ? calm + 1 : 0;
+      frames++;
+      const setLevel = (l) => {
+        level = l;
+        renderer.setPixelRatio(dpr());
         ao.configuration.halfRes = level > 0;
         composer.setSize(W, H, false);
+      };
+      // prima si alleggeriscono le nuvole (sono la parte più cara del mare), poi la risoluzione
+      if (slow > 90) {
+        if (raisedAt >= 0 && frames - raisedAt < 400) calmNeed = Math.min(calmNeed * 2, 9600);
+        raisedAt = -1;
+        if (sky && sky.degrade()) slow = 0;
+        else if (level < LEVELS.length - 1) {
+          setLevel(level + 1);
+          slow = 0;
+        }
+        calm = 0;
+      } else if (calm > calmNeed) {
+        // in senso inverso: prima la risoluzione, poi le nuvole
+        calm = 0;
+        if (level > 0) {
+          setLevel(level - 1);
+          raisedAt = frames;
+        } else if (sky && sky.restore()) {
+          raisedAt = frames;
+        }
       }
     },
     // lo sfondo compensa l'esposizione: il suo colore è una scelta grafica, non una luce
