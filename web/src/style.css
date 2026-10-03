@@ -30,19 +30,8 @@ body {
 .mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
 a { color: inherit; cursor: pointer; text-decoration: none; }
 
-#bg, #grid, #gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
-#bg { z-index: 0; }
-#grid {
-  z-index: 1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(190, 220, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190, 220, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(rgba(190, 220, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(190, 220, 255, 0.06) 1px, transparent 1px);
-  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-  background-position: center;
-}
+/* Sfondo e reticolo della tavola sono disegnati nel canvas (main.js) */
+#gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 #gl { z-index: 2; display: block; }
 #hotspots { z-index: 3; pointer-events: none; }
 
@@ -69,6 +58,20 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 .brand { font-family: var(--serif); font-size: 22px; letter-spacing: 0.02em; }
 .brand em { font-style: italic; color: var(--accent); }
 .draft-tag { border: 1px solid var(--line); padding: 6px 10px; border-radius: 99px; color: var(--ink-dim); }
+.top-right { display: flex; gap: 10px; align-items: center; }
+
+/* Condizioni del mare: compaiono solo nel capitolo Navigazione */
+#cond {
+  display: flex; gap: 10px; align-items: center;
+  border: 1px solid var(--line); padding: 4px 4px 4px 12px; border-radius: 99px; color: var(--ink-dim);
+  opacity: 0; visibility: hidden; transition: opacity 0.5s, visibility 0.5s;
+}
+#cond.on { opacity: 1; visibility: visible; }
+#cond button {
+  font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--ink);
+  background: none; border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; cursor: pointer;
+}
+#cond button:hover { border-color: var(--ink-dim); }
 
 #chapters {
   position: fixed; left: 32px; top: 50%; transform: translateY(-50%); z-index: 10;
@@ -221,6 +224,7 @@ h2.big { font-size: clamp(64px, 9vw, 128px); }
   #chapters .lab { display: none; }
   #chapters .progress { display: none; }
   #readout { display: none; }
+  #cond span { display: none; }
   #top { padding: 16px; }
   .step, .step[data-side="right"] { padding: 0 16px; align-items: flex-end; padding-bottom: 70px; justify-content: center; }
   .card { padding: 20px; }

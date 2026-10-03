@@ -114,9 +114,63 @@ Cartella `web/`: Vite 8, three.js r186, Lenis, d3-geo e d3-shape. Avvio con `pnp
 - Mare: onde di Gerstner, increspature a rumore, riflesso del cielo con Fresnel, luce nelle creste, schiuma, onda di prua e scia.
 - Testi verificati il 3 ottobre 2026: 4 cabine ospiti, 3 bagni e 2 di equipaggio (Second Wind, Show Me); autonomia ~700 mn a 7-8 kn (Fraser, Second Wind); polare dal certificato ORC di Lunz am Meer (bolina ricavata dal VMG a 42°); Ocean Globe Race 2023 e Whitbread 1985-86 di Spirit of Helsinki. I verricelli elettrici sono di Lunz, in origine erano manuali.
 
+## Fotografia, post-processing e paesaggio (3 ottobre 2026)
+
+- **Post-processing** in `web/src/post.js` con `postprocessing` 6.39.5 (pmndrs) e `n8ao` 2.0.1, su WebGL. Il passaggio a WebGPU e `RenderPipeline` richiederebbe di riscrivere in TSL il mare e le linee della tavola.
+- Ordine dei passaggi: scena, occlusione N8AO, profondità di campo, tilt-shift, bloom e look, accumulo, aberrazione cromatica, SMAA con vignettatura e grana.
+- **Tone mapping Khronos PBR Neutral** dentro il look, al posto di ACES, che spingeva i rossi verso l'arancio. Il renderer ha `NoToneMapping` e niente antialias: se ne occupa il composer.
+- **Grading per capitolo** (`GRADES` in `post.js`: blueprint, studio, interior, sea). È parametrico (slope, offset, power, saturazione, ombre e luci), non una LUT, così si interpola fra i passi. Ogni preset ha la sua esposizione, e lo sfondo la compensa per mantenere i colori grafici.
+- **Fotogrammi chiave** (`story.js`), campi nuovi:
+  - `bokeh`: forza della sfocatura;
+  - `range`: metri di nitidezza attorno al fuoco;
+  - `focus`: punto a fuoco in coordinate della barca, valido solo per quel passo;
+  - `tilt`: effetto modellino, nei passi 6 e 10;
+  - `grade`: grading del capitolo.
+- **Accumulo a camera ferma**: dopo 12 fotogrammi immobili la camera oscilla di una frazione di pixel (Halton) e i fotogrammi si mediano. Dopo 48 la pagina smette di disegnare. Non si attiva in mare né con le vele che sbattono.
+- **Qualità adattiva**: sopra 19 ms per fotogramma il pixel ratio scende (2, 1,5, 1,25, 1). Su 1440×900 a 2x si stabilizza a 1,5x e 59 fps.
+- **Sfondo nel canvas**: gradiente e reticolo della tavola sono uno shader (`backdrop` in `main.js`). Gli elementi `#bg` e `#grid` non esistono più.
+- **Condizioni con seme** (`web/src/conditions.js`, `?seed=N`): 6 preset di ora del giorno (alba, mattino, mezzogiorno, pomeriggio, tramonto, foschia), vento 6-24 nodi e costa (arcipelago, costa alta, mare aperto).
+  - Il vento scala onde, sbandata, moto, velocità dell'acqua e schiuma.
+  - Il pulsante "Cambia" in alto a destra, visibile solo in Navigazione, estrae un nuovo seme e aggiorna l'URL.
+- **Paesaggio** (`web/src/landscape.js`): scogli di granito con pinete, promontori, vele lontane, gabbiani e nuvole a billboard.
+  - Disposizione con Poisson disk.
+  - Isole e barche scorrono con l'acqua e ricompaiono oltre la foschia piena.
+  - Foschia condivisa con il mare (`hazeColor` e `hazeAmount` nel chunk `SKY` di `ocean.js`).
+- In sviluppo `window.__post` espone il post-processing (accumulo, qualità).
+
+## Ispirazione dai videogiochi (3 ottobre 2026)
+
+Fonti: talk tecnico di Sea of Thieves (SIGGRAPH 2018), slide di Black Flag (GDC 2014, Wronski), FXGuide sull'oceano di AC3, analisi di Crimson Desert.
+
+- **Riflesso planare della barca** (`web/src/seafx.js`): camera specchiata, solo il layer `BOAT_LAYER` (scafo, alberatura, cime, bandiera; non gli interni), a un terzo della risoluzione. Il mare lo legge in coordinate di schermo, deformato dalle onde.
+- **Schiuma alla Sea of Thieves**: ogni fotogramma si disegna dall'alto l'impronta dello scafo tagliato a 0,12 m sull'acqua. Il bordo diventa schiuma in un buffer che si sfoca e scorre verso poppa con l'acqua (dominio `FOAM_BOX`, 72 x 36 m). Ne escono onda di prua e scia. Nel mare il buffer fa da soglia su una trama a merletto.
+- **Mare** (`ocean.js`):
+  - griglia polare (fitta vicino alla barca);
+  - maschera delle creste dallo jacobiano di Gerstner, per il turchese in controluce;
+  - sole come disco (Karis), più largo quando è basso;
+  - schiuma a tre scale con rampa (come AC3);
+  - schiuma sulle creste e strisce lungo il vento secondo la scala Beaufort (`beaufort()` in `conditions.js`).
+- **Materiali** (`web/src/materials.js`): texture in triplanare nello spazio della barca, perché scafo, coperta e alberatura non hanno UV.
+  - Teak, pelle e maglina di cotone sono texture CC0 di Poly Haven in `web/public/textures/`, normalizzate sulla loro media (convertita in lineare), così i colori di Lunz am Meer restano quelli scelti.
+  - Il resto è procedurale: buccia d'arancia del gelcoat, fibre a ventaglio e cuciture delle vele, antivegetativa a chiazze, alluminio spazzolato.
+  - Le facce interne dello scafo hanno il colore del rivestimento.
+- **Bagnato solo dove arriva l'acqua** (idea di Crimson Desert): fascia sopra il galleggiamento che segue le onde, con colature e spruzzi a prua, e coperta umida a prua. Con la pioggia è bagnato tutto.
+- **Vita a bordo** (`web/src/rigging.js`): scotte di fiocco e randa con la catenaria vera (come le cime di Sea of Thieves), bandiera austriaca di poppa in shader, balumina delle vele che vibra con il vento (attributo `aLeech`).
+- **Atmosfera**:
+  - foschia a due colori (verso il sole e opposta, come in Black Flag), più densa vicino all'acqua (`uFogHeight`);
+  - prospettiva aerea sulle coste;
+  - nuvole a volume con normali disturbate e bordo d'argento;
+  - nuovo preset "pioggia", con gocce attorno alla camera.
+- **Prestazioni**:
+  - la qualità adattiva misura il tempo GPU con `EXT_disjoint_timer_query_webgl2` (soglia 15 ms), perché il browser in risparmio energetico limita la pagina a 30 fps anche con la GPU scarica;
+  - gli interni sono nascosti quando lo scafo è chiuso;
+  - l'occlusione è spenta in mare e a metà risoluzione mentre la camera si muove.
+- **Semi di esempio** (dopo l'aggiunta della pioggia): `2` tramonto con costa alta e forza 6, `30` foschia con arcipelago, `89` pioggia con forza 5, `4821` mattino con arcipelago.
+- **Non fatto**: il bake dell'occlusione in Blender, perché Blender non era aperto. Per ora la copre N8AO.
+
 ## Problemi aperti
 
-- **Firecrawl ha il credito quasi esaurito**: ricaricarlo prima di altre ricerche web.
+- Firecrawl: piano aggiornato dall'utente il 3 ottobre 2026, di nuovo funzionante.
 - **Interni, prima rifinitura fatta** (3 ottobre 2026): cuscini e materassi arrotondati, schienali a moduli, porte con angoli ad arco, librerie con libri, fuochi, lavelli, rubinetto e ante in cucina, strumenti al carteggio, cornici degli oblò (`Interior_Trim`). Restano semplici bagni, cabine prodiere e trapuntatura dei cuscini.
 - **Avviso innocuo dell'export glTF** ("more than one tex image" sul materiale Hull_Paint): il risultato è corretto.
 - La chiglia segue la tavola, cioè la pinna con scarpa in piombo del "651 Mod". Il piano velico standard mostra una pinna trapezoidale senza bulbo. Si è scelto Lunz.
