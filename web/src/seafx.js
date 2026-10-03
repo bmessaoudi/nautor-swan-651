@@ -40,6 +40,7 @@ export function createSeaFx(renderer, scene, camera) {
   topCam.lookAt(topCam.position.x, 0, topCam.position.z);
   topCam.updateMatrixWorld();
   topCam.layers.set(BOAT_LAYER);
+  let topHeading = 0;
   const white = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
   // lo scafo tagliato poco sopra l'acqua, visto dall'alto, riempie l'impronta al galleggiamento
   const keepBelow = [new THREE.Plane(new THREE.Vector3(0, -1, 0), 0.12)];
@@ -106,8 +107,9 @@ export function createSeaFx(renderer, scene, camera) {
   return {
     uniforms,
     debug: () => ({ maskRT, foam: foamA, reflRT }),
-    // dt in secondi, flow in m/s; on = quanto si vede il mare
-    render(dt, flow, on) {
+    // dt in secondi, flow in m/s; on = quanto si vede il mare; heading = rotta della barca (radianti):
+    // il riquadro della schiuma ruota con lo scafo, così scia e onda di prua seguono la prua
+    render(dt, flow, on, heading = 0) {
       uniforms.uReflOn.value = on;
       if (on < 0.005) return;
       const prevTarget = renderer.getRenderTarget();
@@ -138,6 +140,17 @@ export function createSeaFx(renderer, scene, camera) {
       renderer.render(scene, reflCam);
 
       // impronta dello scafo e schiuma
+      if (heading !== topHeading) {
+        topHeading = heading;
+        const c = Math.cos(heading);
+        const sn = Math.sin(heading);
+        const cx = (FOAM_BOX.x0 + FOAM_BOX.x1) / 2;
+        const cz = (FOAM_BOX.z0 + FOAM_BOX.z1) / 2;
+        topCam.position.set(cx * c - cz * sn, 60, cx * sn + cz * c);
+        topCam.up.set(sn, 0, -c);
+        topCam.lookAt(topCam.position.x, 0, topCam.position.z);
+        topCam.updateMatrixWorld();
+      }
       renderer.clippingPlanes = keepBelow;
       scene.overrideMaterial = white;
       renderer.setRenderTarget(maskRT);

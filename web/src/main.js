@@ -1,16 +1,21 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Lenis from "lenis";
 import { KEYS, HOTSPOTS, CHAPTERS } from "./story.js";
 import { createOcean } from "./ocean.js";
 import { createLandscape } from "./landscape.js";
 import { makeConditions, seedFromUrl } from "./conditions.js";
 import { createPost } from "./post.js";
+import { createAdaptiveTone } from "./contrast.js";
 import { createMaterials } from "./materials.js";
 import { createSeaFx, BOAT_LAYER } from "./seafx.js";
 import { createRigging } from "./rigging.js";
+import { createSailing } from "./sailing.js";
 import { drawMap, drawPolar } from "./charts.js";
+import { createGallery } from "./gallery.js";
+import { createFilm, createTimeline } from "./film.js";
 
 // ---------- Renderer, camera, luci ----------
 // Antialias, tone mapping e uscita sRGB sono nel post-processing (post.js)
@@ -25,6 +30,8 @@ const scene = new THREE.Scene();
 // near a 0,5 m: con 0,1 il rivestimento interno, a pochi cm dallo scafo, sfarfallava (z-fighting)
 const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
 const post = createPost(renderer, scene, camera);
+// testi senza card sulla scena: scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js)
+const tone = createAdaptiveTone(renderer);
 
 // ---------- Sfondo ----------
 // Gradiente e reticolo della tavola disegnati in WebGL e non in CSS, così sfocatura,
@@ -128,6 +135,7 @@ scene.add(boat);
 const sails = [];
 const headliner = []; // il cielino sotto il pozzetto coprirebbe la pianta nella vista sezionata
 let rigging = null; // cime, bandiera (rigging.js), creati quando il modello è caricato
+let sailing = null; // navigazione libera (sailing.js): rotta del mondo e gioco nella vista Navigazione
 const interiorMeshes = []; // nascosti quando lo scafo è chiuso: dentro non si vedono e costano
 
 const ocean = createOcean();
@@ -157,7 +165,8 @@ function applyConditions(seed) {
   SEA.hemiSky.copy(cond.ambSky);
   SEA.hemiGround.copy(cond.ambGround);
   SEA.hemiI = cond.ambI;
-  condEl.querySelector("span").textContent = `${cond.label}, ${cond.knots} nodi (forza ${cond.force}), ${cond.coastLabel} / seme ${seed}`;
+  // al visitatore servono solo ora e vento: seme e tipo di costa restano interni (il seme è nell'URL)
+  condEl.querySelector("span").textContent = `${cond.label}, ${cond.knots} nodi (forza ${cond.force})`;
   const url = new URL(location.href);
   url.searchParams.set("seed", seed);
   history.replaceState(null, "", url);
@@ -165,9 +174,8 @@ function applyConditions(seed) {
 applyConditions(seedFromUrl());
 condEl.querySelector("button").addEventListener("click", () => applyConditions(1 + Math.floor(Math.random() * 99999)));
 
+// Il modello si carica mentre si legge l'ingresso (overlay #mode).
 const loaderEl = document.getElementById("loader");
-const bar = loaderEl.querySelector(".loader-bar i");
-const pct = loaderEl.querySelector(".loader-pct");
 
 new GLTFLoader().load(
   "/models/swan651.glb",
@@ -216,21 +224,19 @@ new GLTFLoader().load(
     });
     boat.add(root);
     rigging = createRigging({ boat, clipping: SOLID_PLANES, layer: BOAT_LAYER });
+    sailing = createSailing({ boat, root, sails, rigging, ocean, clipping: SOLID_PLANES, layer: BOAT_LAYER });
     for (const sl of sails) rigging.tagSail(sl);
     loaderEl.classList.add("done");
-    introStart = performance.now();
+    modelReady = true;
+    // l'apertura della scena parte quando si è scelto il tipo di visita
+    if (modeChosen) introStart = performance.now();
     // ?step=N apre la pagina direttamente su un passo (utile per rivedere una scena)
     const go = new URLSearchParams(location.search).get("step");
     if (go) lenis.scrollTo(+go * innerHeight, { immediate: true });
   },
-  (e) => {
-    if (!e.total) return;
-    const p = Math.round((e.loaded / e.total) * 100);
-    bar.style.width = p + "%";
-    pct.textContent = p + "%";
-  },
+  undefined,
   (err) => {
-    pct.textContent = "Errore nel caricamento del modello";
+    loaderEl.querySelector(".loader-error").textContent = "Errore nel caricamento del modello";
     console.error(err);
   }
 );
@@ -247,8 +253,8 @@ KEYS.forEach((k, i) => {
 const N = FRAMES.length;
 
 const BG = {
-  blueprint: [[14, 40, 70], [8, 24, 42]],
-  studio: [[236, 233, 226], [205, 200, 190]],
+  blueprint: [[0, 54, 96], [0, 34, 61]],
+  studio: [[246, 246, 246], [222, 226, 230]],
   sky: [[104, 150, 196], [222, 231, 234]],
 };
 
@@ -342,12 +348,226 @@ const readout = {
 
 history.scrollRestoration = "manual";
 const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+
+// ---------- Ingresso ----------
+// Due passi sullo stesso overlay, prima di poter scorrere: la presentazione con "Entra", poi la
+// scelta fra visita tradizionale (questa pagina) e audio (un'altra pagina).
+// Con ?step=N, il link diretto a una scena, l'ingresso si salta.
+const AUDIO_HREF = "/audio.html";
+const modeEl = document.getElementById("mode");
+let modeChosen = new URLSearchParams(location.search).has("step");
+let modelReady = false;
+if (modeChosen) {
+  modeEl.remove();
+} else {
+  lenis.stop();
+  document.documentElement.classList.add("choosing");
+  // effetti d'archivio dell'ingresso: galleria, pellicola, linea del tempo
+  const introFx = [
+    createGallery(modeEl.querySelector(".mode-gallery")),
+    createFilm(modeEl.querySelector(".film-dust")),
+    createTimeline(modeEl.querySelector(".mode-timeline")),
+  ];
+  const [introStep, choiceStep] = modeEl.querySelectorAll(".mode-step");
+  const enter = modeEl.querySelector('[data-mode="enter"]');
+  enter.focus({ preventScroll: true });
+  enter.addEventListener("click", () => {
+    introStep.hidden = true;
+    choiceStep.hidden = false;
+    modeEl.setAttribute("aria-labelledby", "mode-title");
+    choiceStep.querySelector("button").focus({ preventScroll: true });
+  });
+  modeEl.querySelector('[data-mode="classic"]').addEventListener("click", () => {
+    modeChosen = true;
+    modeEl.classList.add("done");
+    document.documentElement.classList.remove("choosing");
+    lenis.start();
+    // gli effetti si fermano quando l'overlay ha finito di sfumare
+    setTimeout(() => introFx.forEach((fx) => fx.stop()), 700);
+    // se il modello non è ancora pronto, la copertura navy resta finché non arriva
+    if (modelReady) introStart = performance.now();
+  });
+  // Verso l'audio l'overlay sfuma e si richiude la copertura navy, poi si cambia pagina
+  modeEl.querySelector('[data-mode="audio"]').addEventListener("click", () => {
+    modeEl.classList.add("done");
+    loaderEl.classList.remove("done");
+    setTimeout(() => location.assign(AUDIO_HREF), 900);
+  });
+}
 document.querySelectorAll("[data-go]").forEach((a) =>
   a.addEventListener("click", () => lenis.scrollTo(+a.dataset.go * innerHeight, { duration: 2.2 }))
 );
 
 drawMap(document.getElementById("map"));
 drawPolar(document.getElementById("polar"));
+
+// ---------- Esplorazione libera ----------
+// Dalla CTA in alto a sinistra: niente animazioni di scroll, il modello si gira col mouse (o col
+// dito) e si passa fra esterni e interni. La scena prende lo stato fisso di un passo della storia,
+// la camera la guida OrbitControls. Uscendo si torna esattamente dov'eri nello scroll.
+const EXPLORE_VIEWS = {
+  // step: il passo della storia da cui prendere luci, sfondo, mare e materiali; cut: altezza del taglio
+  // (0.95 toglie la coperta e mostra gli interni); sails: vele visibili (da sopra coprirebbero gli interni);
+  // maxPolar: quanto la camera può scendere (in mare resta sopra l'acqua)
+  esterni: { step: 8, cut: 100, sails: 1, cam: [-30, 12, 36], tgt: [0, 7, 0], minDistance: 12, maxDistance: 110, maxPolar: 0.92 },
+  interni: { step: 10, cut: 0.95, sails: 0, cam: [-9, 15, 11], tgt: [0, 0, 0], minDistance: 3, maxDistance: 40, maxPolar: 0.92 },
+  navigazione: { step: 13, cut: 100, sails: 1, cam: [-34, 7, 30], tgt: [0, 7, 0], minDistance: 14, maxDistance: 90, maxPolar: 0.47 },
+};
+const exploreBtn = document.getElementById("explore-btn");
+const exploreBar = document.getElementById("explore-bar");
+// collegati al canvas solo in esplorazione: da collegati bloccano lo scroll col dito (touch-action)
+const controls = new OrbitControls(camera);
+controls.enabled = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+let lastControlsChange = 0;
+controls.addEventListener("change", () => (lastControlsChange = performance.now()));
+/** Durata del volo della camera fra due viste, in ms: coperta e vele cambiano nello stesso tempo. */
+const FLY_MS = 1200;
+const explore = { on: false, view: "esterni", cut: 100, fly: null, leaving: null };
+const flyProgress = () => (explore.fly ? smooth(0, 1, (performance.now() - explore.fly.t0) / FLY_MS) : 1);
+let lastS = null;
+
+function flyTo(name) {
+  const view = EXPLORE_VIEWS[name];
+  explore.view = name;
+  exploreBar.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === name)));
+  controls.minDistance = view.minDistance;
+  controls.maxDistance = view.maxDistance;
+  controls.maxPolarAngle = Math.PI * view.maxPolar;
+  document.documentElement.classList.toggle("explore-sea", name === "navigazione");
+  explore.fly = {
+    t0: performance.now(),
+    from: camera.position.clone(),
+    fromTgt: controls.target.clone(),
+    to: new THREE.Vector3(...view.cam),
+    toTgt: new THREE.Vector3(...view.tgt),
+    cutFrom: explore.cut,
+    // lo stato della scena da cui si parte: durante il volo si sfuma verso quello della nuova vista
+    fromState: lastS,
+  };
+}
+
+function setExplore(on) {
+  // durante il volo di ritorno non si interrompe
+  if (explore.leaving || on === explore.on) return;
+  const html = document.documentElement;
+  exploreBtn.textContent = on ? "Torna alla visita" : "Esplora in 3D";
+  exploreBtn.setAttribute("aria-label", on ? "Torna alla visita guidata" : "Esplora liberamente il modello 3D");
+  if (on) {
+    explore.on = true;
+    html.classList.add("exploring");
+    controls.connect(renderer.domElement);
+    lenis.stop();
+    // si parte dall'inquadratura attuale e si vola sugli esterni
+    if (lastS) {
+      controls.target.set(...lastS.tgt);
+      explore.cut = lastS.cut;
+    }
+    flyTo("esterni");
+  } else {
+    // Uscita: lo stesso volo dell'ingresso, al contrario. Dalla vista libera si torna all'inquadratura
+    // del passo della storia in cui eri, mentre la scena sfuma nella sua luce; alla fine (vedi
+    // finishLeaving) ricompaiono i testi e lo scroll riparte.
+    controls.enabled = false;
+    controls.disconnect();
+    explore.fly = null;
+    explore.on = false;
+    explore.leaving = {
+      t0: performance.now(),
+      from: camera.position.clone(),
+      fromTgt: controls.target.clone(),
+      fromState: lastS,
+      cutFrom: explore.cut,
+      to: new THREE.Vector3(),
+      toTgt: new THREE.Vector3(),
+      k: 0,
+    };
+    html.classList.add("explore-leaving");
+    html.classList.remove("explore-sea");
+  }
+}
+
+function finishLeaving() {
+  explore.leaving = null;
+  document.documentElement.classList.remove("exploring", "explore-leaving");
+  lenis.start();
+}
+
+// Stato della scena durante il volo di ritorno: da quello dell'esplorazione a quello del passo.
+// Calcola anche l'inquadratura d'arrivo, la stessa della camera della storia (parallasse compresa).
+function leavingState(p) {
+  const L = explore.leaving;
+  const target = sample(p);
+  L.k = smooth(0, 1, (performance.now() - L.t0) / FLY_MS);
+  sph.set(target.radius, THREE.MathUtils.clamp(target.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), target.theta - mouse.sx * 0.06);
+  v.setFromSpherical(sph);
+  L.toTgt.set(...target.tgt);
+  L.to.copy(L.toTgt).add(v);
+  if (!L.fromState) return target;
+  const s = blendStates(L.fromState, target, L.k);
+  s.cut = Math.exp(lerp(Math.log(L.cutFrom), Math.log(target.cut), L.k));
+  return s;
+}
+const leavingLook = new THREE.Vector3();
+exploreBtn.addEventListener("click", () => setExplore(!explore.on));
+exploreBar.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => flyTo(b.dataset.view)));
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && explore.on) setExplore(false);
+});
+
+// Due stati della scena mescolati: numeri e vettori interpolati, il grading passa dall'uno all'altro.
+function blendStates(A, B, k) {
+  const s = {};
+  for (const key in B) {
+    const a = A[key];
+    const b = B[key];
+    if (typeof b === "number" && typeof a === "number") s[key] = lerp(a, b, k);
+    else if (Array.isArray(b) && Array.isArray(a)) s[key] = b.map((x, i) => lerp(a[i], x, k));
+    else s[key] = b;
+  }
+  s.gradeA = A.gradeT > 0.5 ? A.gradeB : A.gradeA;
+  s.gradeB = B.gradeA;
+  s.gradeT = k;
+  return s;
+}
+
+// Stato della scena in esplorazione: quello del passo scelto, senza sfocature né animazioni di
+// scroll (il mare e la barca in navigazione invece si muovono). Durante il volo fra due viste tutta
+// la scena sfuma dall'una all'altra: luce, sfondo, mare, vele. Il taglio della coperta va in scala
+// logaritmica, perché da 100 a 0.95 la parte che si vede è tutta in fondo.
+function exploreState() {
+  const view = EXPLORE_VIEWS[explore.view];
+  const target = Object.assign(sample(view.step), {
+    cut: view.cut, sails: view.sails, bokeh: 0, tilt: 0, luff: 0, shift: 0, lines: 0, solid: 1, fov: 35,
+  });
+  const f = explore.fly;
+  if (!f || !f.fromState) {
+    explore.cut = view.cut;
+    return target;
+  }
+  const k = flyProgress();
+  const s = blendStates(f.fromState, target, k);
+  explore.cut = s.cut = Math.exp(lerp(Math.log(f.cutFrom), Math.log(view.cut), k));
+  return s;
+}
+
+function updateExploreCamera() {
+  if (explore.fly) {
+    const k = flyProgress();
+    camera.position.lerpVectors(explore.fly.from, explore.fly.to, k);
+    controls.target.lerpVectors(explore.fly.fromTgt, explore.fly.toTgt, k);
+    camera.lookAt(controls.target);
+    controls.enabled = false;
+    if (k >= 1) {
+      explore.fly = null;
+      controls.enabled = true;
+    }
+  } else {
+    controls.update();
+  }
+}
 
 // ---------- Mouse ----------
 const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
@@ -383,7 +603,8 @@ function frame(time) {
   const t = clock.getElapsed();
   const dt = clock.getDelta();
   const p = Math.min(N - 1, Math.max(0, window.scrollY / H));
-  const s = sample(p);
+  const s = explore.on ? exploreState() : explore.leaving ? leavingState(p) : sample(p);
+  lastS = s;
 
   // Ingresso della tavola: le linee si disegnano da prua a poppa
   const intro = introStart ? smooth(0, 1, (performance.now() - introStart) / 2600) : 0;
@@ -402,6 +623,10 @@ function frame(time) {
   lineMatInterior.opacity = 0.32 * s.lines;
   lineMat.visible = lineMatInterior.visible = s.lines > 0.01;
 
+  // Navigazione libera: il gioco gira solo nella vista Navigazione dell'esplorazione (a volo finito);
+  // altrimenti sailing tiene la rotta dritta e la velocità delle condizioni, come la pagina a scroll
+  const nav = sailing ? sailing.update(dt, explore.on && explore.view === "navigazione" && !explore.fly, cond) : null;
+
   // Vele: sgonfie e che sbattono quando luff > 0
   const flutter = s.luff * (0.78 + 0.22 * Math.sin(t * 7.0) * Math.sin(t * 2.3));
   for (const m of sails) {
@@ -410,11 +635,13 @@ function frame(time) {
     m.material.depthWrite = s.sails > 0.98;
     m.visible = s.sails > 0.01 || s.lines > 0.01;
   }
+  sailing?.applySails(t);
 
   // Barca in mare: sbandata, beccheggio, rollio
   // il vento delle condizioni scala sbandata e moto ondoso (i fotogrammi sono tarati su 16°)
   const m = s.motion * lerp(1, cond.motion, s.ocean);
-  boat.rotation.x = THREE.MathUtils.degToRad(s.heel * lerp(1, cond.heel / 16, s.ocean) + m * 1.8 * Math.sin(t * 0.47));
+  const heel = nav?.heel ?? s.heel * lerp(1, cond.heel / 16, s.ocean);
+  boat.rotation.x = THREE.MathUtils.degToRad(heel + m * 1.8 * Math.sin(t * 0.47));
   boat.rotation.z = THREE.MathUtils.degToRad(m * 1.4 * Math.sin(t * 0.61 + 1.2));
   boat.position.y = m * 0.14 * Math.sin(t * 0.83);
   boat.updateMatrixWorld();
@@ -442,7 +669,8 @@ function frame(time) {
   // Camera ferma? Allora si accumulano i fotogrammi (vedi post.js). Il mare, le vele che
   // sbattono e l'ingresso della tavola si muovono sempre: lì niente accumulo.
   const dynamic = !introStart || intro < 1 || s.ocean > 0.001 || s.luff > 0.001 || s.motion > 0.001;
-  const settled = Math.abs(p - lastP) < 1e-5 && Math.abs(mouse.x - mouse.sx) < 0.004 && Math.abs(mouse.y - mouse.sy) < 0.004;
+  const exploreMoving = explore.leaving || (explore.on && (explore.fly || performance.now() - lastControlsChange < 250));
+  const settled = !exploreMoving && Math.abs(p - lastP) < 1e-5 && Math.abs(mouse.x - mouse.sx) < 0.004 && Math.abs(mouse.y - mouse.sy) < 0.004;
   stillFrames = !dynamic && settled ? stillFrames + 1 : 0;
   lastP = p;
   const still = stillFrames > 12;
@@ -455,10 +683,19 @@ function frame(time) {
     mouse.sx += (mouse.x - mouse.sx) * 0.04;
     mouse.sy += (mouse.y - mouse.sy) * 0.04;
   }
-  sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta - mouse.sx * 0.06);
-  v.setFromSpherical(sph);
-  camera.position.set(s.tgt[0] + v.x, s.tgt[1] + v.y, s.tgt[2] + v.z);
-  camera.lookAt(s.tgt[0], s.tgt[1], s.tgt[2]);
+  if (explore.on) {
+    updateExploreCamera();
+  } else if (explore.leaving) {
+    const L = explore.leaving;
+    camera.position.lerpVectors(L.from, L.to, L.k);
+    camera.lookAt(leavingLook.lerpVectors(L.fromTgt, L.toTgt, L.k));
+    if (L.k >= 1) finishLeaving();
+  } else {
+    sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta - mouse.sx * 0.06);
+    v.setFromSpherical(sph);
+    camera.position.set(s.tgt[0] + v.x, s.tgt[1] + v.y, s.tgt[2] + v.z);
+    camera.lookAt(s.tgt[0], s.tgt[1], s.tgt[2]);
+  }
   camera.fov = s.fov;
   if (still) post.jitter(-s.shift * W);
   else camera.setViewOffset(W, H, -s.shift * W, 0, W, H);
@@ -473,6 +710,8 @@ function frame(time) {
   bu.uDpr.value = renderer.getPixelRatio();
   bu.uExposure.value = post.exposure;
   document.body.classList.toggle("light", s.theme > 0.5);
+  // Nel capitolo Navigazione il logo diventa bianco sul cielo e sul mare; torna blu sulla schermata finale
+  document.body.classList.toggle("logo-white", !explore.on && !explore.leaving && p > CHAPTERS[3] - 0.5 && p < N - 1.5);
   condEl.classList.toggle("on", s.ocean > 0.5);
 
   // Post-processing: fuoco sul punto del passo, esposizione delle condizioni in mare
@@ -482,9 +721,10 @@ function frame(time) {
   // dopo ~48 fotogrammi accumulati l'immagine è pulita: si smette di disegnare finché non cambia nulla
   if (!(still && post.accum.count >= 48)) {
     post.beginFrame();
-    seaFx.render(dt, cond.flow, s.ocean);
+    seaFx.render(dt, nav ? nav.speed : cond.flow, s.ocean, nav ? nav.heading : 0);
     post.render(dt, still);
     post.endFrame();
+    tone.update();
   }
   if (!still && lastTime) post.measure(time - lastTime);
   lastTime = time;

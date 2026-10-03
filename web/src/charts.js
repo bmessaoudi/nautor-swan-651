@@ -51,9 +51,9 @@ export function drawMap(svg) {
 }
 
 // ---------- Polare ORC ----------
-// Velocità della barca (nodi) per angolo al vento reale, dal certificato ORC di Lunz am Meer.
+// Velocità della barca (nodi) per angolo al vento reale, dal certificato ORC di uno Swan 651.
 // La bolina è il VMG diviso per cos(42°): l'angolo di bolina è stimato.
-const POLAR = {
+export const POLAR = {
   10: [[42, 7.55], [90, 8.93], [120, 9.05], [135, 8.5]],
   16: [[42, 8.81], [90, 9.98], [120, 10.38], [135, 10.16]],
   20: [[42, 9.08], [90, 10.28], [120, 10.98], [135, 10.94]],

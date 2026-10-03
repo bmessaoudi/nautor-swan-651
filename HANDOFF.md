@@ -181,6 +181,7 @@ cp models/swan651.glb web/public/models/
 - Le vele hanno lo shape key `Luffing`, esportato come morph target.
 - **Decisioni geometriche da non rimettere in discussione:** tavola di Adrienne II scalata a 21 m e accorciata di 1,02 m di poppa; specchio di poppa rovescio come Lunz; sezioni a superellisse tarate sul dislocamento IRC (circa 36,4 t contro 36,58); armo dal certificato IRC di Lunz; colori di Lunz am Meer con pelle rossa sui divani; superfici curve solo a quadrilateri.
 - Blender 5.2.2 LTS con l'add-on MCP for Blender, registrato in Claude Code come server `blender`.
+- **Nessun cartello sullo specchio** (tolto dalla designer il 3 ottobre 2026): il museo resta generico sul 651 e non nomina Lunz am Meer, né nei testi né nel modello. `make_transom_sign.py` e la texture `lunz_transom_sign.png` non sono più usati; l'oggetto `TransomSign` non esiste più nel GLB.
 
 ## Problemi aperti
 
