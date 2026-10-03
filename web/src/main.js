@@ -370,13 +370,20 @@ if (modeChosen) {
   ];
   const [introStep, choiceStep] = modeEl.querySelectorAll(".mode-step");
   const enter = modeEl.querySelector('[data-mode="enter"]');
-  enter.focus({ preventScroll: true });
-  enter.addEventListener("click", () => {
+  const showChoice = () => {
     introStep.hidden = true;
     choiceStep.hidden = false;
     modeEl.setAttribute("aria-labelledby", "mode-title");
     choiceStep.querySelector("button").focus({ preventScroll: true });
-  });
+  };
+  enter.addEventListener("click", showChoice);
+  // Con ?scelta (il link "indietro" di /bordo/) si torna direttamente alla scelta della visita
+  if (new URLSearchParams(location.search).has("scelta")) {
+    history.replaceState(null, "", location.pathname);
+    showChoice();
+  } else {
+    enter.focus({ preventScroll: true });
+  }
   modeEl.querySelector('[data-mode="classic"]').addEventListener("click", () => {
     modeChosen = true;
     modeEl.classList.add("done");
@@ -387,13 +394,29 @@ if (modeChosen) {
     // se il modello non è ancora pronto, la copertura navy resta finché non arriva
     if (modelReady) introStart = performance.now();
   });
-  // Verso l'audio l'overlay sfuma e si richiude la copertura navy, poi si cambia pagina
+  // Verso l'audio l'overlay sfuma e si richiude la copertura navy, poi si cambia pagina: solo a
+  // copertura piena (1.1s in style.css), perché /bordo/ parte dallo stesso navy e sfuma da lì
   modeEl.querySelector('[data-mode="audio"]').addEventListener("click", () => {
     modeEl.classList.add("done");
     loaderEl.classList.remove("done");
-    setTimeout(() => location.assign(AUDIO_HREF), 900);
+    setTimeout(() => location.assign(AUDIO_HREF), 1150);
   });
 }
+// Dalla visita tradizionale si torna alla scelta: si richiude la copertura navy, poi la pagina
+// riparte con ?scelta (come il link indietro di /bordo/)
+document.getElementById("back-btn").addEventListener("click", (e) => {
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+  e.preventDefault();
+  const href = e.currentTarget.href;
+  lenis.stop();
+  loaderEl.classList.remove("done");
+  setTimeout(() => location.assign(href), 1150);
+});
+// Tornando con il pulsante indietro del browser la pagina arriva dalla cache così come era stata
+// lasciata, cioè coperta dal navy: si ricarica da capo
+addEventListener("pageshow", (e) => {
+  if (e.persisted) location.reload();
+});
 document.querySelectorAll("[data-go]").forEach((a) =>
   a.addEventListener("click", () => lenis.scrollTo(+a.dataset.go * innerHeight, { duration: 2.2 }))
 );
@@ -453,7 +476,8 @@ function setExplore(on) {
   // durante il volo di ritorno non si interrompe
   if (explore.leaving || on === explore.on) return;
   const html = document.documentElement;
-  exploreBtn.textContent = on ? "Torna alla visita" : "Esplora in 3D";
+  // "Esplora in" si nasconde su telefono, dove accanto c'è anche "Scegli la visita"
+  exploreBtn.innerHTML = on ? "Torna alla visita" : '<span class="explore-long">Esplora in&nbsp;</span>3D';
   exploreBtn.setAttribute("aria-label", on ? "Torna alla visita guidata" : "Esplora liberamente il modello 3D");
   if (on) {
     explore.on = true;
@@ -637,13 +661,15 @@ function frame(time) {
   }
   sailing?.applySails(t);
 
-  // Barca in mare: sbandata, beccheggio, rollio
-  // il vento delle condizioni scala sbandata e moto ondoso (i fotogrammi sono tarati su 16°)
+  // Barca in mare: la sbandata viene dal vento (i fotogrammi sono tarati su 16°), beccheggio,
+  // rollio e sollevamento dalle onde che ha sotto (ocean.float, dopo la rotta di sailing.update)
   const m = s.motion * lerp(1, cond.motion, s.ocean);
   const heel = nav?.heel ?? s.heel * lerp(1, cond.heel / 16, s.ocean);
-  boat.rotation.x = THREE.MathUtils.degToRad(heel + m * 1.8 * Math.sin(t * 0.47));
-  boat.rotation.z = THREE.MathUtils.degToRad(m * 1.4 * Math.sin(t * 0.61 + 1.2));
-  boat.position.y = m * 0.14 * Math.sin(t * 0.83);
+  const onda = ocean.float(t, dt);
+  const mare = s.motion * s.ocean;
+  boat.rotation.x = THREE.MathUtils.degToRad(heel) + mare * onda.roll;
+  boat.rotation.z = mare * onda.pitch;
+  boat.position.y = mare * onda.heave;
   boat.updateMatrixWorld();
   // vento sulle vele e sulla bandiera: brezza leggera nello studio, quello delle condizioni in mare
   const wind = lerp(0.18, Math.min(1, cond.knots / 20), s.ocean);
