@@ -6,9 +6,7 @@ import * as THREE from "three";
 // dare l'idea che la barca avanzi. Il cielo è una cupola che segue la camera: lo stesso
 // colore d'orizzonte chiude la nebbia del mare, così non resta una riga sull'orizzonte.
 
-// Direzione del sole in mare: alto a poppa sulla dritta, la barca è in luce nelle viste di poppa
-// e in controluce in quelle di prua.
-export const SUN_DIR = new THREE.Vector3(-0.62, 0.36, 0.7).normalize();
+// Sole, colori, vento e foschia arrivano dalle condizioni (conditions.js) con setConditions.
 
 const WAVES = [
   // direzione xy, ripidità, lunghezza d'onda (m)
@@ -17,8 +15,6 @@ const WAVES = [
   [0.9, 0.9, 0.07, 10],
   [-0.3, 1.0, 0.05, 6],
 ];
-const FLOW = 4.6; // m/s, circa 9 nodi
-
 const NOISE = /* glsl */ `
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -34,7 +30,7 @@ float fbm(vec2 p) {
 }
 `;
 
-const SKY = /* glsl */ `
+export const SKY = /* glsl */ `
 uniform vec3 uZenith;
 uniform vec3 uHorizon;
 uniform vec3 uSunDir;
@@ -46,14 +42,38 @@ vec3 skyColor(vec3 r) {
   c += uSunCol * (pow(sd, 6.0) * 0.18 + pow(sd, 64.0) * 0.35);
   return c;
 }
+// Foschia a due colori, come la nebbia volumetrica di Black Flag: verso il sole prende il bagliore
+// del cielo, dalla parte opposta è più fredda e scura. Il cielo usa la stessa tinta all'orizzonte,
+// così mare e cupola si chiudono senza riga.
+uniform float uFogNear;
+uniform float uFogFar;
+uniform float uFogHeight;
+vec3 hazeTone(vec3 dirH) {
+  vec3 sunward = skyColor(dirH);
+  vec3 opposite = mix(uHorizon, uZenith, 0.18) * 0.93;
+  float ph = dot(dirH, normalize(vec3(uSunDir.x, 0.0, uSunDir.z))) * 0.5 + 0.5;
+  return mix(opposite, sunward, 0.45 + 0.55 * ph);
+}
+vec3 hazeColor(vec3 world) {
+  vec2 d = world.xz - cameraPosition.xz;
+  return hazeTone(normalize(vec3(d.x, 0.0, d.y)));
+}
+// più densa vicino all'acqua: le cime delle montagne escono dalla foschia
+float hazeAmount(vec3 world) {
+  float h = exp(-max(world.y, 0.0) / uFogHeight);
+  return smoothstep(uFogNear, uFogFar, length(world.xz - cameraPosition.xz)) * mix(0.55, 1.0, h);
+}
 `;
 
 const oceanVert = /* glsl */ `
 uniform float uTime;
+uniform float uFlow;
+uniform float uWaveScale;
 uniform vec4 uWaves[4];
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec2 vFlow;
+varying float vPeak;
 
 vec3 gerstner(vec4 w, vec2 p, inout vec3 tang, inout vec3 bin) {
   float k = 6.2831853 / w.w;
@@ -69,11 +89,15 @@ vec3 gerstner(vec4 w, vec2 p, inout vec3 tang, inout vec3 bin) {
 
 void main() {
   vec3 p = (modelMatrix * vec4(position, 1.0)).xyz;
-  vec2 q = p.xz + vec2(uTime * ${FLOW.toFixed(1)}, 0.0);
+  vec2 q = p.xz + vec2(uTime * uFlow, 0.0);
   vec3 tang = vec3(1.0, 0.0, 0.0);
   vec3 bin = vec3(0.0, 0.0, 1.0);
   vec3 off = vec3(0.0);
-  for (int i = 0; i < 4; i++) off += gerstner(uWaves[i], q, tang, bin);
+  for (int i = 0; i < 4; i++) {
+    vec4 w = uWaves[i];
+    w.z *= uWaveScale;
+    off += gerstner(w, q, tang, bin);
+  }
   // le onde si spengono in lontananza (e attorno alla barca restano più basse)
   float fade = 1.0 - smoothstep(300.0, 1400.0, length(p.xz));
   fade *= mix(0.55, 1.0, smoothstep(6.0, 22.0, length(p.xz * vec2(0.55, 1.0))));
@@ -81,6 +105,10 @@ void main() {
   vWorld = p;
   vFlow = q;
   vNormal = normalize(mix(vec3(0.0, 1.0, 0.0), normalize(cross(bin, tang)), fade));
+  // maschera delle creste (Sea of Thieves): dove le onde comprimono la superficie,
+  // lo jacobiano orizzontale scende sotto 1. Lì la luce attraversa meno acqua.
+  float jac = tang.x * bin.z - tang.z * bin.x;
+  vPeak = clamp((1.0 - jac) * 1.6, 0.0, 1.0) * fade;
   gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
 }
 `;
@@ -89,13 +117,40 @@ const oceanFrag = /* glsl */ `
 uniform float uTime;
 uniform float uOpacity;
 uniform float uFoam;
+uniform float uCrestFoam;
+uniform float uStreaks;
+uniform float uSunRadius;
 uniform vec3 uDeep;
 uniform vec3 uMid;
+uniform vec3 uSss;
+uniform sampler2D uRefl;
+uniform float uReflOn;
+uniform vec2 uResolution;
+uniform sampler2D uFoamTex;
+uniform vec4 uFoamBox;
 varying vec3 vWorld;
 varying vec3 vNormal;
 varying vec2 vFlow;
+varying float vPeak;
 ${NOISE}
 ${SKY}
+
+// Sole come disco e non come punto (Karis 2013, usato da Sea of Thieves per il sole basso):
+// si prende il punto del disco più vicino al raggio riflesso.
+float areaSpec(vec3 n, vec3 v, vec3 l, float radius, float rough) {
+  vec3 r = reflect(-v, n);
+  vec3 toRay = dot(l, r) * r - l;
+  vec3 lp = normalize(l + toRay * clamp(radius / max(length(toRay), 1e-4), 0.0, 1.0));
+  vec3 h = normalize(lp + v);
+  float a = rough * rough;
+  float a2 = a * a;
+  float nh = max(dot(n, h), 0.0);
+  float d = nh * nh * (a2 - 1.0) + 1.0;
+  float D = a2 / (3.14159 * d * d);
+  // normalizzazione dell'area: allargare il disco non deve aggiungere energia
+  float norm = a / clamp(a + radius * 0.5, 1e-4, 1.0);
+  return D * norm * norm * max(dot(n, lp), 0.0);
+}
 
 void main() {
   float d = length(vWorld.xz - cameraPosition.xz);
@@ -117,43 +172,86 @@ void main() {
   vec3 r = reflect(-vdir, n);
   r.y = abs(r.y);
   vec3 refl = skyColor(r);
+  // riflesso planare della barca, deformato dalle onde
+  vec2 suv = gl_FragCoord.xy / uResolution + n.xz * 0.075 * (1.0 - far);
+  vec4 boatRefl = texture2D(uRefl, suv);
+  refl = mix(refl, boatRefl.rgb, boatRefl.a * uReflOn);
 
-  // corpo dell'acqua: più chiaro sulle creste, luce che passa nelle onde controsole
-  float crest = clamp(vWorld.y * 0.55 + 0.45, 0.0, 1.0);
-  vec3 body = mix(uDeep, uMid, crest);
-  float sss = pow(clamp(dot(vdir, -uSunDir) * 0.5 + 0.5, 0.0, 1.0), 3.0) * smoothstep(0.0, 0.8, vWorld.y);
-  body += vec3(0.02, 0.2, 0.19) * sss;
+  // corpo dell'acqua: dal colore profondo a quello della luce che attraversa le creste.
+  // Conta l'angolo di vista, la direzione del sole (onde in controluce) e la maschera delle creste.
+  vec3 sunH = normalize(vec3(uSunDir.x, 0.0, uSunDir.z));
+  float back = pow(clamp(dot(-vdir, sunH) * 0.5 + 0.5, 0.0, 1.0), 3.0);
+  float crest = clamp(vWorld.y * 0.45 + 0.4, 0.0, 1.0);
+  float sssAmt = clamp(vPeak * (0.35 + back * 0.9) + crest * back * 0.45 + pow(1.0 - ndv, 3.0) * vPeak * 0.3, 0.0, 1.0);
+  vec3 body = mix(uDeep, uMid, crest * 0.6);
+  body = mix(body, uSss * (0.6 + uSunCol * 0.6), sssAmt * (1.0 - far * 0.8));
 
-  vec3 col = mix(body, refl, fres);
+  vec3 col = mix(body, refl, fres * (1.0 - boatRefl.a * uReflOn * 0.15));
 
-  // sole: riflesso stretto da vicino, scia luminosa più larga e tenue in lontananza
-  vec3 hv = normalize(uSunDir + vdir);
-  float spec = pow(max(dot(n, hv), 0.0), mix(1200.0, 160.0, far));
-  col += uSunCol * spec * mix(2.6, 0.7, far);
+  // sole: disco più largo quando è basso, riflesso più ruvido in lontananza
+  float spec = areaSpec(n, vdir, uSunDir, uSunRadius, mix(0.06, 0.2, far));
+  col += uSunCol * spec * 0.22 * (1.0 - boatRefl.a * uReflOn);
 
-  // schiuma sulle creste
-  float fn = fbm(vFlow * 0.55);
-  float foam = smoothstep(0.85, 1.25, vWorld.y + fn * 0.55) * 0.55;
+  // schiuma (come AC3): tre trame a scale diverse, una rampa sceglie quanto mostrarne
+  float coarse = fbm(vFlow * 0.18);
+  float medium = fbm(vFlow * 0.9 + 3.1);
+  float sparse = smoothstep(0.55, 0.8, noise(vFlow * 3.3));
+  // creste: compaiono con il vento, dove la superficie si comprime
+  float crestFoam = smoothstep(0.38, 0.85, vPeak + coarse * 0.4 - 0.1) * uCrestFoam;
+  // strisce lungo il vento da forza 5 in su
+  vec2 wd = normalize(vec2(1.0, 0.25));
+  vec2 sq = vec2(dot(vFlow, wd) * 0.03, dot(vFlow, vec2(-wd.y, wd.x)) * 0.55);
+  float streak = smoothstep(0.56, 0.74, fbm(sq)) * uStreaks * (1.0 - far * 0.6);
 
-  // onda di prua lungo lo scafo e scia a poppa (la barca è ferma all'origine, l'acqua scorre)
-  vec2 b = vWorld.xz;
-  float ell = length(vec2(b.x / 8.9, b.y / 2.65));
-  float ring = smoothstep(1.32, 1.0, ell) * smoothstep(0.92, 1.02, ell);
-  ring *= 0.35 + 0.65 * smoothstep(-4.0, 8.0, b.x);
-  float aft = max(-b.x - 7.6, 0.0);
-  float wakeW = 1.3 + aft * 0.2;
-  float wake = step(b.x, -7.6) * smoothstep(wakeW, wakeW * 0.25, abs(b.y)) * exp(-aft * 0.03);
+  // schiuma attorno allo scafo e scia, dal buffer (seafx.js)
+  vec2 fuv = vec2((vWorld.x - uFoamBox.x) / uFoamBox.z, (uFoamBox.y + uFoamBox.w - vWorld.z) / uFoamBox.w);
+  float inside = step(0.0, fuv.x) * step(fuv.x, 1.0) * step(0.0, fuv.y) * step(fuv.y, 1.0);
+  float hull = texture2D(uFoamTex, clamp(fuv, 0.0, 1.0)).r * inside;
   float churn = fbm(vFlow * 1.3 + uTime * 0.35);
-  foam += (ring * 1.0 + wake * 0.75) * smoothstep(0.32, 0.72, churn);
-  col = mix(col, vec3(0.92, 0.95, 0.96), clamp(foam * uFoam, 0.0, 0.92));
+  // merletto: il buffer fa da soglia su una trama fine, compatta solo dove la schiuma è fresca
+  float lace = fbm(vFlow * 2.4 + uTime * 0.2) * 0.65 + noise(vFlow * 7.0) * 0.35;
+  float hullFoam = smoothstep(lace * 0.85, lace * 0.85 + 0.18, hull * 1.25);
+
+  float amount = clamp(crestFoam + streak * 0.5 + hullFoam, 0.0, 1.0);
+  float pattern = mix(sparse, mix(medium, 1.0, smoothstep(0.5, 1.0, amount)), smoothstep(0.1, 0.6, amount));
+  float foam = clamp(amount * (0.35 + 0.65 * pattern) * (0.7 + 0.6 * churn), 0.0, 1.0);
+  vec3 foamCol = vec3(0.9, 0.93, 0.95) * (0.55 + 0.45 * max(dot(n, uSunDir), 0.0)) + uSunCol * 0.08;
+  col = mix(col, foamCol, clamp(foam * uFoam, 0.0, 0.92));
 
   // foschia verso l'orizzonte, dello stesso colore del cielo in basso
-  col = mix(col, uHorizon, smoothstep(180.0, 1300.0, d));
+  col = mix(col, hazeColor(vWorld), hazeAmount(vWorld));
   gl_FragColor = vec4(col, uOpacity * (1.0 - smoothstep(1050.0, 1500.0, d)));
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
 }
 `;
+
+// Griglia polare: fitta vicino alla barca, rada verso l'orizzonte (l'idea del LOD di Black Flag,
+// senza patch: la barca è sempre al centro).
+function radialGrid(rMin, rMax, rings, segs) {
+  const pos = [];
+  const idx = [];
+  pos.push(0, 0, 0);
+  for (let i = 0; i < rings; i++) {
+    const r = rMin * Math.pow(rMax / rMin, i / (rings - 1));
+    for (let j = 0; j < segs; j++) {
+      const a = (j / segs) * Math.PI * 2;
+      pos.push(Math.cos(a) * r, 0, Math.sin(a) * r);
+    }
+  }
+  for (let j = 0; j < segs; j++) idx.push(0, 1 + ((j + 1) % segs), 1 + j);
+  for (let i = 0; i < rings - 1; i++) {
+    for (let j = 0; j < segs; j++) {
+      const a = 1 + i * segs + j;
+      const b = 1 + i * segs + ((j + 1) % segs);
+      const c = a + segs;
+      const d = b + segs;
+      idx.push(a, b, c, b, d, c);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
 
 const skyVert = /* glsl */ `
 varying vec3 vDir;
@@ -166,6 +264,7 @@ void main() {
 
 const skyFrag = /* glsl */ `
 uniform float uOpacity;
+uniform float uSunDisk;
 varying vec3 vDir;
 ${SKY}
 void main() {
@@ -173,9 +272,10 @@ void main() {
   vec3 col = skyColor(dir);
   // disco del sole
   float sd = max(dot(dir, uSunDir), 0.0);
-  col += uSunCol * smoothstep(0.9993, 0.9997, sd) * 4.0;
-  // sotto l'orizzonte il cielo resta del colore della foschia
-  col = mix(col, uHorizon, smoothstep(0.0, -0.05, dir.y));
+  col += uSunCol * smoothstep(0.9993, 0.9997, sd) * 6.0 * uSunDisk;
+  // vicino e sotto l'orizzonte il cielo prende la tinta della foschia
+  vec3 tone = hazeTone(normalize(vec3(dir.x, 0.0, dir.z)));
+  col = mix(col, tone, 1.0 - smoothstep(-0.02, 0.1, dir.y));
   gl_FragColor = vec4(col, uOpacity);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -183,18 +283,23 @@ void main() {
 `;
 
 export function createOcean() {
-  // Uniformi condivise fra mare e cielo
+  // Uniformi condivise fra mare, cielo e paesaggio
   const shared = {
     uTime: { value: 0 },
     uOpacity: { value: 0 },
     uZenith: { value: new THREE.Color(0x2a64a8) },
     uHorizon: { value: new THREE.Color(0xbfd2e0) },
-    uSunDir: { value: SUN_DIR.clone() },
+    uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     uSunCol: { value: new THREE.Color(0xfff0d8) },
+    uSunDisk: { value: 1 },
+    uFogNear: { value: 180 },
+    uFogFar: { value: 1300 },
+    uFogHeight: { value: 250 },
+    uFlow: { value: 4.6 },
+    uWaveScale: { value: 1 },
   };
 
-  const geo = new THREE.PlaneGeometry(3200, 3200, 400, 400);
-  geo.rotateX(-Math.PI / 2);
+  const geo = radialGrid(1.5, 1600, 190, 288);
   const mat = new THREE.ShaderMaterial({
     vertexShader: oceanVert,
     fragmentShader: oceanFrag,
@@ -205,6 +310,16 @@ export function createOcean() {
       uFoam: { value: 1 },
       uDeep: { value: new THREE.Color(0x03182b) },
       uMid: { value: new THREE.Color(0x0d4566) },
+      uSss: { value: new THREE.Color(0x1f8f86) },
+      uCrestFoam: { value: 0 },
+      uStreaks: { value: 0 },
+      uSunRadius: { value: 0.03 },
+      // riflesso e schiuma dello scafo: le texture arrivano da seafx.js
+      uRefl: { value: null },
+      uReflOn: { value: 0 },
+      uResolution: { value: new THREE.Vector2(1, 1) },
+      uFoamTex: { value: null },
+      uFoamBox: { value: new THREE.Vector4(0, 0, 1, 1) },
     },
   });
   const mesh = new THREE.Mesh(geo, mat);
@@ -223,9 +338,19 @@ export function createOcean() {
   sky.frustumCulled = false;
   sky.renderOrder = -1;
 
+  // il "mare" visto dal basso nella mappa d'ambiente: un disco scuro sotto l'orizzonte
+  const envSea = new THREE.MeshBasicMaterial({ color: 0x0b3048 });
+  let foamBase = 1;
+
   return {
     mesh,
     sky,
+    shared,
+    waves: mat.uniforms.uWaves,
+    // collega le uniformi di seafx.js (stessi oggetti, si aggiornano da sole)
+    linkSeaFx(u) {
+      Object.assign(mat.uniforms, u);
+    },
     // Mappa d'ambiente del cielo per i riflessi su scafo e cromature
     envMap(pmrem) {
       const s = new THREE.Scene();
@@ -233,17 +358,41 @@ export function createOcean() {
       dome.material.uniforms = { ...shared, uOpacity: { value: 1 } };
       dome.scale.setScalar(0.01);
       s.add(dome);
-      // il "mare" visto dal basso nella mappa: un disco scuro sotto l'orizzonte
-      const sea = new THREE.Mesh(new THREE.CircleGeometry(30, 32), new THREE.MeshBasicMaterial({ color: 0x0b3048 }));
+      const sea = new THREE.Mesh(new THREE.CircleGeometry(30, 32), envSea);
       sea.rotation.x = -Math.PI / 2;
       sea.position.y = -2;
       s.add(sea);
-      return pmrem.fromScene(s, 0.02).texture;
+      const tex = pmrem.fromScene(s, 0.02).texture;
+      dome.material.dispose();
+      sea.geometry.dispose();
+      return tex;
+    },
+    setConditions(c) {
+      shared.uSunDir.value.copy(c.sunDir);
+      shared.uZenith.value.copy(c.zenith);
+      shared.uHorizon.value.copy(c.horizon);
+      shared.uSunCol.value.copy(c.sun);
+      shared.uSunDisk.value = c.disk;
+      shared.uFogNear.value = c.fog[0];
+      shared.uFogFar.value = c.fog[1];
+      shared.uFogHeight.value = c.fogHeight;
+      shared.uFlow.value = c.flow;
+      shared.uWaveScale.value = c.waveScale;
+      mat.uniforms.uDeep.value.copy(c.deep);
+      mat.uniforms.uMid.value.copy(c.mid);
+      // turchese delle creste: il colore dell'acqua schiarito verso il verde acqua
+      mat.uniforms.uSss.value.copy(c.mid).lerp(new THREE.Color(0x2aa898), 0.55).multiplyScalar(1.15);
+      mat.uniforms.uCrestFoam.value = c.crestFoam;
+      mat.uniforms.uStreaks.value = c.streaks;
+      // il sole basso si allarga per l'atmosfera: scia di luce più ampia al tramonto
+      mat.uniforms.uSunRadius.value = 0.025 + 0.11 * (1 - Math.min(1, c.sunDir.y / 0.5));
+      envSea.color.copy(c.mid).multiplyScalar(0.6);
+      foamBase = c.foam;
     },
     update(t, opacity, foam, cam) {
       shared.uTime.value = t;
       shared.uOpacity.value = opacity;
-      mat.uniforms.uFoam.value = foam;
+      mat.uniforms.uFoam.value = foam * foamBase;
       mesh.visible = sky.visible = opacity > 0.005;
       sky.position.copy(cam.position);
     },
