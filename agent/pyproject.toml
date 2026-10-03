@@ -1,0 +1,9 @@
+[project]
+name = "computer-di-bordo"
+version = "0.1.0"
+description = "Computer di bordo: agente vocale che guida il museo web dello Swan 651"
+requires-python = ">=3.13"
+dependencies = [
+    "livekit-agents[anthropic,deepgram,elevenlabs,silero,turn-detector]>=1.8.4",
+    "python-dotenv>=1.2.4",
+]

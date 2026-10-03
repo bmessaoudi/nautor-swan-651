@@ -353,7 +353,7 @@ const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
 // Due passi sullo stesso overlay, prima di poter scorrere: la presentazione con "Entra", poi la
 // scelta fra visita tradizionale (questa pagina) e audio (un'altra pagina).
 // Con ?step=N, il link diretto a una scena, l'ingresso si salta.
-const AUDIO_HREF = "/audio.html";
+const AUDIO_HREF = "/bordo/";
 const modeEl = document.getElementById("mode");
 let modeChosen = new URLSearchParams(location.search).has("step");
 let modelReady = false;
