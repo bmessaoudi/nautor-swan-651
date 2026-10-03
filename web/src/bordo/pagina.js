@@ -164,9 +164,10 @@ function arrivaAlPasso(step) {
 }
 
 // ---------- Indice ----------
+// ogni gruppo sceglie il suo tono (contrast.js): l'indice è alto e passa dal cielo all'acqua
 const indiceEl = $("#indice .indice-voci");
 indiceEl.innerHTML = INDICE.map(
-  (g) => `<div class="gruppo"><span class="mono">${g.gruppo}</span>${g.voci
+  (g) => `<div class="gruppo" data-tone><span class="mono">${g.gruppo}</span>${g.voci
     .map((v) => `<button type="button" data-passo="${v.passo ?? ""}">${v.nome}</button>`)
     .join("")}</div>`
 ).join("");

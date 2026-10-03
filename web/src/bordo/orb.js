@@ -38,9 +38,9 @@ void main() {
   vec2 q = vec2(fbm(p * 1.5 + vec2(t, -t * 0.7)), fbm(p * 1.5 + vec2(-t * 0.8, t * 0.5) + 3.1));
   float n = fbm(p * 2.1 + q * (1.3 + 0.7 * uLevel) + vec2(0.0, t * 1.3));
 
-  vec3 deep = vec3(0.02, 0.08, 0.2);
-  vec3 sea = vec3(0.06, 0.33, 0.72);
-  vec3 cyan = vec3(0.42, 0.8, 1.0);
+  vec3 deep = vec3(0.0, 0.13, 0.24);
+  vec3 sea = vec3(0.08, 0.48, 0.67);
+  vec3 cyan = vec3(0.61, 0.79, 0.88);
   vec3 foam = vec3(0.95, 0.98, 1.0);
   vec3 col = mix(deep, sea, smoothstep(0.2, 0.62, n));
   col = mix(col, cyan, smoothstep(0.55, 0.82, n + q.x * 0.3));
