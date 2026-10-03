@@ -587,6 +587,10 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta + giro - mouse.sx * 0.06);
     v.setFromSpherical(sph);
     camera.position.set(s.tgt[0] + v.x, s.tgt[1] + v.y, s.tgt[2] + v.z);
+    // in mare la camera resta sopra le creste: le onde (fino a un metro e mezzo col vento forte)
+    // altrimenti coprono l'obiettivo nelle inquadrature basse. Il minimo entra col mare
+    const sopraOnde = 1.2 + 2.2 * cond.waveScale;
+    camera.position.y += Math.max(0, sopraOnde - camera.position.y) * s.ocean;
     camera.lookAt(s.tgt[0], s.tgt[1], s.tgt[2]);
     camera.fov = s.fov;
     camera.updateMatrixWorld();

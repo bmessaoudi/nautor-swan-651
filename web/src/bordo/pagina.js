@@ -41,7 +41,7 @@ function misuraMargini() {
   const scala = parseFloat(getComputedStyle(document.body).getPropertyValue("--scala-plancia")) || 1;
   const largo = innerWidth > 900;
   margini = {
-    sinistra: largo ? 250 : 0,
+    sinistra: largo ? 290 : 0,
     // colonna delle parole chiave e delle foto, a destra
     destra: largo ? Math.min(440, innerWidth * 0.3) + innerWidth * 0.06 : 0,
     // sul telefono le parole stanno in alto
@@ -164,10 +164,10 @@ function arrivaAlPasso(step) {
 }
 
 // ---------- Indice ----------
-// ogni gruppo sceglie il suo tono (contrast.js): l'indice è alto e passa dal cielo all'acqua
+// l'indice sta su una card: il mare e il cielo dietro non tolgono leggibilità alle voci
 const indiceEl = $("#indice .indice-voci");
 indiceEl.innerHTML = INDICE.map(
-  (g) => `<div class="gruppo" data-tone><span class="mono">${g.gruppo}</span>${g.voci
+  (g) => `<div class="gruppo"><span class="mono">${g.gruppo}</span>${g.voci
     .map((v) => `<button type="button" data-passo="${v.passo ?? ""}">${v.nome}</button>`)
     .join("")}</div>`
 ).join("");

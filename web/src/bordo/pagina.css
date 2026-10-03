@@ -319,12 +319,17 @@ body.cc-on #cc.on { opacity: 1; visibility: visible; transform: translate(-50%, 
 body[data-fase="ingresso"] #cc { display: none; }
 
 /* ---------- Indice ---------- */
+/* su una card come il pannello delle foto: col mare dietro le voci si perderebbero */
 #indice {
   position: fixed; z-index: 9; left: 32px; top: 50%; transform: translateY(-50%);
-  width: 210px; display: grid; gap: 14px;
-  transition: opacity 1.2s ease 0.4s;
+  width: 238px; display: grid; gap: 14px; padding: 20px 22px 22px;
+  max-height: calc(100vh - 220px); overflow-y: auto;
+  background: var(--card); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--line);
+  transition: opacity 1.2s ease 0.4s, background-color 0.6s ease, border-color 0.6s ease;
 }
-.indice-titolo { color: var(--ink-dim); font-size: 10px; }
+.indice-titolo { color: var(--heading); font-size: 10px; }
+.indice-nota { margin-top: -8px; font-size: 12px; line-height: 1.4; color: var(--ink-dim); }
 .indice-voci { display: grid; gap: 12px; }
 .gruppo { display: grid; justify-items: start; gap: 2px; }
 .gruppo > span { font-size: 9px; color: var(--ink-dim); opacity: 0.75; margin-bottom: 2px; }
