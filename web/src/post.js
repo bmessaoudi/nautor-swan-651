@@ -154,6 +154,10 @@ export function createPost(renderer, scene, camera) {
   });
   composer.addPass(ao);
 
+  // Dosaggio generale della sfocatura sopra i valori dei passi in story.js: meno bokeh,
+  // zona a fuoco più ampia, tilt-shift più leggero. 1 = come scritto nei passi.
+  const BLUR = { bokeh: 0.6, range: 1.5, tilt: 0.6 };
+
   const dof = new DepthOfFieldEffect(camera, { focusDistance: 30, focusRange: 12, bokehScale: 2, resolutionScale: 0.5 });
   const dofPass = new EffectPass(camera, dof);
   composer.addPass(dofPass);
@@ -220,11 +224,11 @@ export function createPost(renderer, scene, camera) {
       dofPass.enabled = dofOn;
       if (dofOn) {
         dof.cocMaterial.focusDistance = camera.position.distanceTo(focusPoint);
-        dof.cocMaterial.focusRange = s.range;
-        dof.bokehScale = s.bokeh;
+        dof.cocMaterial.focusRange = s.range * BLUR.range;
+        dof.bokehScale = s.bokeh * BLUR.bokeh;
       }
       tiltPass.enabled = s.tilt > 0.02;
-      tilt.blendMode.opacity.value = s.tilt;
+      tilt.blendMode.opacity.value = s.tilt * BLUR.tilt;
 
       const A = GRADES[s.gradeA];
       const B = GRADES[s.gradeB];
