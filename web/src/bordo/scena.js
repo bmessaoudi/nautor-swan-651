@@ -267,10 +267,9 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   function mix(A, B, t) {
     const s = {};
     for (const key of NUM_KEYS) s[key] = lerp(A[key], B[key], t);
-    // la camera gira attorno al punto guardato dalla parte più corta
-    let d = B.theta - A.theta;
-    if (d > Math.PI) d -= Math.PI * 2;
-    if (d < -Math.PI) d += Math.PI * 2;
+    // la camera gira attorno al punto guardato dalla parte più corta. Il modulo, non una
+    // sola correzione: dopo qualche giro di panoramica la differenza supera di molto 2π
+    const d = ((((B.theta - A.theta + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
     s.theta = A.theta + d * t;
     s.tgt = lerp3(A.tgt, B.tgt, t);
     s.focus = lerp3(A.focus, B.focus, t);
@@ -292,11 +291,21 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   // un salto immediato cambia la scena senza movimento: si forza qualche fotogramma
   let kick = 0;
   // Panoramica: a scena ferma la camera gira piano attorno alla barca (un giro in circa
-  // due minuti). Parte e si ferma con dolcezza; si ferma su un dettaglio indicato, perché
-  // il punto non finisca dietro lo scafo.
+  // due minuti). Parte e si ferma con dolcezza; su un dettaglio indicato il giro lascia il
+  // posto a un'oscillazione lenta, perché il punto non finisca dietro lo scafo ma la camera
+  // non resti mai ferma.
   const GIRO = (Math.PI * 2) / 120;
   let giro = 0;
   let giroVel = 0;
+  // mentre la persona parla la panoramica rallenta al 30%, e al rilascio riparte piano
+  let ascolto = false;
+  let ritmo = 1;
+  // oscillazione sul dettaglio: più o meno 6 gradi, un ciclo in circa 14 secondi
+  const OSC = THREE.MathUtils.degToRad(6);
+  const OSC_W = (Math.PI * 2) / 14;
+  let osc = 0;
+  let oscAmp = 0;
+  let oscT = 0;
 
   function goTo(target, { immediato = false } = {}) {
     const to = Math.min(N - 1, Math.max(0, Math.round(target)));
@@ -305,6 +314,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       move = null;
       kick = 3;
       giro = giroVel = 0;
+      osc = oscAmp = oscT = 0;
       cur = stateOf(to);
       step = to;
       onEvent("passo", step);
@@ -312,8 +322,8 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     }
     if (dist === 0 && !move) return to;
     // lo spostamento parte da dove la panoramica ha portato la camera
-    const from = { ...cur, theta: cur.theta + giro };
-    giro = 0;
+    const from = { ...cur, theta: cur.theta + giro + osc };
+    giro = osc = oscAmp = oscT = 0;
     move = { from, to: stateOf(to), toStep: to, t0: performance.now(), dur: 1800 + Math.min(dist, 4) * 450, announced: false };
     return to;
   }
@@ -539,8 +549,16 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       }
     }
     const s = cur;
-    giroVel += ((move || focused ? 0 : GIRO) - giroVel) * Math.min(1, dt * (move ? 6 : 0.6));
+    ritmo += ((ascolto ? 0.3 : 1) - ritmo) * Math.min(1, dt * (ascolto ? 1.5 : 0.35));
+    giroVel += ((move || focused ? 0 : GIRO * ritmo) - giroVel) * Math.min(1, dt * (move ? 6 : 0.6));
     giro += giroVel * dt;
+    // l'oscillazione entra e esce con la stessa dolcezza della panoramica; il seno parte da
+    // zero, quindi la camera non salta
+    oscAmp += ((focused && !move ? OSC : 0) - oscAmp) * Math.min(1, dt * 0.6);
+    if (oscAmp > 1e-5) {
+      oscT += dt;
+      osc = oscAmp * Math.sin(oscT * OSC_W);
+    } else osc = oscT = 0;
 
     const intro = introStart ? smooth(0, 1, (performance.now() - introStart) / 2600) : 0;
     planeDraw.constant = -lerp(12, -12, intro);
@@ -613,7 +631,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     floor.visible = floor.material.opacity > 0.005;
 
     // accumulo a camera ferma, come nella landing; le luci che si accendono contano come movimento
-    const dynamic = !introStart || intro < 1 || move || giroVel > 1e-4 || kick-- > 0 || s.ocean > 0.001 || s.luff > 0.001 || s.motion > 0.001 || since < 0.7;
+    const dynamic = !introStart || intro < 1 || move || giroVel > 1e-4 || (!hidden && oscAmp > 1e-5) || kick-- > 0 || s.ocean > 0.001 || s.luff > 0.001 || s.motion > 0.001 || since < 0.7;
     const settled = Math.abs(mouse.x - mouse.sx) < 0.004 && Math.abs(mouse.y - mouse.sy) < 0.004;
     stillFrames = !dynamic && settled ? stillFrames + 1 : 0;
     const still = stillFrames > 12;
@@ -625,7 +643,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       mouse.sx += (mouse.x - mouse.sx) * 0.04;
       mouse.sy += (mouse.y - mouse.sy) * 0.04;
     }
-    sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta + giro - mouse.sx * 0.06);
+    sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta + giro + osc - mouse.sx * 0.06);
     v.setFromSpherical(sph);
     camera.position.set(s.tgt[0] + v.x, s.tgt[1] + v.y, s.tgt[2] + v.z);
     // in mare la camera resta sopra le creste: le onde (fino a un metro e mezzo col vento forte)
@@ -678,7 +696,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     lastTime = time;
     updateHotspots(dt, W, H);
 
-    onEvent("fotogramma", { s, wind, knots: cond.knots, rain: !!cond.rain, coast: cond.coast });
+    onEvent("fotogramma", { s, wind, knots: cond.knots, rain: !!cond.rain, coast: cond.coast, theta: s.theta + giro });
 
     requestAnimationFrame(frame);
   }
@@ -696,6 +714,14 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     },
     get moving() {
       return !!move;
+    },
+    // millisecondi che mancano all'arrivo della camera, 0 se è ferma
+    get restante() {
+      return move ? Math.max(0, Math.round(move.dur - (performance.now() - move.t0))) : 0;
+    },
+    // la pagina la chiama mentre la persona parla: la panoramica rallenta e ascolta
+    ascolta(on) {
+      ascolto = !!on;
     },
     conditions: () => cond,
     // la pagina dice quando la scena si vede (fuori dall'ingresso e dall'accensione)
