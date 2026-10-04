@@ -64,7 +64,8 @@ export function createBridge(site, room, { onSpegni } = {}) {
       // se la camera si muove, all'arrivo torna da solo il pannello del passo
       if (!scena.moving) site.nascondiImmagine();
       site.mostraParole(titolo, dati, { attendi: scena.moving });
-      return { passo: to };
+      // la durata del volo (ms) serve all'agente per far partire il racconto all'arrivo
+      return { passo: to, durata: scena.restante };
     },
     "sito.mostraDettaglio": ({ id, titolo, dati }) => {
       const h = scena.hotspots[id];
@@ -73,7 +74,7 @@ export function createBridge(site, room, { onSpegni } = {}) {
       if (!scena.moving) site.nascondiImmagine();
       scena.focus(id);
       site.mostraParole(titolo || h.title, dati, { attendi: scena.moving });
-      return { passo: h.steps[0], titolo: h.title };
+      return { passo: h.steps[0], titolo: h.title, durata: scena.restante };
     },
     "sito.mostraParole": ({ titolo, dati }) => {
       site.mostraParole(titolo, dati);
@@ -94,7 +95,7 @@ export function createBridge(site, room, { onSpegni } = {}) {
       // il mare si vede solo nel capitolo Navigazione: se si è altrove, ci si va
       let passo = scena.step;
       if (passo < scena.chapters[3]) passo = scena.goTo(scena.chapters[3]);
-      return { passo, mare: `${c.label}, ${c.knots} nodi, ${c.coastLabel}` };
+      return { passo, mare: `${c.label}, ${c.knots} nodi, ${c.coastLabel}`, durata: scena.restante };
     },
     // si risponde prima di staccare, altrimenti l'agente resta in attesa della risposta
     "sito.spegni": () => {

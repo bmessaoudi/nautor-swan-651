@@ -79,7 +79,9 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .parole-dati dt { color: var(--ink-dim); font-size: 9.5px; letter-spacing: 0.16em; }
 /* i dati entrano uno dopo l'altro */
 .parole-dati div { opacity: 0; transform: translateY(8px); transition: opacity 0.5s, transform 0.7s var(--ease); }
-#parole.on .parole-dati div { opacity: 1; transform: none; }
+#parole.on .parole-dati div { opacity: 0.4; transform: none; }
+/* il dato si accende quando la voce lo nomina */
+#parole.on .parole-dati div.detto { opacity: 1; }
 #parole.on .parole-dati div:nth-child(2) { transition-delay: 0.15s; }
 #parole.on .parole-dati div:nth-child(3) { transition-delay: 0.3s; }
 
@@ -100,6 +102,16 @@ body.con-media .parole-dati dd { font-size: clamp(22px, 2.2vw, 32px); }
 }
 #media.on { opacity: 1; visibility: visible; transform: none; }
 .media-corpo img { display: block; width: 100%; max-height: 34vh; object-fit: cover; }
+/* foto viva: zoom lentissimo, una volta sola e poi ferma. Solo transform, così resta sul
+   compositore; niente will-change esplicito perché il browser promuove il livello solo per la
+   durata dell'animazione e lo rilascia alla fine. Il pannello ha backdrop-filter: un'animazione
+   continua lì sopra raddoppiava il lavoro della GPU (HANDOFF.md), per questo dura 20 s e si ferma */
+.media-corpo { overflow: hidden; }
+#media.on .media-corpo > img, #media.on .media-corpo > .grafico { animation: foto-viva 20s linear forwards; }
+@keyframes foto-viva { from { transform: scale(1); } to { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) {
+  #media.on .media-corpo > img, #media.on .media-corpo > .grafico { animation: none; }
+}
 #media figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 4px 2px; }
 .media-titolo { font-size: 15px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--heading); }
 .media-didascalia { color: var(--ink-dim); font-size: 9.5px; text-align: right; }

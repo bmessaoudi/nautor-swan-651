@@ -7,7 +7,7 @@ import { createBridge } from "./bridge.js";
 // Il server dei token gira accanto all'agente (agent/token_server.py)
 const TOKEN_URL = import.meta.env.VITE_BORDO_TOKEN_URL || "http://localhost:8790/token";
 
-export function createCollegamento(site, { onState, onVoice, onMic, onTranscript }) {
+export function createCollegamento(site, { onState, onVoice, onMic, onTranscript, onGiro }) {
   let room = null;
   let bridge = null;
   let micPub = null;
@@ -35,8 +35,11 @@ export function createCollegamento(site, { onState, onVoice, onMic, onTranscript
       });
       // l'agente pubblica il proprio stato (in ascolto, elabora, parla) come attributo
       room.on(RoomEvent.ParticipantAttributesChanged, (changed, p) => {
+        if (p === room.localParticipant) return;
         const s = changed["lk.agent.state"];
-        if (s && p !== room.localParticipant) onState(s);
+        if (s) onState(s);
+        // il giro guidato: l'agente lo accende e lo spegne, la pagina lo fa proseguire
+        if ("bordo.giro" in changed) onGiro?.(changed["bordo.giro"] === "1");
       });
       let agenteCaduto = false;
       room.on(RoomEvent.Disconnected, () => cleanup(agenteCaduto ? "error" : "off"));
