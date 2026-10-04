@@ -35,6 +35,7 @@ from livekit.agents.utils import is_given
 from livekit.plugins import anthropic, deepgram, elevenlabs
 from livekit.plugins.anthropic import llm as anthropic_llm
 
+from crediti import errore_di_credito
 from simulazione.pagina import PaginaSimulata, carica_indice
 
 # .env.local lo scrive la CLI di LiveKit (lk app env -w) con le credenziali del progetto Cloud
@@ -403,6 +404,14 @@ async def entrypoint(ctx: JobContext) -> None:
     # una sessione chiusa (errore o visitatore uscito) chiude anche il job: l'agente lascia
     # la stanza e la plancia lo vede spegnersi
     session.on("close", lambda ev: ctx.shutdown(reason=str(ev.reason)))
+
+    # credito finito a visita in corso: la plancia lo legge dall'attributo e lo dice a chi visita
+    def errore(ev) -> None:
+        if errore_di_credito(ev.error.error):
+            logger.error("credito esaurito: %s", ev.error.error)
+            asyncio.ensure_future(ctx.room.local_participant.set_attributes({"bordo.errore": "crediti"}))
+
+    session.on("error", errore)
     agent = ComputerDiBordo(visitor=visitor, room=ctx.room, index=index, pagina=pagina)
 
     # Il testo dalla pagina (suggerimenti cliccati, capitoli aperti dai puntini) segue la

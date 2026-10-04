@@ -388,6 +388,21 @@ body.pronta[data-fase="ingresso"] .tasto[data-k="power"] { color: var(--pale); a
 body.cc-on #cc.on { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 body[data-fase="ingresso"] #cc { display: none; }
 
+/* ---------- Avviso del credito ---------- */
+/* al centro, sopra tutto: senza credito l'agente resterebbe muto e la plancia sembrerebbe rotta */
+#avviso {
+  position: fixed; z-index: 50; left: 50%; top: 50%; transform: translate(-50%, calc(-50% + 8px));
+  width: min(440px, calc(100vw - 32px)); padding: 26px 30px; text-align: center;
+  color: #fff; background: var(--abyss); border: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 2px solid var(--orange); box-shadow: 0 24px 60px rgba(0, 14, 26, 0.55);
+  cursor: pointer; opacity: 0; transition: opacity 0.35s ease, transform 0.5s var(--ease);
+}
+#avviso.on { opacity: 1; transform: translate(-50%, -50%); }
+#avviso .mono { color: var(--orange); }
+.avviso-testo { margin-top: 12px; font-size: 16px; line-height: 1.55; text-wrap: pretty; }
+.avviso-servizi { margin-top: 14px; color: var(--pale) !important; }
+.avviso-servizi:empty { display: none; }
+
 /* ---------- Indice ---------- */
 /* su una card come il pannello delle foto: col mare dietro le voci si perderebbero */
 #indice {
