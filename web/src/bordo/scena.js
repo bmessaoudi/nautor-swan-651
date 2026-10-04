@@ -4,7 +4,7 @@
 // tutti quelli in mezzo; negli interni si accendono le luci di cabina.
 // Quando i due branch si uniranno in main, le parti comuni andranno in un modulo condiviso.
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createGLTFLoader, edgesOf } from "../gltf-loader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { KEYS, HOTSPOTS, CHAPTERS } from "../story.js";
 import { createOcean } from "../ocean.js";
@@ -16,6 +16,7 @@ import { makeConditions, seedFromUrl } from "../conditions.js";
 import { createPost } from "../post.js";
 import { createAdaptiveTone } from "../contrast.js";
 import { createMaterials } from "../materials.js";
+import { createLightmaps } from "../lightmaps.js";
 import { createSeaFx, BOAT_LAYER } from "../seafx.js";
 import { createRigging } from "../rigging.js";
 
@@ -170,17 +171,20 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   let rigging = null;
   const interiorMeshes = [];
 
-  // luci di cabina: sempre nella scena (accenderle e spegnerle cambierebbe gli shader),
-  // a intensità zero finché non si scende sottocoperta
-  // faretti rivolti in basso, come plafoniere: pozze di luce su pagliolo, tavoli e divani,
-  // senza sporcare di arancione i fianchi bianchi dello scafo
-  const cabin = CABIN_LIGHTS.map((at) => {
-    const l = new THREE.SpotLight(0xffd6a0, 0, 4.2, 1.05, 0.85, 1.6);
-    l.position.set(...at);
-    l.target.position.set(at[0], -0.4, at[2]);
-    boat.add(l, l.target);
-    return l;
-  });
+  // luci di cabina: le plafoniere sono cotte nella lightmap degli interni (lightmaps.js) e
+  // l'accensione ne alza l'intensità. I cinque faretti veri restano solo come ripiego se le
+  // mappe non arrivano: costavano cinque luci in ogni shader della scena, anche in mare.
+  const lightmaps = createLightmaps(renderer);
+  const cabin = [];
+  const addCabinSpots = () => {
+    for (const at of CABIN_LIGHTS) {
+      const l = new THREE.SpotLight(0xffd6a0, 0, 4.2, 1.05, 0.85, 1.6);
+      l.position.set(...at);
+      l.target.position.set(at[0], -0.4, at[2]);
+      boat.add(l, l.target);
+      cabin.push(l);
+    }
+  };
   let lightsOn = false;
   let lightsT = 0;
 
@@ -263,10 +267,9 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   function mix(A, B, t) {
     const s = {};
     for (const key of NUM_KEYS) s[key] = lerp(A[key], B[key], t);
-    // la camera gira attorno al punto guardato dalla parte più corta
-    let d = B.theta - A.theta;
-    if (d > Math.PI) d -= Math.PI * 2;
-    if (d < -Math.PI) d += Math.PI * 2;
+    // la camera gira attorno al punto guardato dalla parte più corta. Il modulo, non una
+    // sola correzione: dopo qualche giro di panoramica la differenza supera di molto 2π
+    const d = ((((B.theta - A.theta + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
     s.theta = A.theta + d * t;
     s.tgt = lerp3(A.tgt, B.tgt, t);
     s.focus = lerp3(A.focus, B.focus, t);
@@ -288,11 +291,21 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   // un salto immediato cambia la scena senza movimento: si forza qualche fotogramma
   let kick = 0;
   // Panoramica: a scena ferma la camera gira piano attorno alla barca (un giro in circa
-  // due minuti). Parte e si ferma con dolcezza; si ferma su un dettaglio indicato, perché
-  // il punto non finisca dietro lo scafo.
+  // due minuti). Parte e si ferma con dolcezza; su un dettaglio indicato il giro lascia il
+  // posto a un'oscillazione lenta, perché il punto non finisca dietro lo scafo ma la camera
+  // non resti mai ferma.
   const GIRO = (Math.PI * 2) / 120;
   let giro = 0;
   let giroVel = 0;
+  // mentre la persona parla la panoramica rallenta al 30%, e al rilascio riparte piano
+  let ascolto = false;
+  let ritmo = 1;
+  // oscillazione sul dettaglio: più o meno 6 gradi, un ciclo in circa 14 secondi
+  const OSC = THREE.MathUtils.degToRad(6);
+  const OSC_W = (Math.PI * 2) / 14;
+  let osc = 0;
+  let oscAmp = 0;
+  let oscT = 0;
 
   function goTo(target, { immediato = false } = {}) {
     const to = Math.min(N - 1, Math.max(0, Math.round(target)));
@@ -301,6 +314,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       move = null;
       kick = 3;
       giro = giroVel = 0;
+      osc = oscAmp = oscT = 0;
       cur = stateOf(to);
       step = to;
       onEvent("passo", step);
@@ -308,8 +322,8 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     }
     if (dist === 0 && !move) return to;
     // lo spostamento parte da dove la panoramica ha portato la camera
-    const from = { ...cur, theta: cur.theta + giro };
-    giro = 0;
+    const from = { ...cur, theta: cur.theta + giro + osc };
+    giro = osc = oscAmp = oscT = 0;
     move = { from, to: stateOf(to), toStep: to, t0: performance.now(), dur: 1800 + Math.min(dist, 4) * 450, announced: false };
     return to;
   }
@@ -348,7 +362,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
 
   // ---------- Modello ----------
   const ready = new Promise((resolve, reject) => {
-    new GLTFLoader().load(
+    createGLTFLoader(renderer).load(
       "/models/swan651.glb",
       (gltf) => {
         const root = gltf.scene;
@@ -381,10 +395,11 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
           }
           const interior = o.name.startsWith("Interior");
           const angle = o.name === "Hull" ? 3 : interior ? 40 : o.name === "Rigging" || o.name === "Lifelines" ? 60 : 28;
-          const lines = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, angle), interior ? lineMatInterior : lineMat);
+          const lines = new THREE.LineSegments(edgesOf(o, angle), interior ? lineMatInterior : lineMat);
           lines.renderOrder = 10;
           o.add(lines);
         });
+        lightmaps.apply(root).then((ok) => ok || addCabinSpots());
         // prima di agganciarlo alla barca, che può essere già inclinata
         campionaSagoma(root);
         boat.add(root);
@@ -534,8 +549,16 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       }
     }
     const s = cur;
-    giroVel += ((move || focused ? 0 : GIRO) - giroVel) * Math.min(1, dt * (move ? 6 : 0.6));
+    ritmo += ((ascolto ? 0.3 : 1) - ritmo) * Math.min(1, dt * (ascolto ? 1.5 : 0.35));
+    giroVel += ((move || focused ? 0 : GIRO * ritmo) - giroVel) * Math.min(1, dt * (move ? 6 : 0.6));
     giro += giroVel * dt;
+    // l'oscillazione entra e esce con la stessa dolcezza della panoramica; il seno parte da
+    // zero, quindi la camera non salta
+    oscAmp += ((focused && !move ? OSC : 0) - oscAmp) * Math.min(1, dt * 0.6);
+    if (oscAmp > 1e-5) {
+      oscT += dt;
+      osc = oscAmp * Math.sin(oscT * OSC_W);
+    } else osc = oscT = 0;
 
     const intro = introStart ? smooth(0, 1, (performance.now() - introStart) / 2600) : 0;
     planeDraw.constant = -lerp(12, -12, intro);
@@ -563,6 +586,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     const flicker = since < 0.35 ? (Math.sin(since * 90) > 0.2 ? 1 : 0.15) : 1;
     const level = lightsOn ? Math.min(1, since / 0.6) * flicker : Math.max(0, 1 - since / 0.5);
     for (const l of cabin) l.intensity = level * 5;
+    lightmaps.setLevel(level);
 
     const flutter = s.luff * (0.78 + 0.22 * Math.sin(t * 7.0) * Math.sin(t * 2.3));
     for (const m of sails) {
@@ -607,7 +631,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     floor.visible = floor.material.opacity > 0.005;
 
     // accumulo a camera ferma, come nella landing; le luci che si accendono contano come movimento
-    const dynamic = !introStart || intro < 1 || move || giroVel > 1e-4 || kick-- > 0 || s.ocean > 0.001 || s.luff > 0.001 || s.motion > 0.001 || since < 0.7;
+    const dynamic = !introStart || intro < 1 || move || giroVel > 1e-4 || (!hidden && oscAmp > 1e-5) || kick-- > 0 || s.ocean > 0.001 || s.luff > 0.001 || s.motion > 0.001 || since < 0.7;
     const settled = Math.abs(mouse.x - mouse.sx) < 0.004 && Math.abs(mouse.y - mouse.sy) < 0.004;
     stillFrames = !dynamic && settled ? stillFrames + 1 : 0;
     const still = stillFrames > 12;
@@ -619,7 +643,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       mouse.sx += (mouse.x - mouse.sx) * 0.04;
       mouse.sy += (mouse.y - mouse.sy) * 0.04;
     }
-    sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta + giro - mouse.sx * 0.06);
+    sph.set(s.radius, THREE.MathUtils.clamp(s.phi + mouse.sy * 0.04, 0.02, Math.PI - 0.02), s.theta + giro + osc - mouse.sx * 0.06);
     v.setFromSpherical(sph);
     camera.position.set(s.tgt[0] + v.x, s.tgt[1] + v.y, s.tgt[2] + v.z);
     // in mare la camera resta sopra le creste: le onde (fino a un metro e mezzo col vento forte)
@@ -672,7 +696,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     lastTime = time;
     updateHotspots(dt, W, H);
 
-    onEvent("fotogramma", { s, wind, knots: cond.knots, rain: !!cond.rain, coast: cond.coast });
+    onEvent("fotogramma", { s, wind, knots: cond.knots, rain: !!cond.rain, coast: cond.coast, theta: s.theta + giro });
 
     requestAnimationFrame(frame);
   }
@@ -690,6 +714,14 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     },
     get moving() {
       return !!move;
+    },
+    // millisecondi che mancano all'arrivo della camera, 0 se è ferma
+    get restante() {
+      return move ? Math.max(0, Math.round(move.dur - (performance.now() - move.t0))) : 0;
+    },
+    // la pagina la chiama mentre la persona parla: la panoramica rallenta e ascolta
+    ascolta(on) {
+      ascolto = !!on;
     },
     conditions: () => cond,
     // la pagina dice quando la scena si vede (fuori dall'ingresso e dall'accensione)
