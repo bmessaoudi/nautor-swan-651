@@ -141,6 +141,29 @@ Opzioni in `.env`: `ELEVEN_VOICE_ID`, `ELEVEN_MODEL`, `BORDO_EFFORT`, `BORDO_TUR
 6. Prima del merge in `main`: estrarre la scena comune da `main.js` e `scena.js`.
 7. Contraddizioni nelle fonti: Swan Cup 1980 o 1984, dislocamento 34,2 o 36 t, verricelli di Lunz elettrici o idraulici, un doppione fra Kingfisher, Emocean e Indigo VI; foto con attribuzione debole (Whisper of V e Geronimo, Rosbeg forse ancora Gaetana, Show Me, Deneb).
 
+## Ambiente realistico in mare (4 ottobre 2026)
+
+Branch `ambiente/integrazione` (da `feature/ambiente-realistico`), da portare in PR verso `dev`. Piano in `PIANO-AMBIENTE.md`, report dei quattro lavori in `PIANO-AMBIENTE-A.md` ... `-D.md`. Tutto resta su WebGL, three r186 e postprocessing 6.39.5; nessun prodotto a pagamento.
+
+| Modulo | Cosa fa |
+|---|---|
+| `ocean.js` + `fft/` | Mare FFT (JONSWAP, tre cascate) sulla GPU in WebGL2, choppy, schiuma dal Jacobiano. `float()` legge l'altezza sotto lo scafo dalla GPU (asincrona). `createOcean(renderer)`; `?fft=128` per la qualità. `linkSky()` aggancia i riflessi al cielo fisico. Increspature di dettaglio a due scale da una texture di pendenze calcolata all'avvio (`fft/detail.js`) e schiuma da una foto CC0 di ambientCG (`web/public/textures/sea/foam.jpg`), report in `PIANO-AMBIENTE-E.md` |
+| `sky.js` | Atmosfera e nuvole volumetriche takram (`@takram/three-atmosphere` 0.19.1, `three-clouds` 0.7.6, versioni esatte: la prossima API è solo WebGPU). Tabelle e texture in `web/public/sky`. `?cielo=alta\|media\|bassa\|spenta`, predefinita `bassa`. Niente upscaling temporale della libreria (lasciava un fantasma sulle vele). La qualità adattiva di `post.js` abbassa prima le nuvole |
+| `terrain.js` | Isole vere davanti a Pietarsaari (Copernicus GLO-30) e falesie del golfo di Orosei (tile Terrarium), texture CC0 Poly Haven, pini in istanza. Asset in `web/public/terrain`, rigenerabili con `uv run scripts/terrain/build_terrain.py` |
+| `fauna.js` | Gabbiani con scheletro, generati in Blender da `scripts/blender/fauna.py` (`web/public/models/fauna`, 140 KB). I delfini sono stati tolti dal progetto il 4 ottobre: poco realistici |
+| `landscape.js` | Restano solo vele lontane e pioggia |
+
+Verificato a schermo (landing passo 13 con tramonto e costa alta, mattino e arcipelago, pioggia; `/bordo/?passo=13`): nessun errore in console.
+
+**Prestazioni (scelta dell'utente, 4 ottobre): leggerezza prima della fluidità.** Con tutto al massimo la GPU stava al 97%. In mare (`post.pace`) si disegna al massimo un fotogramma ogni ~22 ms (40 fps a 120 Hz, 30 fps a 60 Hz) e a risoluzione 1,5x al massimo; nuvole in qualità `bassa`. Fuori dal mare la landing resta come prima. `/bordo/` usa il ritmo leggero sempre, perché la camera gira di continuo, e finché la scena è nascosta dalla plancia d'ingresso disegna un fotogramma ogni mezzo secondo (`scena.visible`, impostato da `pagina.js` in base a `data-fase`). La qualità adattiva non usa le timer query in mare (su Mac sono gonfiate) ma il ritardo dei fotogrammi rispetto al ritmo previsto, e ignora i primi secondi dopo l'arrivo in mare (`sky.settling`). Dopo un periodo tranquillo risale di un gradino (prima la risoluzione, poi le nuvole); se riscende subito, il tentativo dopo aspetta il doppio.
+
+Da fare:
+- Alone chiaro sui crinali dove le nuvole passano dietro la costa alta (nuvole a risoluzione ridotta).
+- Terra e vele lontane scorrono solo lungo -X: nelle virate del gioco non seguono `uOff`.
+- La fascia bagnata della terra (`wetTop`) va ritarata sulle onde FFT.
+- Un gabbiano d'autore da Sketchfab richiede la chiave API nell'add-on BlenderMCP.
+- Con lo stesso `?seed=N` restano ora, vento e costa, ma cambiano vele lontane e pioggia rispetto a prima.
+
 ## La demo web esistente
 
 Cartella `web/`: Vite 8, three.js r186, Lenis, `postprocessing` 6.39.5 e `n8ao` 2.0.1. Avvio con `pnpm run dev` dentro `web/`, porta 5173.
