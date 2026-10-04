@@ -53,9 +53,11 @@ body.light {
 [data-tone="on-light"] {
   --ink: #16212b; --ink-dim: #2e3d4a; --heading: var(--navy);
   --kicker: #0b4f77; --accent: #0f5f87;
-  --halo: 0 0 2px rgba(255, 255, 255, 0.55), 0 0 18px rgba(255, 255, 255, 0.7);
-  --chip: rgba(255, 255, 255, 0.4);
-  --scrim: rgba(255, 255, 255, 0.45);
+  /* velo e alone non bianchi ma di un azzurro grigio smorzato: sopra il 25% di luminanza il testo
+     scuro ha già contrasto sufficiente, servono solo a uniformare il fondo, non a schiarirlo */
+  --halo: 0 0 2px rgba(196, 212, 224, 0.4), 0 0 18px rgba(196, 212, 224, 0.35);
+  --chip: rgba(176, 196, 212, 0.3);
+  --scrim: rgba(176, 196, 212, 0.22);
 }
 
 /* I blocchi di testo grandi sulla scena (titolo d'apertura, aperture dei capitoli, chiusura) stanno
@@ -87,7 +89,8 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 /* Sfondo e reticolo della tavola sono disegnati nel canvas (main.js) */
 #gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 #gl { z-index: 2; display: block; }
-#hotspots { z-index: 3; pointer-events: none; }
+/* sopra tutta l'interfaccia (testi, header, HUD arrivano a 21), sotto solo le coperture a schermo intero (copertura 50, scelta della visita 60) */
+#hotspots { z-index: 40; pointer-events: none; }
 
 /* Copertura iniziale: stesso fondo su cui sfuma l'intro, poi si apre lentamente. */
 #loader {
@@ -611,6 +614,8 @@ h2.big { font-size: clamp(44px, 6.5vw, 96px); line-height: 1; }
   will-change: transform;
 }
 .hs.off { pointer-events: none; }
+/* il punto aperto passa sopra gli altri, così la sua scheda non finisce sotto le etichette vicine */
+.hs:hover { z-index: 1; }
 .hs .dot {
   position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%;
   background: var(--signal); border: 2px solid #fff;

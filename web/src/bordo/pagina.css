@@ -56,7 +56,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 #gl, #hotspots { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 #gl { z-index: 1; display: block; }
-#hotspots { z-index: 2; pointer-events: none; }
+/* sopra tutta l'interfaccia della pagina (che arriva a 21) */
+#hotspots { z-index: 40; pointer-events: none; }
 
 /* ---------- Parole chiave ---------- */
 /* sempre nella colonna di destra: indice a sinistra, barca al centro */
@@ -182,6 +183,7 @@ body.con-media .parole-dati dd { font-size: clamp(22px, 2.2vw, 32px); }
   border: 1px solid var(--line); padding: 6px 10px;
   opacity: 0; transform: translateX(-6px); transition: opacity 0.4s, transform 0.5s var(--ease);
 }
+.hs.focus { z-index: 1; }
 .hs.focus .dot { transform: scale(1.5); box-shadow: 0 0 0 6px rgba(61, 156, 201, 0.35); animation: indica 1.8s infinite; }
 .hs.focus .lab { opacity: 1; transform: none; }
 @keyframes indica { 70% { box-shadow: 0 0 0 14px rgba(61, 156, 201, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 156, 201, 0); } }
