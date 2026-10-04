@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createGLTFLoader, edgesOf } from "./gltf-loader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Lenis from "lenis";
@@ -13,6 +13,7 @@ import { makeConditions, seedFromUrl } from "./conditions.js";
 import { createPost } from "./post.js";
 import { createAdaptiveTone } from "./contrast.js";
 import { createMaterials } from "./materials.js";
+import { createLightmaps } from "./lightmaps.js";
 import { createSeaFx, BOAT_LAYER } from "./seafx.js";
 import { createRigging } from "./rigging.js";
 import { createSailing } from "./sailing.js";
@@ -29,13 +30,18 @@ renderer.localClippingEnabled = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 
+// plafoniere degli interni nella landing (0-1): un filo di caldo sopra la luce del giorno
+const LANDING_LAMPS = 0.25;
+
 const scene = new THREE.Scene();
+window.__scene = scene; // DEBUG-TEMP
 // near a 0,5 m: con 0,1 il rivestimento interno, a pochi cm dallo scafo, sfarfallava (z-fighting)
 const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
 // mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
 const ocean = createOcean(renderer);
 const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "bassa" });
 const post = createPost(renderer, scene, camera, { sky });
+window.__post = post; // DEBUG-TEMP
 // testi senza card sulla scena: scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js)
 const tone = createAdaptiveTone(renderer);
 
@@ -198,7 +204,7 @@ condEl.querySelector("button").addEventListener("click", () => applyConditions(1
 // Il modello si carica mentre si legge l'ingresso (overlay #mode).
 const loaderEl = document.getElementById("loader");
 
-new GLTFLoader().load(
+createGLTFLoader(renderer).load(
   "/models/swan651.glb",
   (gltf) => {
     const root = gltf.scene;
@@ -238,11 +244,14 @@ new GLTFLoader().load(
       const interior = o.name.startsWith("Interior");
       // Lo scafo mostra tutto il reticolo, come un piano di costruzione
       const angle = o.name === "Hull" ? 3 : interior ? 40 : o.name === "Rigging" || o.name === "Lifelines" ? 60 : 28;
-      const edges = new THREE.EdgesGeometry(o.geometry, angle);
+      const edges = edgesOf(o, angle);
       const lines = new THREE.LineSegments(edges, interior ? lineMatInterior : lineMat);
       lines.renderOrder = 10;
       o.add(lines);
     });
+    // luce cotta degli interni (lightmaps.js), quando arrivano le mappe; plafoniere appena accese
+    const lightmaps = createLightmaps(renderer);
+    lightmaps.apply(root).then(() => lightmaps.setLevel(LANDING_LAMPS));
     boat.add(root);
     rigging = createRigging({ boat, clipping: SOLID_PLANES, layer: BOAT_LAYER });
     sailing = createSailing({ boat, root, sails, rigging, ocean, clipping: SOLID_PLANES, layer: BOAT_LAYER });
@@ -461,6 +470,7 @@ const exploreBtn = document.getElementById("explore-btn");
 const exploreBar = document.getElementById("explore-bar");
 // collegati al canvas solo in esplorazione: da collegati bloccano lo scroll col dito (touch-action)
 const controls = new OrbitControls(camera);
+window.__controls = controls; window.__camera = camera; // DEBUG-TEMP
 controls.enabled = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { POLAR } from "./charts.js";
+import { loadKites, morphedVertex, Rope } from "./kites.js";
 
 // Navigazione libera (esplorazione 3D, vista Navigazione): si governa la barca, si lascano e si
 // cazzano randa e vela di prua, si issano e si ammainano gennaker e spinnaker.
@@ -39,6 +40,7 @@ const TACK = new THREE.Vector3(9.79, 2.27, 0);
 const JIB_HEAD = new THREE.Vector3(1.8, 27.6, 0);
 const JIB_CLEW = new THREE.Vector3(1.39, 3.12, 1.09);
 const BOOM_END = new THREE.Vector3(-5.9, 2.4, 0.99);
+const MAST_FRONT = 1.89; // faccia di prua dell'albero, dove scorre il carrello del tangone
 
 // Velocità di polare in nodi per angolo al vento reale (gradi) e vento reale (nodi).
 // Fuori dalla tabella: sotto 42° si va verso il "controvento" (zero a 28°), oltre 135° si scende
@@ -66,59 +68,6 @@ function polarSpeed(twaDeg, tws) {
 
 // Regolazione ideale della scotta (0 cazzata, 1 lascata) per un angolo al vento apparente
 const idealEase = (awaDeg, from = 22, span = 140) => clamp((Math.abs(awaDeg) - from) / span, 0, 1);
-
-// Teli per gennaker e spinnaker, disegnati su una tela
-function kiteTexture(stripes) {
-  const c = document.createElement("canvas");
-  c.width = 8;
-  c.height = 256;
-  const g = c.getContext("2d");
-  let y = 0;
-  for (const [color, h] of stripes) {
-    g.fillStyle = color;
-    g.fillRect(0, y, 8, h);
-    y += h;
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
-// Superficie di una vela da vento in poppa: triangolo penna-mura-bugna con la pancia in avanti.
-// s va dalla penna (0) alla base (1), t dall'inferitura (0) alla balumina (1).
-function kiteGeometry(H, T, C, bulgeDir, depth) {
-  const rows = 22;
-  const cols = 16;
-  const pos = [];
-  const uv = [];
-  const idx = [];
-  const p = new THREE.Vector3();
-  for (let i = 0; i <= rows; i++) {
-    const s = i / rows;
-    for (let j = 0; j <= cols; j++) {
-      const t = j / cols;
-      p.copy(H)
-        .addScaledVector(T.clone().sub(H), s * (1 - t))
-        .addScaledVector(C.clone().sub(H), s * t)
-        .addScaledVector(bulgeDir, depth * Math.sin(Math.PI * t) * s ** 0.7 * (1 - 0.25 * s));
-      pos.push(p.x, p.y, p.z);
-      uv.push(t, 1 - s);
-    }
-  }
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      const a = i * (cols + 1) + j;
-      const b = a + cols + 1;
-      idx.push(a, b, a + 1, a + 1, b, b + 1);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
 
 export function createSailing({ boat, root, sails, rigging, ocean, clipping, layer }) {
   // prima la rotta, poi sbandata e beccheggio nel riferimento della barca
@@ -155,36 +104,95 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
   const jibMeshes = sails.filter((m) => m.name.startsWith("Headsail"));
   const mainMeshes = sails.filter((m) => m.name.startsWith("Mainsail"));
 
-  // ---------- Gennaker e spinnaker ----------
-  // costruiti per la bugna a dritta; dall'altra parte si specchiano come le altre vele
-  function kite(H, T, C, bulge, depth, stripes) {
-    const pivot = new THREE.Group();
-    pivot.position.copy(H);
-    const mat = new THREE.MeshStandardMaterial({
-      map: kiteTexture(stripes), side: THREE.DoubleSide, roughness: 0.62, clippingPlanes: clipping, clipShadows: true,
-    });
-    const mesh = new THREE.Mesh(kiteGeometry(new THREE.Vector3(), T.clone().sub(H), C.clone().sub(H), bulge.normalize(), depth), mat);
-    mesh.castShadow = true;
-    mesh.layers.enable(layer);
-    pivot.add(mesh);
-    pivot.visible = false;
-    boat.add(pivot);
-    return { pivot, mesh, up: 0, target: 0 };
-  }
+  // ---------- Gennaker e spinnaker (kites.js, models/kites.glb) ----------
+  // Si caricano a parte: finché non arrivano il gioco va avanti e i bottoni issano vele che non ci sono
+  // ancora. Costruite con la bugna a dritta; dall'altra parte si specchiano come le altre vele.
+  // Ogni vela sta in tre gruppi: root nel suo perno (penna dello spinnaker sull'asse dell'albero, mura
+  // del gennaker sul musone), pivot per l'angolo e lo specchio, hoist per l'issata (scala lungo l'asse
+  // della vela: verticale per lo spinnaker, inferitura per il gennaker).
   const kites = {
-    // asimmetrico: mura a prua sul musone, bugna a poppa sottovento
-    gennaker: kite(
-      new THREE.Vector3(1.9, 26.6, 0), new THREE.Vector3(10.9, 2.5, 0), new THREE.Vector3(-1.5, 4.2, 6.2),
-      new THREE.Vector3(0.75, 0.05, 0.66), 3.2,
-      [["#f4f4f2", 150], ["#003660", 26], ["#157aac", 18], ["#f4f4f2", 62]],
-    ),
-    // simmetrico: mura al tangone sopravvento, bugna sottovento, grande pancia in avanti
-    spinnaker: kite(
-      new THREE.Vector3(2.0, 26.8, 0), new THREE.Vector3(6.8, 3.6, -4.8), new THREE.Vector3(1.0, 3.6, 7.2),
-      new THREE.Vector3(1, 0.06, 0.18), 4.6,
-      [["#003660", 70], ["#f4f4f2", 22], ["#157aac", 90], ["#f4f4f2", 22], ["#003660", 52]],
-    ),
+    gennaker: { up: 0, target: 0, ready: false },
+    spinnaker: { up: 0, target: 0, ready: false },
   };
+  let pole = null;
+  const ropes = [];
+  loadKites({ clipping, layer, uTime: ocean.shared.uTime })
+    .then((K) => {
+      kiteWind = K.uWind;
+      for (const name of ["spinnaker", "gennaker"]) {
+        const src = K[name];
+        const k = kites[name];
+        k.mesh = src.mesh;
+        k.info = src.info;
+        k.curl = src.curl;
+        k.flat = src.flat;
+        k.root = new THREE.Group();
+        k.root.position.copy(src.info.pivot);
+        k.pivot = new THREE.Group();
+        k.hoist = new THREE.Group(); // scala nel riferimento dell'asse
+        k.axisIn = new THREE.Group(); // riporta nel riferimento della vela
+        // asse della vela: verticale per lo spinnaker, dalla mura alla penna per il gennaker
+        k.axis = name === "spinnaker" ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(...src.info.head).normalize();
+        const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), k.axis);
+        k.hoist.quaternion.copy(q);
+        k.axisIn.quaternion.copy(q).invert();
+        k.root.add(k.pivot);
+        k.pivot.add(k.hoist);
+        k.hoist.add(k.axisIn);
+        k.axisIn.add(k.mesh);
+        k.root.visible = false;
+        boat.add(k.root);
+        // l'esportatore riordina i vertici: mura e bugna si cercano negli angoli delle UV (base: v = 1)
+        k.tackIdx = uvCorner(src.mesh, 0, 1);
+        k.clewIdx = uvCorner(src.mesh, 1, 1);
+        k.ready = true;
+      }
+      // il gennaker si apre ruotando attorno all'inferitura: verso che porta la bugna sottovento (+z)
+      const g = kites.gennaker;
+      const clew = new THREE.Vector3(...g.info.clew);
+      g.openSign = clew.clone().applyAxisAngle(g.axis, 0.1).z > clew.z ? 1 : -1;
+      // spinnaker: angolo della mura nel modello (gradi da prua, sopravvento), il tangone parte da lì
+      const s = kites.spinnaker;
+      const tack = new THREE.Vector3(...s.info.tack);
+      s.tackAngle = Math.atan2(-tack.z, tack.x);
+      s.tackRadius = Math.hypot(tack.x, tack.z);
+      s.tackY = s.info.pivot.y + tack.y;
+      pole = { mesh: K.pole.mesh, length: K.pole.length };
+      pole.mesh.visible = false;
+      boat.add(pole.mesh);
+      const R = (o) => {
+        const r = new Rope({ clipping, layer, ...o });
+        r.mesh.visible = false;
+        boat.add(r.mesh);
+        ropes.push(r);
+        return r;
+      };
+      // cime: braccio e scotta in poliestere chiaro, caricabasso e amantiglio più sottili e scuri
+      s.guy = R({ segments: 24, radius: 0.012 });
+      s.sheet = R({ segments: 28, radius: 0.012, color: 0xdfe2e6 });
+      s.downhaul = R({ segments: 6, radius: 0.009, color: 0x2a3440 });
+      s.lift = R({ segments: 8, radius: 0.008, color: 0x2a3440 });
+      g.sheet = R({ segments: 28, radius: 0.012, color: 0xdfe2e6 });
+      g.tackLine = R({ segments: 4, radius: 0.012, color: 0x2a3440 });
+      if (import.meta.env.DEV) window.__kites = { kites, pole, st, K };
+    })
+    .catch((err) => console.error("Vele da poppa non caricate", err));
+  let kiteWind = null;
+
+  // vertice più vicino a un angolo delle UV (u corda, v rovesciata dal glTF: 0 in penna, 1 alla base)
+  function uvCorner(mesh, u, v) {
+    const uv = mesh.geometry.attributes.uv;
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < uv.count; i++) {
+      const d = (uv.getX(i) - u) ** 2 + (uv.getY(i) - v) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    return best;
+  }
 
   // ---------- Stato ----------
   const st = {
@@ -341,6 +349,67 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
     document.documentElement.classList.remove("sailing");
   }
 
+  // ---------- Cime delle vele da poppa (riferimento della barca) ----------
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+  const tmpA = new THREE.Vector3();
+  const tackP = new THREE.Vector3();
+  const clewP = new THREE.Vector3();
+  const poleFoot = new THREE.Vector3();
+  const poleTip = new THREE.Vector3();
+  const poleDir = new THREE.Vector3();
+  const liftTop = new THREE.Vector3();
+  const X_AXIS = new THREE.Vector3(1, 0, 0);
+  // bozzello di poppa e verricello della scotta, bozzello al traverso e verricello del braccio
+  const SHEET_BLOCK = V3(-8.3, 1.5, 1.95);
+  const SHEET_WINCH = V3(-4.6, 1.78, 1.95);
+  const GUY_BLOCK = V3(-0.8, 1.6, 2.45);
+  const GUY_WINCH = V3(-3.6, 1.78, 1.95);
+  const STEM = V3(9.94, 1.9, 0);
+  const DOWNHAUL_FOOT = V3(MAST.x + 1.1, 1.85, 0);
+  const onSide = (v, s) => new THREE.Vector3(v.x, v.y, v.z * s);
+  const sides = { 1: {}, [-1]: {} };
+  for (const s of [1, -1]) {
+    sides[s] = { sheetBlock: onSide(SHEET_BLOCK, s), sheetWinch: onSide(SHEET_WINCH, s), guyBlock: onSide(GUY_BLOCK, s), guyWinch: onSide(GUY_WINCH, s) };
+  }
+  const vertexInBoat = (mesh, idx, out) => boat.worldToLocal(mesh.localToWorld(morphedVertex(mesh, idx, out)));
+  const downhaulTop = new THREE.Vector3();
+  const liftFoot = new THREE.Vector3();
+
+  function kiteLines(name, k, sgn, h2) {
+    vertexInBoat(k.mesh, k.tackIdx, tackP);
+    vertexInBoat(k.mesh, k.clewIdx, clewP);
+    // scotta: dalla bugna al bozzello di poppa sottovento, poi al verricello; più lasca se si lasca
+    const lee = sides[sgn];
+    const sheetSag = 0.15 + 0.9 * Math.max(0, k.delta || 0) + 0.6 * (1 - h2);
+    k.sheet.set([clewP, lee.sheetBlock, lee.sheetWinch], [sheetSag, 0.02]);
+    k.sheet.mesh.visible = true;
+    if (name === "gennaker") {
+      k.tackLine.set([STEM, tackP]);
+      k.tackLine.mesh.visible = true;
+      return;
+    }
+    // tangone: dall'attacco sull'albero verso la mura della vela piena (non di quella che sale)
+    poleFoot.set(MAST_FRONT, k.tackY - 0.35, 0);
+    // in abbattuta la varea scende e passa sotto lo strallo da un lato all'altro (poleSide da ±1 a 0)
+    const ps = k.poleSide;
+    tmpA.set(MAST.x + Math.cos(k.poleAng) * k.tackRadius, k.tackY - 2.6 * (1 - Math.abs(ps)), -ps * Math.sin(k.poleAng) * k.tackRadius);
+    // all'inizio dell'issata il tangone si alza dalla coperta, puntato a prua
+    const deploy = smooth(0, 0.35, k.up);
+    poleTip.set(MAST.x + k.tackRadius * 0.98, 2.1, 0).lerp(tmpA, deploy);
+    poleDir.subVectors(poleTip, poleFoot);
+    const len = poleDir.length();
+    pole.mesh.position.copy(poleFoot);
+    pole.mesh.quaternion.setFromUnitVectors(X_AXIS, poleDir.divideScalar(len));
+    pole.mesh.scale.set(len / pole.length, 1, 1);
+    // braccio: dalla mura alla varea del tangone, al bozzello al traverso sopravvento, al verricello
+    const wind = sides[-sgn];
+    k.guy.set([tackP, poleTip, wind.guyBlock, wind.guyWinch], [0.02 + 0.4 * (1 - h2), 0, 0.02]);
+    // caricabasso dalla varea alla coperta davanti all'albero, amantiglio da metà tangone all'albero
+    k.downhaul.set([downhaulTop.copy(poleFoot).lerp(poleTip, 0.92), DOWNHAUL_FOOT]);
+    k.lift.set([liftFoot.copy(poleFoot).lerp(poleTip, 0.5), liftTop.set(MAST_FRONT, k.tackY + 7.5, 0)]);
+    for (const r of [k.guy, k.downhaul, k.lift]) r.mesh.visible = true;
+  }
+
   return {
     get active() {
       return st.active;
@@ -440,7 +509,9 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
         st.jibTarget = side * (D2R(3) + st.jibEase * D2R(55));
         for (const [name, k] of Object.entries(kites)) {
           k.side = side;
-          k.trim = st.jibEase;
+          k.awa = Math.abs(st.awa);
+          // scostamento della scotta dalla regolazione ideale della vela da poppa (positivo = lasca)
+          k.delta = kiteName === name ? st.trimJib : 0;
           k.collapse = name === "gennaker" ? smooth(70, 50, a) : smooth(105, 80, a);
         }
       } else {
@@ -469,19 +540,73 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
       const asModel = Math.abs(st.mainAngle - mainBase) < 1e-3 && Math.abs(st.jibAngle - jibBase) < 1e-3;
       for (const r of rigging?.sheets ?? []) r.visible = asModel;
 
-      // ---- gennaker e spinnaker: si issano dalla penna in giù, il fiocco intanto si avvolge
+      // ---- gennaker e spinnaker
       furl = 0;
       const t = performance.now() / 1000;
-      for (const k of Object.values(kites)) {
-        k.up = clamp(k.up + Math.sign(k.target - k.up) * dt / 2.2, 0, 1);
-        const h = k.up * k.up * (3 - 2 * k.up);
-        k.pivot.visible = h > 0.01;
-        if (!k.pivot.visible) continue;
-        furl = Math.max(furl, h);
-        const flog = (k.collapse || 0) * (0.5 + 0.5 * Math.sin(t * 9));
-        const breathe = 1 + 0.02 * Math.sin(t * 2.1);
-        k.pivot.scale.set(h, h, h * (k.side || 1) * (1 - 0.55 * flog) * breathe);
-        k.pivot.rotation.y = (k.side || 1) * ((k.trim ?? 0.5) - 0.5) * 0.45;
+      if (kiteWind) kiteWind.value = clamp(st.aws / KN / 18, 0.3, 1.1);
+      for (const [name, k] of Object.entries(kites)) {
+        // un'issata dura circa quattro secondi, l'ammainata uguale
+        k.up = clamp(k.up + Math.sign(k.target - k.up) * dt / 4.2, 0, 1);
+        if (!k.ready) continue;
+        const vis = k.up > 0.002;
+        k.root.visible = vis;
+        if (name === "spinnaker" && pole) pole.mesh.visible = vis;
+        if (!vis) {
+          for (const r of name === "spinnaker" ? [k.guy, k.sheet, k.downhaul, k.lift] : [k.sheet, k.tackLine]) r.mesh.visible = false;
+          k.poleAng = k.sgn = null;
+          continue;
+        }
+        furl = Math.max(furl, smooth(0, 0.6, k.up));
+        // abbattuta. Lo spinnaker è simmetrico: ruota attorno all'albero fino a stare dritto davanti alla
+        // prua, lì mura e bugna si scambiano (la vela specchiata è identica) e riparte dall'altra parte;
+        // il tangone intanto passa sotto lo strallo (abbattuta a tangone immerso, quella dei 65 piedi).
+        // Il gennaker non è simmetrico: passa dal centro sventando, la bugna gira davanti allo strallo
+        const want = k.side ?? 1;
+        if (k.sgn == null) k.sgn = k.poleSide = k.sideS = want;
+        let gybe = 0;
+        if (name === "spinnaker") {
+          if (want !== k.sgn && k.poleAng != null && Math.abs(k.poleAng - k.tackAngle) < D2R(1.5)) k.sgn = want;
+          k.poleSide = approach(k.poleSide, k.sgn === want ? want : 0, 1.4);
+          gybe = 1 - Math.abs(k.poleSide);
+          k.pivot.scale.z = k.sgn;
+        } else {
+          k.sideS = approach(k.sideS, want, 1.1);
+          k.sgn = k.sideS >= 0 ? 1 : -1;
+          gybe = 1 - Math.abs(k.sideS);
+          k.pivot.scale.z = k.sgn * Math.max(0.12, Math.abs(k.sideS));
+        }
+        const sgn = k.sgn;
+        // issata: prima sale la penna con la vela chiusa nella calza, poi la tela si apre e si gonfia
+        const h1 = smooth(0, 0.62, k.up);
+        const h2 = smooth(0.5, 1, k.up);
+        k.hoist.scale.set(lerp(0.06, 1, h2), lerp(0.04, 1, h1), lerp(0.06, 1, h2));
+
+        // shape key: arricciata con la scotta troppo lasca, sventata stretta al vento, a metà issata o
+        // mentre si abbatte. Regolata bene l'inferitura è appena sul punto di arricciarsi, come vuole la
+        // regolazione vera
+        const curl = (0.1 + 0.9 * smooth(0.06, 0.3, k.delta || 0)) * (0.8 + 0.2 * Math.sin(t * 2.6));
+        let flat = (k.collapse || 0) * (0.62 + 0.38 * Math.sin(t * 4.7) * Math.sin(t * 1.3 + 0.5));
+        flat = Math.max(flat, 1 - h2, (name === "spinnaker" ? 0.35 : 0.9) * smooth(0, 0.5, gybe));
+        k.mesh.morphTargetInfluences[k.curl] = curl * (1 - flat);
+        k.mesh.morphTargetInfluences[k.flat] = flat;
+        if (import.meta.env.DEV && window.__kites?.force) Object.assign(k.mesh.morphTargetInfluences, window.__kites.force);
+
+        if (name === "spinnaker") {
+          // tangone perpendicolare al vento apparente sul lato sopravvento (da 10° dallo strallo al
+          // traverso); la scotta lo sposta: lascandola la bugna va avanti e il tangone indietro
+          const ideal = clamp((k.awa ?? 180) - 90, 10, 82);
+          // in abbattuta la vela va prima al centro (penna, mura e bugna simmetriche rispetto alla prua)
+          const target = want !== sgn ? k.tackAngle : D2R(clamp(ideal + (k.delta || 0) * 45, 6, 88));
+          k.poleAng = k.poleAng == null ? target : approach(k.poleAng, target, D2R(want !== sgn ? 45 : 30));
+          k.pivot.rotation.y = sgn * (k.poleAng - k.tackAngle);
+          k.root.position.y = lerp(k.tackY + 1.2, k.info.pivot.y, h1);
+        } else {
+          // il gennaker si apre attorno all'inferitura quanto la scotta è lascata
+          const open = (st.active ? st.jibEase - 0.42 : 0) * D2R(55);
+          k.pivot.quaternion.setFromAxisAngle(k.axis, sgn * k.openSign * open);
+        }
+        k.root.updateMatrixWorld(true);
+        kiteLines(name, k, sgn, h2);
       }
 
       // ---- la barca ruota, l'acqua le scorre sotto lungo la prua
