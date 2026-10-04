@@ -287,6 +287,7 @@ collegamento = createCollegamento(
       livelloMic = createLivello(track);
     },
     onTranscript: sottotitolo,
+    onCrediti: avvisoCrediti,
     onGiro(on) {
       giro = on;
       if (!on) clearTimeout(prosegui);
@@ -356,6 +357,24 @@ function aspettaGiro(s) {
     if (giro && !premuto && stato === "listening") collegamento.invia("[Prosegui la visita]");
   }, PAUSA_GIRO);
 }
+
+// ---------- Avviso del credito ----------
+// Si chiude da solo o con un clic; i servizi senza credito servono a chi deve ricaricare
+const avvisoEl = $("#avviso");
+let avvisoTimer = 0;
+function avvisoCrediti(servizi = []) {
+  avvisoEl.querySelector(".avviso-servizi").textContent = servizi.length ? `Senza credito: ${servizi.join(", ")}` : "";
+  avvisoEl.hidden = false;
+  requestAnimationFrame(() => avvisoEl.classList.add("on"));
+  clearTimeout(avvisoTimer);
+  avvisoTimer = setTimeout(chiudiAvviso, 12000);
+}
+function chiudiAvviso() {
+  clearTimeout(avvisoTimer);
+  avvisoEl.classList.remove("on");
+  setTimeout(() => { if (!avvisoEl.classList.contains("on")) avvisoEl.hidden = true; }, 400);
+}
+avvisoEl.addEventListener("click", chiudiAvviso);
 
 // ---------- Pulsanti ----------
 plancia.leva("power").addEventListener("click", async () => {
