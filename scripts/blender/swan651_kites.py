@@ -42,15 +42,16 @@ DECK_AT_MAST = 1.82
 STEM = (9.94, 2.20)      # attacco dello strallo sul musone
 
 # Spinnaker: 388 m² di superficie di progetto (dato dei testi del sito)
-SPI_TACK_Y = 4.6         # mura e bugna all'altezza del tangone, circa 2,8 m sopra la coperta
-SPI_HALF_FOOT = 6.75     # mezza base prima dell'inclinazione: con l'inclinazione il tangone viene circa J
-SPI_TILT = math.radians(5.0)   # la vela vola in avanti: mura e bugna davanti all'albero
-SPI_ROWS, SPI_COLS = 44, 36
+SPI_TACK_Y = 5.5         # mura e bugna all'altezza del tangone, circa 3,7 m sopra la coperta (foto 02)
+SPI_HALF_FOOT = 6.95     # mezza base prima dell'inclinazione: tangone di circa 7,4 m, poco meno di J (8,05)
+SPI_TILT = math.radians(6.0)   # la vela vola in avanti: mura e bugna davanti all'albero
+SPI_ROWS, SPI_COLS = 52, 40       # 2173 vertici
 
 # Gennaker: mura alta sul musone, bugna all'altezza del boma
 GEN_TACK = (10.05, 2.70, 0.0)
-GEN_CLEW = (-0.50, 4.30, 4.60)
-GEN_ROWS, GEN_COLS = 44, 34
+GEN_CLEW = (-0.70, 3.05, 4.70)   # mezzo metro sopra il boma (2,55)
+GEN_ROWS, GEN_COLS = 52, 38       # 2067 vertici
+LEECH_FOLLOW = 0.55
 
 NAVY = (0x00, 0x36, 0x60)
 BLUE = (0x15, 0x7A, 0xAC)
@@ -102,7 +103,7 @@ def spinnaker_grid(depth_k=1.0, width_k=1.0, bow_k=1.0):
     # mezza larghezza: spalle larghe, quasi piena fino al 75%, testa tonda
     v0 = 0.42
     shoulder = np.sqrt(np.clip(1 - (np.clip(v - v0, 0, None) / (1 - v0)) ** 2, 0, 1))
-    swell = 1 + 0.13 * np.sin(np.pi * np.clip(v / 0.84, 0, 1))
+    swell = 1 + 0.05 * np.sin(np.pi * np.clip(v / 0.84, 0, 1))
     hw = SPI_HALF_FOOT * np.maximum(shoulder * swell, 0.012) * width_k
     # profondità della sezione: 27% alla base, 33% a metà, quasi simmetrica
     d = (0.27 + 0.06 * np.sin(np.pi * v)) * depth_k
@@ -112,7 +113,7 @@ def spinnaker_grid(depth_k=1.0, width_k=1.0, bow_k=1.0):
     z = rad * np.sin(theta)
     x_arc = rad * (np.cos(theta) - np.cos(theta_max))
     # bordi che corrono in avanti a metà altezza (la vela si alza e vola davanti alla prua)
-    x_edge = 0.25 * v + 2.6 * bow_k * np.sin(np.pi * v) ** 1.2
+    x_edge = 0.25 * v + 4.5 * bow_k * np.sin(np.pi * v) ** 1.2
     x = x_edge + x_arc
     P = np.stack(np.broadcast_arrays(x, y, z), axis=2).astype(float)
     # inclinazione in avanti attorno alla penna
@@ -195,20 +196,25 @@ def gennaker_grid(depth_k=1.0, twist_k=1.0, width_k=1.0):
     Cl = np.array(GEN_CLEW) - T
     axis = H / np.linalg.norm(H)
     # inferitura: curva sottovento e in avanti
-    bow_dir = np.array([0.8, 0.12, 0.6])
+    bow_dir = np.array([1.0, 0.12, 0.25])
     bow_dir /= np.linalg.norm(bow_dir)
-    L = v[:, None] * H + np.sin(np.pi * v)[:, None] ** 0.9 * 4.6 * bow_dir
-    # corde: ogni riga va dall'inferitura alla balumina con la larghezza di progetto (circa 75% della base
-    # a metà, 47% ai tre quarti, tavoletta di 30 cm in testa) e l'angolo in pianta della base più la
-    # torsione: la balumina si apre salendo, 20° in testa. L'altezza della balumina va dalla bugna alla penna
+    bow = np.sin(np.pi * v)[:, None] ** 0.9 * 6.1 * bow_dir
+    L = v[:, None] * H + bow
+    # corde: ogni riga va dall'inferitura alla balumina con la larghezza di progetto (circa 90% della base
+    # a metà, 55% ai tre quarti, tavoletta di 30 cm in testa) e l'angolo in pianta della base più la
+    # torsione: la balumina si apre salendo. L'altezza della balumina va dalla bugna alla penna
     foot = np.linalg.norm(Cl)
-    girth = foot * (1 - v ** 1.6) ** 0.75 * width_k + 0.3 * v
+    girth = foot * (1 - v ** 1.3) ** 0.75 * width_k + 0.3 * v
     phi0 = math.atan2(Cl[2], -Cl[0])
-    phi = phi0 + math.radians(20) * twist_k * v ** 1.2
+    phi = phi0 + math.radians(55) * twist_k * v ** 1.2
     by = (1 - v) * Cl[1] + v * (H[1] - 0.06)
     dy = by - L[:, 1]
     hor = np.sqrt(np.maximum(girth ** 2 - dy ** 2, 1e-6))
     ch = np.stack([-hor * np.cos(phi), dy, hor * np.sin(phi)], axis=1)
+    # la balumina segue solo una parte della curva dell'inferitura: resta più corta (inferitura 105-112%)
+    # (togliere la curva fa perdere un po' di torsione in pianta: per questo phi arriva a 55° in penna,
+    # la torsione misurata fra la base e l'80% dell'altezza resta fra 15 e 25°)
+    ch -= LEECH_FOLLOW * bow
     # sezione: profondità 19-24% con il massimo al 40% della corda
     n = np.cross(ch, axis)
     n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
@@ -487,6 +493,26 @@ def pole_object(length):
     return obj
 
 
+def twist_deg(P):
+    """Torsione: angolo in pianta della corda in testa (80%) meno quello alla base."""
+    def ang(i):
+        c = P[i, -1] - P[i, 0]
+        return math.degrees(math.atan2(c[2], -c[0]))
+    return ang(int(P.shape[0] * 0.8)) - ang(0)
+
+
+def depth_info(P, i):
+    """Profondità massima della sezione i rispetto alla corda e sua posizione lungo la corda."""
+    a, b = P[i, 0], P[i, -1]
+    c = b - a
+    L = np.linalg.norm(c)
+    rel = P[i] - a
+    t = rel @ c / L
+    dist = np.linalg.norm(rel - np.outer(t / L, c), axis=1)
+    j = int(np.argmax(dist))
+    return dist[j] / L, t[j] / L
+
+
 def report(name, P):
     luff = polyline_len(P[:, 0])
     leech = polyline_len(P[:, -1])
@@ -495,6 +521,10 @@ def report(name, P):
     r75 = polyline_len(P[int(P.shape[0] * 0.75), :])
     print(f"{name}: area {surface_area(P):.0f} m2, inferitura {luff:.2f} m, balumina {leech:.2f} m, "
           f"base {foot:.2f} m, larghezza a metà {mid:.2f} m, al 75% {r75:.2f} m, rapporto inf/bal {luff / leech:.3f}")
+    rows = P.shape[0] - 1
+    secs = ", ".join(f"{int(100 * f)}%: {100 * d:.0f}% a {100 * x:.0f}%" for f in (0.25, 0.5, 0.75)
+                     for d, x in [depth_info(P, int(rows * f))])
+    print(f"{name}: torsione {twist_deg(P):.1f} gradi, profondità {secs}, vertici {P.shape[0] * P.shape[1]}")
 
 
 def main():

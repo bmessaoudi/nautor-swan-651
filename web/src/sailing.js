@@ -390,7 +390,9 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
     }
     // tangone: dall'attacco sull'albero verso la mura della vela piena (non di quella che sale)
     poleFoot.set(MAST_FRONT, k.tackY - 0.35, 0);
-    tmpA.set(MAST.x + Math.cos(k.poleAng) * k.tackRadius, k.tackY, -sgn * Math.sin(k.poleAng) * k.tackRadius);
+    // in abbattuta la varea scende e passa sotto lo strallo da un lato all'altro (poleSide da ±1 a 0)
+    const ps = k.poleSide;
+    tmpA.set(MAST.x + Math.cos(k.poleAng) * k.tackRadius, k.tackY - 2.6 * (1 - Math.abs(ps)), -ps * Math.sin(k.poleAng) * k.tackRadius);
     // all'inizio dell'issata il tangone si alza dalla coperta, puntato a prua
     const deploy = smooth(0, 0.35, k.up);
     poleTip.set(MAST.x + k.tackRadius * 0.98, 2.1, 0).lerp(tmpA, deploy);
@@ -551,24 +553,40 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
         if (name === "spinnaker" && pole) pole.mesh.visible = vis;
         if (!vis) {
           for (const r of name === "spinnaker" ? [k.guy, k.sheet, k.downhaul, k.lift] : [k.sheet, k.tackLine]) r.mesh.visible = false;
-          k.poleAng = null;
+          k.poleAng = k.sgn = null;
           continue;
         }
         furl = Math.max(furl, smooth(0, 0.6, k.up));
-        // abbattuta: la vela passa dal centro come le altre, il lato cambia in poco più di un secondo
-        k.sideS = approach(k.sideS ?? k.side ?? 1, k.side ?? 1, 1.6);
-        const sgn = k.sideS >= 0 ? 1 : -1;
-        const mirror = sgn * Math.max(0.04, Math.abs(k.sideS));
+        // abbattuta. Lo spinnaker è simmetrico: ruota attorno all'albero fino a stare dritto davanti alla
+        // prua, lì mura e bugna si scambiano (la vela specchiata è identica) e riparte dall'altra parte;
+        // il tangone intanto passa sotto lo strallo (abbattuta a tangone immerso, quella dei 65 piedi).
+        // Il gennaker non è simmetrico: passa dal centro sventando, la bugna gira davanti allo strallo
+        const want = k.side ?? 1;
+        if (k.sgn == null) k.sgn = k.poleSide = k.sideS = want;
+        let gybe = 0;
+        if (name === "spinnaker") {
+          if (want !== k.sgn && k.poleAng != null && Math.abs(k.poleAng - k.tackAngle) < D2R(1.5)) k.sgn = want;
+          k.poleSide = approach(k.poleSide, k.sgn === want ? want : 0, 1.4);
+          gybe = 1 - Math.abs(k.poleSide);
+          k.pivot.scale.z = k.sgn;
+        } else {
+          k.sideS = approach(k.sideS, want, 1.1);
+          k.sgn = k.sideS >= 0 ? 1 : -1;
+          gybe = 1 - Math.abs(k.sideS);
+          k.pivot.scale.z = k.sgn * Math.max(0.12, Math.abs(k.sideS));
+        }
+        const sgn = k.sgn;
         // issata: prima sale la penna con la vela chiusa nella calza, poi la tela si apre e si gonfia
         const h1 = smooth(0, 0.62, k.up);
         const h2 = smooth(0.5, 1, k.up);
         k.hoist.scale.set(lerp(0.06, 1, h2), lerp(0.04, 1, h1), lerp(0.06, 1, h2));
-        k.pivot.scale.z = mirror;
 
-        // shape key: arricciata con la scotta troppo lasca, sventata stretta al vento o a metà issata
-        const curl = smooth(0.04, 0.22, k.delta || 0) * (0.8 + 0.2 * Math.sin(t * 2.6));
+        // shape key: arricciata con la scotta troppo lasca, sventata stretta al vento, a metà issata o
+        // mentre si abbatte. Regolata bene l'inferitura è appena sul punto di arricciarsi, come vuole la
+        // regolazione vera
+        const curl = (0.1 + 0.9 * smooth(0.06, 0.3, k.delta || 0)) * (0.8 + 0.2 * Math.sin(t * 2.6));
         let flat = (k.collapse || 0) * (0.62 + 0.38 * Math.sin(t * 4.7) * Math.sin(t * 1.3 + 0.5));
-        flat = Math.max(flat, 1 - h2);
+        flat = Math.max(flat, 1 - h2, (name === "spinnaker" ? 0.35 : 0.9) * smooth(0, 0.5, gybe));
         k.mesh.morphTargetInfluences[k.curl] = curl * (1 - flat);
         k.mesh.morphTargetInfluences[k.flat] = flat;
         if (import.meta.env.DEV && window.__kites?.force) Object.assign(k.mesh.morphTargetInfluences, window.__kites.force);
@@ -577,8 +595,9 @@ export function createSailing({ boat, root, sails, rigging, ocean, clipping, lay
           // tangone perpendicolare al vento apparente sul lato sopravvento (da 10° dallo strallo al
           // traverso); la scotta lo sposta: lascandola la bugna va avanti e il tangone indietro
           const ideal = clamp((k.awa ?? 180) - 90, 10, 82);
-          const target = D2R(clamp(ideal + (k.delta || 0) * 45, 6, 88));
-          k.poleAng = k.poleAng == null ? target : approach(k.poleAng, target, D2R(30));
+          // in abbattuta la vela va prima al centro (penna, mura e bugna simmetriche rispetto alla prua)
+          const target = want !== sgn ? k.tackAngle : D2R(clamp(ideal + (k.delta || 0) * 45, 6, 88));
+          k.poleAng = k.poleAng == null ? target : approach(k.poleAng, target, D2R(want !== sgn ? 45 : 30));
           k.pivot.rotation.y = sgn * (k.poleAng - k.tackAngle);
           k.root.position.y = lerp(k.tackY + 1.2, k.info.pivot.y, h1);
         } else {
