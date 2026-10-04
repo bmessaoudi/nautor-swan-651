@@ -30,6 +30,9 @@ renderer.localClippingEnabled = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 
+// plafoniere degli interni nella landing (0-1): un filo di caldo sopra la luce del giorno
+const LANDING_LAMPS = 0.25;
+
 const scene = new THREE.Scene();
 window.__scene = scene; // DEBUG-TEMP
 // near a 0,5 m: con 0,1 il rivestimento interno, a pochi cm dallo scafo, sfarfallava (z-fighting)
@@ -246,8 +249,9 @@ createGLTFLoader(renderer).load(
       lines.renderOrder = 10;
       o.add(lines);
     });
-    // luce cotta degli interni (lightmaps.js), quando arrivano le mappe
-    createLightmaps().apply(root);
+    // luce cotta degli interni (lightmaps.js), quando arrivano le mappe; plafoniere appena accese
+    const lightmaps = createLightmaps(renderer);
+    lightmaps.apply(root).then(() => lightmaps.setLevel(LANDING_LAMPS));
     boat.add(root);
     rigging = createRigging({ boat, clipping: SOLID_PLANES, layer: BOAT_LAYER });
     sailing = createSailing({ boat, root, sails, rigging, ocean, clipping: SOLID_PLANES, layer: BOAT_LAYER });
