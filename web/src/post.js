@@ -7,7 +7,7 @@ import {
 import { N8AOPostPass } from "n8ao";
 
 // Post-processing con pmndrs/postprocessing (WebGL). Ordine dei passaggi:
-//   scena > occlusione (N8AO) > profondità di campo > tilt-shift > bloom e look
+//   scena > occlusione (N8AO) > nuvole e prospettiva aerea (sky.js) > profondità di campo > tilt-shift > bloom e look
 //   > accumulo a camera ferma > aberrazione cromatica > SMAA, vignettatura, grana
 // Il look fa il tone mapping Khronos PBR Neutral (rispetta i rossi di Lunz am Meer, ACES li
 // spingeva verso l'arancio) e poi il grading del capitolo. Grana e aberrazione vengono dopo
@@ -136,7 +136,8 @@ const halton = (i, b) => {
 };
 
 // ---------- Pipeline ----------
-export function createPost(renderer, scene, camera) {
+// sky (facoltativo): il cielo di sky.js, con le passate di nuvole e prospettiva aerea
+export function createPost(renderer, scene, camera, { sky = null } = {}) {
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
   composer.addPass(new RenderPass(scene, camera));
 
@@ -153,6 +154,10 @@ export function createPost(renderer, scene, camera) {
     transparencyAware: false,
   });
   composer.addPass(ao);
+
+  // nuvole e atmosfera dopo l'occlusione (che scurisce solo la scena) e prima della profondità di
+  // campo, così le nuvole si sfocano come il resto dello sfondo
+  if (sky) for (const p of sky.passes) composer.addPass(p);
 
   // Dosaggio generale della sfocatura sopra i valori dei passi in story.js: meno bokeh,
   // zona a fuoco più ampia, tilt-shift più leggero. 1 = come scritto nei passi.
@@ -203,7 +208,29 @@ export function createPost(renderer, scene, camera) {
   let ema = 16;
   let slow = 0;
   let warm = 0;
+  // recupero: dopo un periodo tranquillo si risale di un gradino. Se si riscende subito, il
+  // tentativo dopo aspetta il doppio, così una macchina al limite non oscilla.
+  let calm = 0;
+  let calmNeed = 600;
+  let raisedAt = -1;
+  let frames = 0;
   renderer.setPixelRatio(LEVELS[0]);
+
+  // ---------- Ritmo leggero ----------
+  // In mare la scena si muove sempre (onde, nuvole), in /bordo/ anche la camera: la GPU lavorerebbe
+  // a ogni refresh dello schermo. Lì si disegna al massimo un fotogramma ogni ~22 ms (40 fps a
+  // 120 Hz, 30 fps a 60 Hz) e a risoluzione 1,5x al massimo: il sito deve girare anche su portatili
+  // modesti. Con la scena nascosta (ingresso di /bordo/) basta un fotogramma ogni mezzo secondo,
+  // che tiene pronti gli shader per quando appare.
+  const SEA_FRAME_MS = 22;
+  const HIDDEN_FRAME_MS = 500;
+  const SEA_MAX_DPR = 1.5;
+  let refresh = 16.7; // periodo dello schermo, stimato dal minimo fra due callback
+  let lastRaf = 0;
+  let lastDraw = -1e9;
+  let sea = false;
+  let hiddenNow = false;
+  const dpr = () => (sea ? Math.min(LEVELS[level], SEA_MAX_DPR) : LEVELS[level]);
 
   let W = 1;
   let H = 1;
@@ -278,6 +305,24 @@ export function createPost(renderer, scene, camera) {
       }
       composer.render(dt);
     },
+    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare. light accende il
+    // ritmo leggero, hidden quello minimo della scena nascosta.
+    pace(time, light, hidden = false) {
+      const atSea = light || hidden;
+      const raw = time - lastRaf;
+      lastRaf = time;
+      if (raw > 3 && raw < 40) refresh = Math.min(refresh * 1.002, raw);
+      if (atSea !== sea) {
+        sea = atSea;
+        slow = 0;
+        renderer.setPixelRatio(dpr());
+        composer.setSize(W, H, false);
+      }
+      if (sea && time - lastDraw < (hidden ? HIDDEN_FRAME_MS : SEA_FRAME_MS) - 1) return false;
+      hiddenNow = hidden;
+      lastDraw = time;
+      return true;
+    },
     // ms del fotogramma precedente; si misura solo quando la scena si muove davvero
     measure(ms) {
       if (query && !query.open && gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE)) {
@@ -285,16 +330,58 @@ export function createPost(renderer, scene, camera) {
         gl.deleteQuery(query);
         query = null;
       }
+      // a scena nascosta i fotogrammi sono radi per scelta: non dicono nulla
+      if (hiddenNow) return;
       if (warm++ < 120) return;
-      const useGpu = timer && gpuMs >= 0;
-      ema += (Math.min(useGpu ? gpuMs : ms, 100) - ema) * 0.05;
-      slow = ema > (useGpu ? 15 : 19) ? slow + 1 : 0;
-      if (slow > 90 && level < LEVELS.length - 1) {
-        level++;
+      // durante l'arrivo in mare il cielo carica e compila: quei picchi non contano
+      if (sky && sky.settling) {
         slow = 0;
-        renderer.setPixelRatio(LEVELS[level]);
+        return;
+      }
+      let value, limit;
+      if (sea) {
+        // in mare il ritmo è limitato: conta solo se il fotogramma arriva più tardi del previsto
+        // (le timer query di Mac sono gonfiate, qui non servono)
+        value = ms;
+        limit = Math.ceil((SEA_FRAME_MS - 1) / refresh) * refresh * 1.25;
+      } else {
+        // la GPU non può metterci più del tempo fra due fotogrammi: su Mac (WebGL su Metal) le
+        // timer query danno valori gonfiati, 13 ms a 115 fps, e facevano scendere la risoluzione
+        // per niente. Quando conta il tempo fra fotogrammi vale la soglia larga: su uno schermo a
+        // 60 Hz quel tempo non scende mai sotto 16,7 ms anche con la GPU scarica.
+        const gpuBound = timer && gpuMs >= 0 && gpuMs < ms;
+        value = gpuBound ? gpuMs : ms;
+        limit = gpuBound ? 15 : 19;
+      }
+      ema += (Math.min(value, 100) - ema) * 0.05;
+      slow = ema > limit ? slow + 1 : 0;
+      calm = ema < limit * 0.85 ? calm + 1 : 0;
+      frames++;
+      const setLevel = (l) => {
+        level = l;
+        renderer.setPixelRatio(dpr());
         ao.configuration.halfRes = level > 0;
         composer.setSize(W, H, false);
+      };
+      // prima si alleggeriscono le nuvole (sono la parte più cara del mare), poi la risoluzione
+      if (slow > 90) {
+        if (raisedAt >= 0 && frames - raisedAt < 400) calmNeed = Math.min(calmNeed * 2, 9600);
+        raisedAt = -1;
+        if (sky && sky.degrade()) slow = 0;
+        else if (level < LEVELS.length - 1) {
+          setLevel(level + 1);
+          slow = 0;
+        }
+        calm = 0;
+      } else if (calm > calmNeed) {
+        // in senso inverso: prima la risoluzione, poi le nuvole
+        calm = 0;
+        if (level > 0) {
+          setLevel(level - 1);
+          raisedAt = frames;
+        } else if (sky && sky.restore()) {
+          raisedAt = frames;
+        }
       }
     },
     // lo sfondo compensa l'esposizione: il suo colore è una scelta grafica, non una luce
