@@ -3,6 +3,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nautor-swan-demo",
+  // account personale b.messaoudi@becreatives.com, dove c'è Zero Trust (team becreatives-demo)
+  "account_id": "4a82fd6bb2cb8776c4497d6196537061",
   "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],

@@ -131,6 +131,22 @@ Opzioni in `.env`: `ELEVEN_VOICE_ID`, `ELEVEN_MODEL`, `BORDO_EFFORT`, `BORDO_TUR
 - Qualità di voce e suoni, volumi relativi (`LIVELLI` e `DUCK` in `suoni.js`).
 - Che l'agente scelga parole chiave brevi e foto pertinenti.
 
+## Online: demo protetta (4 ottobre 2026)
+
+**https://nautor-swan-demo.b-messaoudi.workers.dev**, solo per email `@becreatives.com` e `@hybrid.one`.
+
+| Pezzo | Dove | Come si aggiorna |
+|---|---|---|
+| Sito e route `/token` | Worker `nautor-swan-demo`, account Cloudflare personale di b.messaoudi (`web/wrangler.jsonc`, `web/worker/index.js`) | `cd web && pnpm run build && pnpm exec wrangler deploy` |
+| Chiavi del Worker | Secret del Worker (LiveKit, Anthropic, ElevenLabs, Deepgram) | `pnpm exec wrangler secret bulk .dev.vars` (file locale, non committato) |
+| Agente vocale | LiveKit Cloud, progetto `swan651-bordo`, regione eu-central (`agent/Dockerfile`, `agent/livekit.toml`) | `cd agent && lk agent deploy`; secret con `lk agent update-secrets` |
+| Protezione | Cloudflare Access, team `becreatives-demo`: app "Nautor Swan demo", policy "Becreatives e Hybrid", login con codice via email | Dashboard Zero Trust o Cloudflare MCP |
+
+- `/token` nel Worker è la versione in produzione di `agent/token_server.py` e `agent/crediti.py`: stesso controllo dei crediti, stessa risposta 402. Se si cambia uno, si cambia anche l'altro.
+- In produzione la pagina chiede il token a `/token` sulla stessa origine; in sviluppo resta `localhost:8790`.
+- URL di anteprima dei Worker spenti (`preview_urls: false`): sarebbero un ingresso non protetto.
+- Piano gratuito di LiveKit: 1.000 minuti di agente al mese, 5 sessioni insieme, e l'agente si spegne quando nessuno lo usa. Prima di una demo dal vivo conviene accenderlo una volta.
+
 ## Prossimi passi
 
 1. Chiavi in `agent/.env` e credenziali LiveKit Cloud in `.env.local`, poi prima prova completa a voce.
