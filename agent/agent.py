@@ -53,14 +53,19 @@ anthropic_llm._NO_PREFILL_PATTERNS = (*anthropic_llm._NO_PREFILL_PATTERNS, "clau
 
 TTS_MODEL = os.environ.get("ELEVEN_MODEL") or "eleven_v4_turbo"
 # gli audio tag ([chuckles], [whispers]...) li capiscono solo v3 e v4; con Flash si tolgono
+BREVE = """
+
+# Modalità attiva: risposte brevi
+
+La persona ha chiesto risposte brevi. Finché non ti chiede di raccontare di più, ogni risposta è di una frase, al massimo due: niente battute, niente tag espressivi, niente domanda finale. Vale anche nel giro guidato e dopo gli spostamenti della camera: la frase di presa in carico prima dello strumento può restare, dopo aggiungi al massimo una frase. Il giro guidato continua a funzionare: a ogni "[Prosegui la visita]" fai la tappa successiva, con la frase di presa in carico e una sola frase di racconto, senza aggancio né domanda. Una sola tappa per risposta, poi fermati."""
+
 TAG_AUDIO = TTS_MODEL.startswith(("eleven_v3", "eleven_v4"))
 
 SALUTO = (
-    "[warm] Computer di bordo acceso. Benvenuto sullo Swan 651: diciannove metri e novantotto di "
-    "eleganza finlandese, e io, che ne sono la memoria. [chuckles] Una memoria degli anni Ottanta, "
-    "ma lucidissima. Per parlarmi tieni premuta la sfera al centro della plancia, o la barra "
-    "spaziatrice, e lasciala quando hai finito. La camera la guido io, ma se preferisci "
-    "esplorare da solo usa il menù a sinistra: tocchi un argomento e ti ci porto."
+    "Computer di bordo acceso: benvenuto sullo Swan 651, diciannove scafi usciti da un cantiere "
+    "finlandese per fare il giro del mondo in salotto. [chuckles] Io ricordo tutto, tranne dove "
+    "ho messo le carte nautiche. Per parlarmi tieni premuta la sfera o la barra spaziatrice, "
+    "oppure scegli un argomento dal menù a sinistra."
 )
 
 ATMOSFERE = Literal["alba", "mattino", "mezzogiorno", "pomeriggio", "tramonto", "foschia", "pioggia", "a caso"]
@@ -114,6 +119,8 @@ def build_instructions(index: dict[str, Any]) -> str:
         riga += f": {p['titolo']}. {p['testo']}"
         if p["dati"]:
             riga += " Dati: " + "; ".join(f"{d['etichetta']} {d['valore']}" for d in p["dati"]) + "."
+        if p.get("inquadratura"):
+            riga += f" Inquadratura: {p['inquadratura']}"
         pagina.append(riga)
     capitoli = ", ".join(f"{c['nome']} dal passo {c['passo']}" for c in index["capitoli"])
     pagina.append(f"Capitoli: {capitoli}. Il passo 0 è l'apertura, l'ultimo è la chiusura.")
@@ -131,7 +138,8 @@ def build_instructions(index: dict[str, Any]) -> str:
     parts.append("\n".join(immagini))
 
     for f in sorted((HERE / "knowledge").glob("*.md")):
-        parts.append(f.read_text())
+        # i commenti HTML tengono le fonti accanto ai fatti: all'agente non servono
+        parts.append(re.sub(r"\s*<!--.*?-->", "", f.read_text(), flags=re.S))
     return "\n\n".join(parts)
 
 
@@ -148,12 +156,18 @@ class ComputerDiBordo(Agent):
         index: dict[str, Any],
         pagina: PaginaSimulata | None = None,
     ) -> None:
-        super().__init__(instructions=build_instructions(index))
+        self._base = build_instructions(index)
+        self._breve = False
+        super().__init__(instructions=self._base)
         self._visitor = visitor
         self._room = room
         self._last = len(index["passi"]) - 1
         # nelle simulations la pagina è finta e risponde in processo
         self._pagina = pagina
+
+    @property
+    def pagina(self) -> PaginaSimulata | None:
+        return self._pagina
 
     async def _sito(self, method: str, **args: Any) -> dict[str, Any]:
         if self._pagina:
@@ -191,7 +205,12 @@ class ComputerDiBordo(Agent):
     async def on_user_turn_completed(self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage) -> None:
         # La nota entra nel messaggio stesso: resta nella cronologia senza cambiarne il
         # prefisso, così la cache del prompt regge turno dopo turno
-        if nota := self.nota_schermo():
+        nota = self.nota_schermo()
+        # la modalità breve sta anche nelle istruzioni, ma da sola lì si allenta dopo qualche
+        # turno: il promemoria accanto a ciò che è a schermo la tiene viva
+        if self._breve:
+            nota = (nota[:-1] + "; " if nota else "[") + "risposte brevi]"
+        if nota:
             new_message.content.insert(0, nota)
 
     @function_tool
@@ -206,6 +225,11 @@ class ComputerDiBordo(Agent):
         if not 0 <= passo <= self._last:
             raise llm.ToolError(f"I passi vanno da 0 a {self._last}.")
         r = await self._sito("sito.vaiAlPasso", passo=passo, titolo=titolo, dati=dati_json(dati))
+        # La pagina risponde subito, ma il volo dura qualche secondo: si attende fin quasi
+        # all'arrivo, così la frase di presa in carico copre lo spostamento e il racconto parte
+        # con la camera in posa. Nelle simulations non c'è nulla da guardare
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"La camera va al passo {r['passo']}."
 
     @function_tool
@@ -217,6 +241,9 @@ class ComputerDiBordo(Agent):
             dati: da zero a tre numeri da mostrare; lista vuota se non servono.
         """
         r = await self._sito("sito.mostraDettaglio", id=id, dati=dati_json(dati))
+        # come in vai_al_passo: il racconto parte quando la camera sta arrivando
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"Indicato «{r['titolo']}», al passo {r['passo']}."
 
     @function_tool
@@ -254,7 +281,38 @@ class ComputerDiBordo(Agent):
             atmosfera: l'atmosfera richiesta, oppure "a caso".
         """
         r = await self._sito("sito.cambiaMare", atmosfera=atmosfera)
+        # se la camera va in Navigazione, si attende come in vai_al_passo
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"Ora in scena: {r['mare']} (passo {r['passo']})."
+
+    @function_tool
+    async def risposte_brevi(self, context: RunContext, attive: bool) -> str:
+        """Da usare quando la persona chiede risposte brevi o di tagliare corto (attive=true), oppure chiede di raccontare di più (attive=false). Vale per il resto della visita.
+
+        Args:
+            attive: true per rispondere in una frase, false per tornare al racconto normale.
+        """
+        # Una regola generica nel prompt si perde dopo un paio di turni, e una nota nei messaggi
+        # il modello la ripete ad alta voce: la modalità attiva entra nelle istruzioni. Costa una
+        # sola riscrittura della cache, al cambio
+        self._breve = attive
+        await self.update_instructions(self._base + BREVE if attive else self._base)
+        if attive:
+            return "Da ora una frase per risposta, al massimo due, senza battute e senza domanda finale."
+        return "Si torna al racconto normale."
+
+    @function_tool
+    async def giro_guidato(self, context: RunContext, attivo: bool) -> str:
+        """Accende il giro guidato quando la persona chiede di fare il giro della barca, e lo spegne quando arriva alla fine o la persona vuole altro. Col giro acceso, se la persona resta in silenzio dopo una tappa, arriva "[Prosegui la visita]".
+
+        Args:
+            attivo: true all'inizio del giro, false alla fine o quando la persona cambia discorso.
+        """
+        # la pagina legge l'attributo e, a giro acceso, chiede la tappa successiva dopo una pausa
+        if not self._pagina:
+            await self._room.local_participant.set_attributes({"bordo.giro": "1" if attivo else "0"})
+        return "Giro guidato acceso: una tappa per risposta." if attivo else "Giro guidato spento."
 
     @function_tool
     async def spegni(self, context: RunContext) -> None:
@@ -286,7 +344,29 @@ async def chiedi_indice(ctx: JobContext, visitor: rtc.RemoteParticipant) -> dict
     return json.loads(await asyncio.wait_for(arrivato, timeout=10.0))
 
 
-@server.rtc_session(agent_name=AGENT_NAME)
+def verifica_stato(sim: SimulationContext) -> None:
+    """Nelle simulations confronta la pagina finta con lo stato atteso dello scenario
+    (userdata.atteso: passo, capitolo, mare, immagine). Il giudizio del simulatore guarda la
+    conversazione; questo guarda ciò che la persona vedrebbe davvero a schermo."""
+    atteso = sim.userdata().get("atteso")
+    session = sim.job_context.primary_session
+    agent = session.current_agent if session else None
+    pagina = getattr(agent, "pagina", None)
+    if not atteso or pagina is None:
+        return
+    stato = pagina.stato()
+    errori = []
+    for chiave, valore in atteso.items():
+        reale = stato.get(chiave)
+        # il mare è "Tramonto, 12 nodi, costa alta": si controlla solo l'atmosfera
+        ok = str(reale).lower().startswith(str(valore).lower()) if chiave == "mare" else reale == valore
+        if not ok:
+            errori.append(f"{chiave}: atteso {valore!r}, a schermo {reale!r}")
+    if errori:
+        sim.fail("Stato finale diverso dall'atteso: " + "; ".join(errori))
+
+
+@server.rtc_session(agent_name=AGENT_NAME, on_simulation_end=verifica_stato)
 async def entrypoint(ctx: JobContext) -> None:
     await ctx.connect()
     # Nelle simulations (lk agent simulate) non c'è il browser: indice e pagina sono finti
@@ -315,7 +395,10 @@ async def entrypoint(ctx: JobContext) -> None:
             apply_text_normalization="on",
         ),
         **turn_options(sim),
-        tts_text_transforms=["filter_markdown", "filter_emoji", *([] if TAG_AUDIO else [togli_tag])],
+        # una richiesta composta (mare, poi passo, poi foto) o il giro guidato superano le 3
+        # chiamate di fila del default, e l'agente si fermerebbe a metà
+        max_tool_steps=6,
+        tts_text_transforms=["filter_markdown", "filter_emoji", togli_note if TAG_AUDIO else togli_tag],
     )
     # una sessione chiusa (errore o visitatore uscito) chiude anche il job: l'agente lascia
     # la stanza e la plancia lo vede spegnersi
@@ -361,8 +444,16 @@ async def entrypoint(ctx: JobContext) -> None:
             session.input.set_audio_enabled(False)
             # Flux chiude la trascrizione dopo un attimo di silenzio: se non arriva in tempo si usa
             # quella provvisoria, che con Flux è già buona
-            session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
+            turno = session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
+            turno.add_done_callback(turno_vuoto)
             return "ok"
+
+        def turno_vuoto(turno: asyncio.Future[str]) -> None:
+            # Con la trascrizione vuota l'agente non risponde, e chi ha parlato resterebbe ad
+            # aspettare nel silenzio: meglio dire che non si è sentito
+            if turno.cancelled() or turno.exception() or turno.result().strip():
+                return
+            session.say("[short pause] Non ti ho sentito. Tieni premuta la sfera mentre parli e lasciala alla fine.")
 
         @lp.register_rpc_method("agente.annullaTurno")
         async def annulla_turno(data: rtc.RpcInvocationData) -> str:
@@ -387,9 +478,26 @@ async def scalda_cache(model: llm.LLM, agent: Agent) -> None:
         logger.warning("cache non scaldata: %s", e)
 
 
+TAG = re.compile(r"\[[^\]]*\]\s*")
+# le note che il sistema mette nei messaggi dell'utente: a volte il modello le ripete, e la
+# voce le leggerebbe (i sottotitoli le tolgono già, con tutte le parentesi quadre)
+NOTA = re.compile(r"\[(?:A schermo|risposte brevi)[^\]]*\]\s*", re.IGNORECASE)
+
+
+async def togli_note(text: AsyncIterable[str]) -> AsyncIterable[str]:
+    """Toglie le note di sistema ripetute dal modello e lascia gli audio tag veri."""
+    async for chunk in togli_parentesi(text, NOTA):
+        yield chunk
+
+
 async def togli_tag(text: AsyncIterable[str]) -> AsyncIterable[str]:
-    """Toglie gli audio tag dal testo per i modelli che li leggerebbero ad alta voce.
-    Un tag può arrivare spezzato fra due pezzi dello stream: si trattiene finché non si chiude."""
+    """Toglie gli audio tag dal testo per i modelli che li leggerebbero ad alta voce."""
+    async for chunk in togli_parentesi(text, TAG):
+        yield chunk
+
+
+async def togli_parentesi(text: AsyncIterable[str], pattern: re.Pattern[str]) -> AsyncIterable[str]:
+    """Un tag può arrivare spezzato fra due pezzi dello stream: si trattiene finché non si chiude."""
     resto = ""
     async for chunk in text:
         resto += chunk
@@ -398,9 +506,9 @@ async def togli_tag(text: AsyncIterable[str]) -> AsyncIterable[str]:
             pronto, resto = resto[:aperta], resto[aperta:]
         else:
             pronto, resto = resto, ""
-        if pronto := re.sub(r"\[[^\]]*\]\s*", "", pronto):
+        if pronto := pattern.sub("", pronto):
             yield pronto
-    if resto := re.sub(r"\[[^\]]*\]\s*", "", resto):
+    if resto := pattern.sub("", resto):
         yield resto
 
 
@@ -411,7 +519,8 @@ def turn_options(sim: SimulationContext | None) -> dict[str, Any]:
 
     Nelle simulations nessuno preme la sfera: il turno lo chiude Flux."""
     if sim:
-        return {"turn_handling": {"turn_detection": "stt"}}
+        # Flux decide già la fine del turno: il ritardo minimo di LiveKit si sommerebbe al suo
+        return {"turn_handling": {"turn_detection": "stt", "endpointing": {"min_delay": 0}}}
     return {"turn_handling": {"turn_detection": "manual", "interruption": {"enabled": False}}}
 
 
