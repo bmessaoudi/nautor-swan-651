@@ -73,8 +73,11 @@ export const GRADES = {
   blueprint: { slope: [0.96, 1, 1.06], offset: [0, 0.004, 0.016], power: [1.04, 1, 0.96], sat: 0.92, shadows: [0, 0.006, 0.02], highlights: [0, 0, 0], vignette: 0.5, exposure: 1 },
   // neutro, appena caldo nelle luci: lo studio fotografico
   studio: { slope: [1.01, 1, 0.985], offset: [0, 0, 0.004], power: [1, 1, 1], sat: 1.0, shadows: [0.002, 0.004, 0.01], highlights: [0.008, 0.004, 0], vignette: 0.22, exposure: 0.9 },
-  // teak e pelle: appena più caldo, più contrasto nei mezzitoni
-  interior: { slope: [1.015, 1, 0.975], offset: [0, 0, 0], power: [1.06, 1.08, 1.1], sat: 0.98, shadows: [0.002, 0.001, 0], highlights: [0.006, 0.003, 0], vignette: 0.42, exposure: 0.8 },
+  // teak e pelle: appena più caldo, più contrasto nei mezzitoni. La potenza è uguale sui tre
+  // canali: diversa (1,06 / 1,08 / 1,1) spostava la tinta con la luminosità, e ogni ombra morbida
+  // sul bianco (occlusione, luce cotta) diventava una chiazza rosata mentre le luci restavano bianche.
+  // Il caldo lo dà la pendenza, che vale uguale a ogni livello di luce.
+  interior: { slope: [1.015, 1, 0.975], offset: [0, 0, 0], power: [1.08, 1.08, 1.08], sat: 0.98, shadows: [0.002, 0.001, 0], highlights: [0.006, 0.003, 0], vignette: 0.42, exposure: 0.8 },
   // ombre verso il verde acqua, luci calde: il classico "orange and teal", ma leggero
   sea: { slope: [1.03, 1, 0.97], offset: [0, 0.003, 0.008], power: [1, 1, 1], sat: 1.07, shadows: [-0.004, 0.006, 0.012], highlights: [0.012, 0.006, -0.004], vignette: 0.32, exposure: 0.95 },
 };
@@ -270,8 +273,14 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
       vignette.darkness = THREE.MathUtils.lerp(A.vignette, B.vignette, t);
 
       // occlusione: niente nella tavola, raggio più corto negli interni
-      ao.configuration.intensity = (s.cut < 50 ? 4 : 2.2) * s.solid;
-      ao.configuration.aoRadius = s.cut < 50 ? 0.7 : 1.6;
+      // Negli interni l'occlusione grande è nella luce cotta (lightmaps.js): qui solo i contatti.
+      // Con la caduta lunga (0,6) e la sfocatura larga N8AO lasciava sui fianchi bianchi chiazze
+      // morbide, che il grading caldo degli interni rendeva rosate.
+      const inside = s.cut < 50;
+      ao.configuration.intensity = (inside ? 2.6 : 2.2) * s.solid;
+      ao.configuration.aoRadius = inside ? 0.5 : 1.6;
+      ao.configuration.distanceFalloff = inside ? 0.25 : 0.6;
+      ao.configuration.denoiseRadius = inside ? 5 : 10;
       // in mare aperto l'occlusione quasi non si vede e costa quanto il resto della scena
       ao.enabled = s.solid > 0.02 && s.ocean < 0.5;
     },

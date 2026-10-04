@@ -187,7 +187,7 @@ export const PASSI = [
     "titolo": "Teak, holly, pelle",
     "pannello": "barografo",
     "inquadratura": "Dentro la dinette, vicinissimi: divani in pelle rossa, tavolo e teak caldo sotto le luci di cabina, con un solo punto a fuoco e tutto il resto morbido.",
-    "testo": "La ricerca stilistica Swan di quegli anni è nordica e calda: teak miele satinato in ogni superficie, pagliolo a listelli di teak e holly, cielino bianco a doghe, divani in pelle rossa. Prima rifinitura degli interni: cuscini a moduli, porte ad arco, librerie, cucina e carteggio. Bagni e cabine restano semplificati.",
+    "testo": "La ricerca stilistica Swan di quegli anni è nordica e calda: teak miele satinato in ogni superficie, pagliolo a listelli di teak e holly, cielino bianco a doghe, divani in pelle rossa. Pelle trapuntata, bordini antirollio, tientibene sul cielino e cornici scure; bagni con WC marino e doccia nell'armatoriale; luce del giorno da oblò e tambucci cotta nel modello.",
     "dati": []
   },
   {
