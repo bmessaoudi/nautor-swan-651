@@ -127,10 +127,23 @@ function mostraParole(titolo, dati = [], { attendi = false } = {}) {
     paroleEl.querySelector(".parole-titolo").textContent = titolo || "";
     paroleEl.querySelector(".parole-dati").innerHTML = (dati || [])
       .slice(0, 3)
-      .map((d) => `<div><dd>${esc(d.valore)}</dd><dt class="mono">${esc(d.etichetta)}</dt></div>`)
+      .map((d) => `<div data-cifra="${esc(cifra(d.valore))}"><dd>${esc(d.valore)}</dd><dt class="mono">${esc(d.etichetta)}</dt></div>`)
       .join("");
     paroleEl.classList.add("on");
+    // i dati restano in penombra finché la voce non li nomina; se non li nomina, si accendono
+    // comunque dopo qualche secondo
+    clearTimeout(accendiTutti);
+    accendiTutti = setTimeout(() => paroleEl.querySelectorAll(".parole-dati div").forEach((el) => el.classList.add("detto")), 6000);
   }, 180);
+}
+let accendiTutti = 0;
+// la parte numerica di un valore ("14,4 t" → "14,4"), come la scrive la voce (in cifre, dal prompt)
+const cifra = (v) => String(v ?? "").match(/\d[\d.,]*/)?.[0].replace(/[.,]$/, "") ?? "";
+function accendiDetti(text) {
+  for (const el of paroleEl.querySelectorAll(".parole-dati div:not(.detto)")) {
+    const c = el.dataset.cifra;
+    if (c && text.includes(c)) el.classList.add("detto");
+  }
 }
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -215,6 +228,7 @@ voci.forEach((b) =>
     const passo = b.dataset.passo === "" ? null : +b.dataset.passo;
     if (collegamento.acceso) {
       // l'agente ne parla come se gliel'avessero chiesto, e decide lui dove portare la camera
+      clearTimeout(prosegui);
       collegamento.invia(`[Argomento scelto dall'indice: ${b.textContent}]`);
       b.classList.add("chiesto");
       return;
@@ -244,6 +258,8 @@ function setState(s) {
   plancia.setLeva("power", on);
   plancia.orb.setState(s);
   suoni.setSpeaking(s === "speaking");
+  suoni.setPensa(s === "thinking");
+  aspettaGiro(s);
   if (!on) {
     livelloVoce?.stop();
     livelloMic?.stop();
@@ -251,6 +267,7 @@ function setState(s) {
   }
 }
 // la sfera segue la voce di chi visita mentre tiene premuto, quella dell'agente quando parla
+suoni.setVoce(() => livelloVoce?.get() ?? 0);
 plancia.orb.setSource(() => {
   if (premuto) return livelloMic?.get() ?? 0;
   if (stato === "speaking") return livelloVoce?.get() ?? 0;
@@ -270,6 +287,10 @@ collegamento = createCollegamento(
       livelloMic = createLivello(track);
     },
     onTranscript: sottotitolo,
+    onGiro(on) {
+      giro = on;
+      if (!on) clearTimeout(prosegui);
+    },
   }
 );
 
@@ -284,7 +305,10 @@ function premi() {
   premuto = true;
   $("#plancia").classList.add("premuto");
   statoEl.textContent = "Ti ascolto";
-  suoni.setSpeaking(true);
+  suoni.setPremuto(true);
+  scena.ascolta?.(true);
+  // chi parla ferma il giro: l'agente risponde a lei e poi decide se riprenderlo
+  clearTimeout(prosegui);
   collegamento.inizioTurno();
 }
 function rilascia() {
@@ -292,7 +316,10 @@ function rilascia() {
   premuto = false;
   $("#plancia").classList.remove("premuto");
   statoEl.textContent = LABELS[stato] || stato;
+  suoni.setPremuto(false);
   suoni.setSpeaking(stato === "speaking");
+  suoni.clic();
+  scena.ascolta?.(false);
   collegamento.fineTurno();
 }
 centro.addEventListener("pointerdown", (e) => {
@@ -311,6 +338,24 @@ addEventListener("keyup", (e) => {
   if (e.code === "Space") rilascia();
 });
 addEventListener("blur", rilascia);
+
+// ---------- Giro guidato ----------
+// Durante il giro l'agente fa una tappa e si ferma. Se chi visita resta in silenzio, dopo
+// qualche secondo la pagina gli chiede di proseguire: non serve premere per dire "avanti".
+// Basta premere (o scegliere un argomento) per fermarlo.
+const PAUSA_GIRO = 6000;
+let giro = false;
+let prosegui = 0;
+let statoPrima = "off";
+function aspettaGiro(s) {
+  const finita = statoPrima === "speaking" && s === "listening";
+  statoPrima = s;
+  clearTimeout(prosegui);
+  if (!giro || !finita) return;
+  prosegui = setTimeout(() => {
+    if (giro && !premuto && stato === "listening") collegamento.invia("[Prosegui la visita]");
+  }, PAUSA_GIRO);
+}
 
 // ---------- Pulsanti ----------
 plancia.leva("power").addEventListener("click", async () => {
@@ -335,6 +380,7 @@ plancia.leva("cc").addEventListener("click", () => {
 });
 function sottotitolo({ own, text, final }) {
   if (own) return;
+  accendiDetti(text);
   clearTimeout(ccTimer);
   // gli audio tag ([chuckles], [whispers]...) sono per la voce, non per chi legge
   const pulito = text.replace(/\[[^\]]*\]\s*/g, "").trim();

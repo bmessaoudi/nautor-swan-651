@@ -57,16 +57,15 @@ BREVE = """
 
 # Modalità attiva: risposte brevi
 
-La persona ha chiesto risposte brevi. Finché non ti chiede di raccontare di più, ogni risposta è di una frase, al massimo due: niente battute, niente tag espressivi, niente domanda finale. Vale anche nel giro guidato e dopo gli spostamenti della camera: la frase di presa in carico prima dello strumento può restare, dopo aggiungi al massimo una frase. Nel giro guidato fai una sola tappa per risposta e poi fermati, senza chiedere se proseguire: quando vuole andare avanti, la persona te lo dice."""
+La persona ha chiesto risposte brevi. Finché non ti chiede di raccontare di più, ogni risposta è di una frase, al massimo due: niente battute, niente tag espressivi, niente domanda finale. Vale anche nel giro guidato e dopo gli spostamenti della camera: la frase di presa in carico prima dello strumento può restare, dopo aggiungi al massimo una frase. Il giro guidato continua a funzionare: a ogni "[Prosegui la visita]" fai la tappa successiva, con la frase di presa in carico e una sola frase di racconto, senza aggancio né domanda. Una sola tappa per risposta, poi fermati."""
 
 TAG_AUDIO = TTS_MODEL.startswith(("eleven_v3", "eleven_v4"))
 
 SALUTO = (
-    "[warm] Computer di bordo acceso. Benvenuto sullo Swan 651: diciannove metri e novantotto di "
-    "eleganza finlandese, e io, che ne sono la memoria. [chuckles] Una memoria degli anni Ottanta, "
-    "ma lucidissima. Per parlarmi tieni premuta la sfera al centro della plancia, o la barra "
-    "spaziatrice, e lasciala quando hai finito. La camera la guido io, ma se preferisci "
-    "esplorare da solo usa il menù a sinistra: tocchi un argomento e ti ci porto."
+    "Computer di bordo acceso: benvenuto sullo Swan 651, diciannove scafi usciti da un cantiere "
+    "finlandese per fare il giro del mondo in salotto. [chuckles] Io ricordo tutto, tranne dove "
+    "ho messo le carte nautiche. Per parlarmi tieni premuta la sfera o la barra spaziatrice, "
+    "oppure scegli un argomento dal menù a sinistra."
 )
 
 ATMOSFERE = Literal["alba", "mattino", "mezzogiorno", "pomeriggio", "tramonto", "foschia", "pioggia", "a caso"]
@@ -120,6 +119,8 @@ def build_instructions(index: dict[str, Any]) -> str:
         riga += f": {p['titolo']}. {p['testo']}"
         if p["dati"]:
             riga += " Dati: " + "; ".join(f"{d['etichetta']} {d['valore']}" for d in p["dati"]) + "."
+        if p.get("inquadratura"):
+            riga += f" Inquadratura: {p['inquadratura']}"
         pagina.append(riga)
     capitoli = ", ".join(f"{c['nome']} dal passo {c['passo']}" for c in index["capitoli"])
     pagina.append(f"Capitoli: {capitoli}. Il passo 0 è l'apertura, l'ultimo è la chiusura.")
@@ -137,7 +138,8 @@ def build_instructions(index: dict[str, Any]) -> str:
     parts.append("\n".join(immagini))
 
     for f in sorted((HERE / "knowledge").glob("*.md")):
-        parts.append(f.read_text())
+        # i commenti HTML tengono le fonti accanto ai fatti: all'agente non servono
+        parts.append(re.sub(r"\s*<!--.*?-->", "", f.read_text(), flags=re.S))
     return "\n\n".join(parts)
 
 
@@ -223,6 +225,11 @@ class ComputerDiBordo(Agent):
         if not 0 <= passo <= self._last:
             raise llm.ToolError(f"I passi vanno da 0 a {self._last}.")
         r = await self._sito("sito.vaiAlPasso", passo=passo, titolo=titolo, dati=dati_json(dati))
+        # La pagina risponde subito, ma il volo dura qualche secondo: si attende fin quasi
+        # all'arrivo, così la frase di presa in carico copre lo spostamento e il racconto parte
+        # con la camera in posa. Nelle simulations non c'è nulla da guardare
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"La camera va al passo {r['passo']}."
 
     @function_tool
@@ -234,6 +241,9 @@ class ComputerDiBordo(Agent):
             dati: da zero a tre numeri da mostrare; lista vuota se non servono.
         """
         r = await self._sito("sito.mostraDettaglio", id=id, dati=dati_json(dati))
+        # come in vai_al_passo: il racconto parte quando la camera sta arrivando
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"Indicato «{r['titolo']}», al passo {r['passo']}."
 
     @function_tool
@@ -271,6 +281,9 @@ class ComputerDiBordo(Agent):
             atmosfera: l'atmosfera richiesta, oppure "a caso".
         """
         r = await self._sito("sito.cambiaMare", atmosfera=atmosfera)
+        # se la camera va in Navigazione, si attende come in vai_al_passo
+        if not self._pagina:
+            await asyncio.sleep(max(0.0, r.get("durata", 0) / 1000 - 1.0))
         return f"Ora in scena: {r['mare']} (passo {r['passo']})."
 
     @function_tool
@@ -288,6 +301,18 @@ class ComputerDiBordo(Agent):
         if attive:
             return "Da ora una frase per risposta, al massimo due, senza battute e senza domanda finale."
         return "Si torna al racconto normale."
+
+    @function_tool
+    async def giro_guidato(self, context: RunContext, attivo: bool) -> str:
+        """Accende il giro guidato quando la persona chiede di fare il giro della barca, e lo spegne quando arriva alla fine o la persona vuole altro. Col giro acceso, se la persona resta in silenzio dopo una tappa, arriva "[Prosegui la visita]".
+
+        Args:
+            attivo: true all'inizio del giro, false alla fine o quando la persona cambia discorso.
+        """
+        # la pagina legge l'attributo e, a giro acceso, chiede la tappa successiva dopo una pausa
+        if not self._pagina:
+            await self._room.local_participant.set_attributes({"bordo.giro": "1" if attivo else "0"})
+        return "Giro guidato acceso: una tappa per risposta." if attivo else "Giro guidato spento."
 
     @function_tool
     async def spegni(self, context: RunContext) -> None:
