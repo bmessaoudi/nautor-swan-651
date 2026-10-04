@@ -22,6 +22,12 @@ VENTO = {"foschia": (6, 14), "pioggia": (16, 27)}
 COSTE = ["arcipelago", "costa alta", "mare aperto"]
 
 
+def durata(da: int, a: int) -> int:
+    """Durata del volo della camera in ms, come goTo in web/src/bordo/scena.js."""
+    dist = abs(a - da)
+    return 1800 + min(dist, 4) * 450 if dist else 0
+
+
 def carica_indice() -> dict[str, Any]:
     return json.loads(INDICE.read_text())
 
@@ -59,17 +65,19 @@ class PaginaSimulata:
         self.chiamate.append((method, args))
         match method:
             case "sito.vaiAlPasso":
+                ms = durata(self.passo, args["passo"])
                 self.passo = args["passo"]
                 self.immagine = ""
-                return {"passo": self.passo}
+                return {"passo": self.passo, "durata": ms}
             case "sito.mostraDettaglio":
                 hs = self._index["hotspots"]
                 if not 0 <= args["id"] < len(hs):
                     raise ValueError(f"dettaglio {args['id']} inesistente")
                 h = hs[args["id"]]
+                ms = durata(self.passo, h["passo"])
                 self.passo = h["passo"]
                 self.immagine = ""
-                return {"passo": h["passo"], "titolo": h["titolo"]}
+                return {"passo": h["passo"], "titolo": h["titolo"], "durata": ms}
             case "sito.mostraParole":
                 return {}
             case "sito.mostraImmagine":
@@ -86,9 +94,11 @@ class PaginaSimulata:
                     atmosfera = random.choice(self._index["atmosfere"])
                 nodi = random.randint(*VENTO.get(atmosfera, (9, 24)))
                 self.mare = f"{atmosfera.capitalize()}, {nodi} nodi, {random.choice(COSTE)}"
+                ms = 0
                 if self.passo < self._navigazione:
+                    ms = durata(self.passo, self._navigazione)
                     self.passo = self._navigazione
-                return {"passo": self.passo, "mare": self.mare}
+                return {"passo": self.passo, "mare": self.mare, "durata": ms}
             case "sito.spegni":
                 self.spenta = True
                 return {}

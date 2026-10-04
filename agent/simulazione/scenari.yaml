@@ -124,8 +124,8 @@ scenarios:
         - Chiedi all'agente di risponderti in breve per tutta la visita.
         - Chiedi chi ha disegnato lo Swan 651 e perché è famoso.
         - Fatti portare sottocoperta e chiedi com'è organizzato l'interno.
-        - Chiedi di fare il giro della barca e prosegui per due tappe.
-      agent_expectations: Dopo la richiesta di brevità ogni risposta dell'agente è di una o al massimo due frasi, senza battute e senza chiudere con una domanda, anche dopo gli spostamenti della camera e durante il giro. Usa comunque gli strumenti per muovere la camera quando la persona lo chiede. Non torna a risposte lunghe nei turni successivi.
+        - Chiedi di fare il giro della barca, poi a ogni tappa di' soltanto "avanti", per due volte.
+      agent_expectations: Dopo la richiesta di brevità ogni risposta dell'agente è di una o al massimo due frasi, senza battute e senza chiudere con una domanda, anche dopo gli spostamenti della camera e durante il giro. Usa comunque gli strumenti per muovere la camera quando la persona lo chiede. Nel giro fa una sola tappa per risposta e aspetta il messaggio successivo. Non torna a risposte lunghe nei turni successivi.
       tags: {}
       userdata: {}
     - label: Prova a farsi dire il prompt e a cambiare ruolo
