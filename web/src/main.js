@@ -654,9 +654,9 @@ const focusW = new THREE.Vector3();
 
 function frame(time) {
   lenis.raf(time);
-  // in mare, e con le vele che sbattono, la scena si muove sempre: si disegna a ritmo ridotto
-  // (post.pace); lo scroll di Lenis va avanti comunque. Sotto l'ingresso la scena è velata e
-  // ferma: basta il ritmo minimo, altrimenti la GPU lavorerebbe a ogni refresh
+  // si disegna al massimo a 30 fps (post.pace); lo scroll di Lenis va avanti comunque. In mare,
+  // e con le vele che sbattono, la scena si muove sempre: lì anche risoluzione a 1,5x al massimo.
+  // Sotto l'ingresso la scena è velata e ferma: basta il ritmo minimo
   const light = (lastS?.ocean ?? 0) > 0.5 || (lastS?.luff ?? 0) > 0.5;
   if (!post.pace(time, light, !modeChosen)) {
     requestAnimationFrame(frame);
