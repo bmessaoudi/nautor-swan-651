@@ -1,0 +1,701 @@
+{
+  "passi": [
+    {
+      "passo": 0,
+      "capitolo": "Apertura",
+      "sezione": "Germán Frers per Nautor's Swan, 1982-1991",
+      "titolo": "Swan 651",
+      "pannello": "grafico-scheda",
+      "testo": "Diciannove scafi. Un maxi da regata pensato per attraversare gli oceani.",
+      "dati": []
+    },
+    {
+      "passo": 1,
+      "capitolo": "Blueprint",
+      "sezione": "01 / Blueprint",
+      "titolo": "Da che idea nasce",
+      "pannello": "tavola-profilo-pianta-651-002",
+      "testo": "All'inizio degli anni Ottanta Frers porta in un cruiser di serie la tecnologia dei maxi Grand Prix e l'esperienza della Whitbread, il giro del mondo a tappe. Il cantiere di Pietarsaari chiede una barca che vinca in regata senza smettere di essere una casa sul mare.",
+      "dati": []
+    },
+    {
+      "passo": 2,
+      "capitolo": "Blueprint",
+      "sezione": "01 / Blueprint",
+      "titolo": "Per chi è stata pensata",
+      "pannello": "grafico-dimensioni",
+      "testo": "Per un armatore che naviga con la famiglia e un piccolo equipaggio professionale. Per chi vuole correre a Porto Cervo a settembre e attraversare l'Atlantico a novembre, sulla stessa barca e con lo stesso comfort.",
+      "dati": [
+        {
+          "etichetta": "Lunghezza",
+          "valore": "19,98 m"
+        },
+        {
+          "etichetta": "Baglio",
+          "valore": "5,31 m"
+        },
+        {
+          "etichetta": "Galleggiamento",
+          "valore": "16,80 m"
+        },
+        {
+          "etichetta": "Esemplari",
+          "valore": "19"
+        }
+      ]
+    },
+    {
+      "passo": 3,
+      "capitolo": "Blueprint",
+      "sezione": "01 / Blueprint",
+      "titolo": "L'armo",
+      "pannello": "grafico-armo",
+      "testo": "Sloop in testa d'albero, tre ordini di crocette, paterazzo e volanti. In origine le manovre erano tutte manuali, con i coffee grinder in pozzetto. Su diversi scafi oggi alcuni verricelli sono elettrici. Misure dal certificato IRC di uno Swan 651.",
+      "dati": [
+        {
+          "etichetta": "P (randa)",
+          "valore": "24,00 m"
+        },
+        {
+          "etichetta": "E (base randa)",
+          "valore": "7,04 m"
+        },
+        {
+          "etichetta": "J",
+          "valore": "8,05 m"
+        },
+        {
+          "etichetta": "Superficie di bolina",
+          "valore": "~194 m²"
+        }
+      ]
+    },
+    {
+      "passo": 4,
+      "capitolo": "Esterni",
+      "sezione": "02",
+      "titolo": "Esterni",
+      "pannello": "swan-cup-porto-cervo",
+      "testo": "La linea diventa scafo. Gelcoat bianco, carena rossa, il filetto che corre sotto la falchetta.",
+      "dati": []
+    },
+    {
+      "passo": 5,
+      "capitolo": "Esterni",
+      "sezione": "02 / Lo scafo",
+      "titolo": "Uno scafo da maxi",
+      "pannello": "grafico-carena",
+      "testo": "Slancio di prua lungo, poppa a specchio rovescio che lascia lo spigolo basso a sessanta centimetri dall'acqua. Sotto, una pinna con scarpa in piombo e il timone appeso allo skeg, che lo protegge in oceano.",
+      "dati": []
+    },
+    {
+      "passo": 6,
+      "capitolo": "Esterni",
+      "sezione": "02 / Il piano di coperta",
+      "titolo": "Una coperta per manovrare",
+      "pannello": "pianta-coperta-swan-651",
+      "testo": "Un pozzetto di manovra profondo e protetto, con la timoneria rialzata a poppa sopra la cabina armatoriale. La tuga è stretta, larga circa metà della coperta, per lasciare passavanti ampi. Teak su tutta la superficie.",
+      "dati": []
+    },
+    {
+      "passo": 7,
+      "capitolo": "Esterni",
+      "sezione": "02 / Le vele",
+      "titolo": "Le vele si gonfiano",
+      "pannello": "grafico-vele",
+      "testo": "Randa e genoa in laminato. Con il vento in poppa entra in gioco lo spinnaker da 388 m², il doppio dell'intera superficie di bolina.",
+      "dati": [
+        {
+          "etichetta": "Randa",
+          "valore": "86,1 m²"
+        },
+        {
+          "etichetta": "Fiocco",
+          "valore": "107,9 m²"
+        },
+        {
+          "etichetta": "Genoa 150%",
+          "valore": "161,8 m²"
+        },
+        {
+          "etichetta": "Spinnaker",
+          "valore": "388 m²"
+        }
+      ]
+    },
+    {
+      "passo": 8,
+      "capitolo": "Esterni",
+      "sezione": "02 / Caratteristiche marine",
+      "titolo": "Peso dove serve",
+      "pannello": "grafico-pesi",
+      "testo": "Quattordici tonnellate di piombo, il 40% del dislocamento, tutte sotto il galleggiamento. È ciò che permette alla barca di portare tela con vento forte senza sbandare troppo.",
+      "dati": [
+        {
+          "etichetta": "Dislocamento",
+          "valore": "36,0 t"
+        },
+        {
+          "etichetta": "Zavorra",
+          "valore": "14,4 t"
+        },
+        {
+          "etichetta": "Pescaggio",
+          "valore": "3,23 m"
+        },
+        {
+          "etichetta": "Rapporto D/L",
+          "valore": "212"
+        }
+      ]
+    },
+    {
+      "passo": 9,
+      "capitolo": "Interni",
+      "sezione": "03",
+      "titolo": "Interni",
+      "pannello": "dinette",
+      "testo": "Si toglie la coperta. Sotto, quindici metri di spazio vivibile disegnati come una casa: zona armatore a poppa, vita comune al centro, ospiti e vele a prua.",
+      "dati": []
+    },
+    {
+      "passo": 10,
+      "capitolo": "Interni",
+      "sezione": "03 / Disposizione",
+      "titolo": "Da poppa a prua",
+      "pannello": "pianta-interni-swan-651",
+      "testo": "Cabina armatoriale a poppa, con bagno e doccia Sala macchine sotto il pozzetto Cucina a sinistra, carteggio e cabina ospiti a dritta Dinette con tavolo a U attorno all'albero Due cabine e due bagni prodieri Cabina a V e gavone delle vele",
+      "dati": []
+    },
+    {
+      "passo": 11,
+      "capitolo": "Interni",
+      "sezione": "03 / Ospiti",
+      "titolo": "Otto ospiti, due di equipaggio",
+      "pannello": "cabina-armatore",
+      "testo": "Nella configurazione tipica quattro cabine ospiti, tre bagni e una cabina per due di equipaggio. La cabina armatoriale è separata dal resto della barca dalla sala macchine: chi possiede il 651 ha la sua casa nella casa. Fonti: Second Wind (Fraser) e Show Me (Brewer). Alcuni scafi hanno layout diversi; il modello segue la tavola di Adrienne II, scafo modificato.",
+      "dati": [
+        {
+          "etichetta": "Cabine ospiti",
+          "valore": "4"
+        },
+        {
+          "etichetta": "Bagni",
+          "valore": "3"
+        },
+        {
+          "etichetta": "Equipaggio",
+          "valore": "2"
+        }
+      ]
+    },
+    {
+      "passo": 12,
+      "capitolo": "Interni",
+      "sezione": "03 / Materiali",
+      "titolo": "Teak, holly, pelle",
+      "pannello": "barografo",
+      "testo": "La ricerca stilistica Swan di quegli anni è nordica e calda: teak miele satinato in ogni superficie, pagliolo a listelli di teak e holly, cielino bianco a doghe, divani in pelle rossa. Prima rifinitura degli interni: cuscini a moduli, porte ad arco, librerie, cucina e carteggio. Bagni e cabine restano semplificati.",
+      "dati": []
+    },
+    {
+      "passo": 13,
+      "capitolo": "Navigazione",
+      "sezione": "04",
+      "titolo": "Navigazione",
+      "pannello": "di-bolina-sbandata",
+      "testo": "Fuori dal cantiere, in mare aperto. È qui che il disegno di Frers si spiega.",
+      "dati": []
+    },
+    {
+      "passo": 14,
+      "capitolo": "Navigazione",
+      "sezione": "04 / Velocità",
+      "titolo": "Otto nodi di media, per settimane",
+      "pannello": "grafico-polare",
+      "testo": "Con sedici metri e mezzo di galleggiamento la velocità critica dello scafo sfiora i dieci nodi, e al lasco con vento fresco la barca la supera. Polare dal certificato ORC di uno Swan 651. Il punto di bolina è ricavato dal VMG con un angolo di 42° stimato. Velocità critica 9,9 kn.",
+      "dati": []
+    },
+    {
+      "passo": 15,
+      "capitolo": "Navigazione",
+      "sezione": "04 / Rotte",
+      "titolo": "Dove può andare",
+      "pannello": "grafico-rotte",
+      "testo": "Mediterraneo, Porto Cervo e Capri, ~260 mn Traversata atlantica, Canarie e Antigua, ~2.700 mn Pacifico, Panama e Marchesi, ~4.000 mn",
+      "dati": []
+    },
+    {
+      "passo": 16,
+      "capitolo": "Navigazione",
+      "sezione": "04 / Blue water",
+      "titolo": "Progettata per l'oceano",
+      "pannello": "spirit-of-helsinki-citta-del-capo",
+      "testo": "Blue water vuol dire poter stare settimane lontano da un porto. Timone protetto dallo skeg, pozzetto profondo e sicuro, 1.100 litri di gasolio e circa 1.300 di acqua, un diesel Perkins da 116 cavalli. Spirit of Helsinki, che allora si chiamava Fazer Finland, arrivò terza alla Whitbread 1985-86.",
+      "dati": [
+        {
+          "etichetta": "Autonomia a 7-8 kn",
+          "valore": "~700 mn"
+        },
+        {
+          "etichetta": "Zavorra / dislocamento",
+          "valore": "40%"
+        },
+        {
+          "etichetta": "SA/D",
+          "valore": "18,1"
+        },
+        {
+          "etichetta": "Motore",
+          "valore": "116 hp"
+        }
+      ]
+    },
+    {
+      "passo": 17,
+      "capitolo": "Navigazione",
+      "sezione": "Germán Frers, 1982-1991",
+      "titolo": "Diciannove scafi",
+      "pannello": "ritratto-ad-acquerello",
+      "testo": "Il prossimo capitolo: la storia di ognuno di loro.",
+      "dati": []
+    }
+  ],
+  "capitoli": [
+    {
+      "nome": "Blueprint",
+      "passo": 1
+    },
+    {
+      "nome": "Esterni",
+      "passo": 4
+    },
+    {
+      "nome": "Interni",
+      "passo": 9
+    },
+    {
+      "nome": "Navigazione",
+      "passo": 13
+    }
+  ],
+  "hotspots": [
+    {
+      "id": 0,
+      "passo": 5,
+      "titolo": "Slancio di prua",
+      "testo": "1,63 m di slancio: la barca si allunga quando sbanda e guadagna galleggiamento."
+    },
+    {
+      "id": 1,
+      "passo": 5,
+      "titolo": "Specchio rovescio",
+      "testo": "Lo spigolo basso è l'estremo poppiero, a 0,60 m sull'acqua."
+    },
+    {
+      "id": 2,
+      "passo": 5,
+      "titolo": "Pinna e piombo",
+      "testo": "Pinna con scarpa in piombo, pescaggio 3,23 m nella versione Mod."
+    },
+    {
+      "id": 3,
+      "passo": 5,
+      "titolo": "Timone su skeg",
+      "testo": "Lo skeg sostiene e protegge la pala: una scelta da oceano più che da regata."
+    },
+    {
+      "id": 4,
+      "passo": 6,
+      "titolo": "Pozzetto",
+      "testo": "Pozzetto di manovra profondo e protetto, con i coffee grinder."
+    },
+    {
+      "id": 5,
+      "passo": 6,
+      "titolo": "Timoneria",
+      "testo": "Piattaforma rialzata a poppa, sopra la cabina armatoriale."
+    },
+    {
+      "id": 6,
+      "passo": 6,
+      "titolo": "Tuga",
+      "testo": "Larga circa il 52% della coperta: passavanti ampi per lavorare a prua."
+    },
+    {
+      "id": 7,
+      "passo": 6,
+      "titolo": "Verricelli",
+      "testo": "Tre coppie sulla tuga e in pozzetto. In origine manuali, su diversi scafi oggi alcuni sono elettrici."
+    },
+    {
+      "id": 8,
+      "passo": 6,
+      "titolo": "Teak",
+      "testo": "Coperta interamente in teak, doghe allineate alla falchetta."
+    },
+    {
+      "id": 9,
+      "passo": 7,
+      "titolo": "Randa",
+      "testo": "86,1 m², P 24,00 m, E 7,04 m."
+    },
+    {
+      "id": 10,
+      "passo": 7,
+      "titolo": "Fiocco",
+      "testo": "107,9 m², inferitura 26,56 m."
+    },
+    {
+      "id": 11,
+      "passo": 7,
+      "titolo": "Albero",
+      "testo": "Passante in chiglia, tre ordini di crocette, testa a 27,5 m sull'acqua."
+    },
+    {
+      "id": 12,
+      "passo": 8,
+      "titolo": "Zavorra 14,4 t",
+      "testo": "Il 40% del dislocamento, concentrato in basso."
+    },
+    {
+      "id": 13,
+      "passo": 8,
+      "titolo": "Galleggiamento",
+      "testo": "16,80 m su 19,98 di lunghezza fuori tutto."
+    },
+    {
+      "id": 14,
+      "passo": 8,
+      "titolo": "Skeg",
+      "testo": "Davanti al timone, come sulle barche da giro del mondo."
+    },
+    {
+      "id": 15,
+      "passo": 10,
+      "titolo": "Armatore",
+      "testo": "Cabina di poppa con due cuccette, bagno e doccia."
+    },
+    {
+      "id": 16,
+      "passo": 10,
+      "titolo": "Sala macchine",
+      "testo": "Sotto il pozzetto: Perkins 6.354 e, su molti scafi, un generatore aggiunto dopo."
+    },
+    {
+      "id": 17,
+      "passo": 10,
+      "titolo": "Cucina",
+      "testo": "A sinistra, banco a L con penisola, vicino alla scala."
+    },
+    {
+      "id": 18,
+      "passo": 10,
+      "titolo": "Carteggio",
+      "testo": "A dritta, con la cabina ospiti alle spalle."
+    },
+    {
+      "id": 19,
+      "passo": 10,
+      "titolo": "Dinette",
+      "testo": "Tavolo a U e divani in pelle rossa attorno all'albero."
+    },
+    {
+      "id": 20,
+      "passo": 11,
+      "titolo": "Ospiti a dritta",
+      "testo": "Cabina con cuccetta, alle spalle del carteggio."
+    },
+    {
+      "id": 21,
+      "passo": 10,
+      "titolo": "Cabine ospiti",
+      "testo": "Due cabine e due bagni prodieri."
+    },
+    {
+      "id": 22,
+      "passo": 10,
+      "titolo": "Cabina a V",
+      "testo": "A prua, prima del gavone delle vele."
+    },
+    {
+      "id": 23,
+      "passo": 12,
+      "titolo": "Pelle rossa",
+      "testo": "Divani della dinette, scelta per questa ricostruzione."
+    },
+    {
+      "id": 24,
+      "passo": 12,
+      "titolo": "Teak miele",
+      "testo": "Paratie e mobili in teak satinato."
+    },
+    {
+      "id": 25,
+      "passo": 12,
+      "titolo": "Teak e holly",
+      "testo": "Pagliolo a listelli, il classico dei Swan nordici."
+    }
+  ],
+  "immagini": [
+    {
+      "id": "grafico-polare",
+      "titolo": "Polare",
+      "descrizione": "Diagramma polare: velocità della barca per angolo al vento con 10, 16 e 20 nodi di vento reale."
+    },
+    {
+      "id": "grafico-rotte",
+      "titolo": "Dove può andare",
+      "descrizione": "Mappa con tre rotte: Mediterraneo fra Porto Cervo e Capri (circa 260 miglia), traversata atlantica Canarie e Antigua (circa 2.700), Pacifico fra Panama e Marchesi (circa 4.000)."
+    },
+    {
+      "id": "grafico-scheda",
+      "titolo": "Scheda tecnica",
+      "descrizione": "Scheda generale con il profilo dello scafo: progetto Germán Frers, cantiere Nautor's Swan, costruita dal 1982 al 1991 in 19 esemplari, 19,98 m di lunghezza, 5,31 m di baglio, 36,0 t di dislocamento, 14,4 t di zavorra, armo sloop, circa 194 m² di vele di bolina."
+    },
+    {
+      "id": "grafico-dimensioni",
+      "titolo": "Le misure",
+      "descrizione": "Profilo e pianta dello scafo quotati: lunghezza 19,98 m, galleggiamento 16,80 m, baglio 5,31 m."
+    },
+    {
+      "id": "grafico-carena",
+      "titolo": "Sotto la linea d'acqua",
+      "descrizione": "Profilo della carena con l'opera viva in evidenza: pinna di chiglia con bulbo in piombo, timone su skeg, pescaggio 3,23 m."
+    },
+    {
+      "id": "grafico-armo",
+      "titolo": "Il piano velico",
+      "descrizione": "Piano velico quotato dello sloop in testa d'albero: P 24,00 m, E 7,04 m, J 8,05 m, I stimata circa 25,3 m, tre ordini di crocette."
+    },
+    {
+      "id": "grafico-vele",
+      "titolo": "Le superfici",
+      "descrizione": "Confronto a barre delle superfici: randa 86,1 m², fiocco 107,9, genoa 150% 161,8, spinnaker 388."
+    },
+    {
+      "id": "grafico-pesi",
+      "titolo": "La zavorra",
+      "descrizione": "Anello con la quota della zavorra sul dislocamento: 14,4 t di piombo su 36,0 t, il 40% del peso."
+    },
+    {
+      "id": "in-regata-dall-alto",
+      "titolo": "In regata",
+      "descrizione": "Uno Swan 651 visto dall'alto mentre risale il vento sbandato, equipaggio in rosso e bianco schierato in falchetta, scafo bianco con fascia rossa e coperta in teak."
+    },
+    {
+      "id": "swan-cup-porto-cervo",
+      "titolo": "Rolex Swan Cup",
+      "descrizione": "Uno Swan 651 bianco in regata alla Rolex Swan Cup di Porto Cervo, con l'equipaggio in rosso al lavoro in pozzetto."
+    },
+    {
+      "id": "spinnaker-rosso",
+      "titolo": "Lo spinnaker",
+      "descrizione": "Uno Swan 651 con lo spinnaker rosso a riva, davanti alle rocce di granito della Sardegna settentrionale."
+    },
+    {
+      "id": "scafo-blu-in-regata",
+      "titolo": "Scafo blu",
+      "descrizione": "Uno Swan 651 blu scuro ripreso dall'alto mentre corre sbandato alla Rolex Swan Cup, con l'equipaggio in falchetta."
+    },
+    {
+      "id": "di-bolina-sbandata",
+      "titolo": "Di bolina",
+      "descrizione": "Uno Swan 651 molto sbandato di bolina, con l'equipaggio al lavoro in pozzetto."
+    },
+    {
+      "id": "dettagli-gialli",
+      "titolo": "Mare formato",
+      "descrizione": "Uno Swan 651 di bolina con mare formato, con dettagli gialli sullo scafo e sulla capottina."
+    },
+    {
+      "id": "equipaggio-in-falchetta",
+      "titolo": "Di bolina",
+      "descrizione": "Uno Swan 651 blu di bolina con l'equipaggio seduto in falchetta."
+    },
+    {
+      "id": "di-bolina-in-sardegna",
+      "titolo": "Di bolina",
+      "descrizione": "Uno Swan 651 dallo scafo scuro di bolina davanti alla costa della Sardegna, con l'equipaggio in bianco in falchetta."
+    },
+    {
+      "id": "equipaggio-sul-podio",
+      "titolo": "L'equipaggio",
+      "descrizione": "L'equipaggio di uno Swan 651, in maglie bianche e pantaloni rossi, festeggia sul palco di una premiazione con i trofei in mano; evento e anno non indicati."
+    },
+    {
+      "id": "ritratto-ad-acquerello",
+      "titolo": "Un acquerello",
+      "descrizione": "Acquerello di uno Swan 651 di bolina con lo spinnaker rosso e l'equipaggio in falchetta, con un breve testo scritto a mano in inglese."
+    },
+    {
+      "id": "foto-d-epoca",
+      "titolo": "Foto d'epoca",
+      "descrizione": "Uno Swan 651 in navigazione veloce con randa e genoa, equipaggio in coperta, in una foto d'epoca dai colori un po' sbiaditi."
+    },
+    {
+      "id": "versione-allungata",
+      "titolo": "Versione allungata",
+      "descrizione": "Uno Swan 651 allungato a 70 piedi, in navigazione a vele spiegate con bandiera svedese e il tendalino sul pozzetto."
+    },
+    {
+      "id": "allungata-al-traverso",
+      "titolo": "Al traverso",
+      "descrizione": "Uno Swan 651 allungato a 70 piedi, al traverso con randa e genoa e la bandiera svedese a poppa."
+    },
+    {
+      "id": "extended-fra-gli-scogli",
+      "titolo": "Versione Extended",
+      "descrizione": "Uno Swan 651 Extended di bolina fra gli scogli di un arcipelago nordico, con un carattere giapponese sulla vela di prua e l'opera viva rossa."
+    },
+    {
+      "id": "costa-montuosa",
+      "titolo": "Di bolina",
+      "descrizione": "Uno Swan 651 dallo scafo scuro di bolina con randa e genoa davanti a una costa verde e montuosa; foto piccola, da mostrare in formato ridotto."
+    },
+    {
+      "id": "equipaggio-numeroso",
+      "titolo": "Tanti a bordo",
+      "descrizione": "Uno Swan 651 blu scuro in navigazione a vela in acque chiare, con a bordo un gruppo numeroso di persone."
+    },
+    {
+      "id": "blu-notte",
+      "titolo": "Scafo blu notte",
+      "descrizione": "Uno Swan 651 blu notte a motore lungo una costa rocciosa, con la randa raccolta nel lazy bag."
+    },
+    {
+      "id": "alla-fonda",
+      "titolo": "Alla fonda",
+      "descrizione": "Uno Swan 651 blu scuro fermo davanti a una costa rocciosa bassa, visto di fianco con le vele ammainate."
+    },
+    {
+      "id": "ormeggiata-a-monaco",
+      "titolo": "In porto",
+      "descrizione": "Uno Swan 651 ormeggiato nel porto di Monaco con bandiera rossa britannica a poppa e ospiti in pozzetto."
+    },
+    {
+      "id": "all-ormeggio",
+      "titolo": "All'ormeggio",
+      "descrizione": "Uno Swan 651 visto di tre quarti da poppa all'ormeggio, con la capottina sul pozzetto."
+    },
+    {
+      "id": "ormeggiata-in-california",
+      "titolo": "In California",
+      "descrizione": "Uno Swan 651 ormeggiato in California, visto di tre quarti da poppa."
+    },
+    {
+      "id": "al-pontile",
+      "titolo": "Al pontile",
+      "descrizione": "Uno Swan 651 blu ormeggiato di poppa a un pontile sotto un cielo limpido."
+    },
+    {
+      "id": "porto-fra-le-colline",
+      "titolo": "In porto",
+      "descrizione": "Uno Swan 651 ormeggiato in un porto con colline brulle alle spalle."
+    },
+    {
+      "id": "marina-di-singapore",
+      "titolo": "Ai tropici",
+      "descrizione": "Uno Swan 651 blu scuro ormeggiato in una marina di Singapore, visto da poppa."
+    },
+    {
+      "id": "a-secco-in-cantiere",
+      "titolo": "A secco",
+      "descrizione": "Uno Swan 651 fuori dall'acqua su invasatura, con l'opera viva rossa e la pinna di chiglia con bulbo della versione Mod ben visibili, una Vespa parcheggiata sotto lo scafo."
+    },
+    {
+      "id": "dopo-la-tempesta",
+      "titolo": "Dopo la tempesta",
+      "descrizione": "Uno Swan 651 rovesciato a terra nel piazzale di un cantiere dopo una tempesta, con l'albero spezzato."
+    },
+    {
+      "id": "targa-del-cantiere",
+      "titolo": "Targa del cantiere",
+      "descrizione": "La targa in ottone Nautor's Swan a bordo di uno Swan 651, con la firma di German Frers, il numero di scafo e la data di costruzione."
+    },
+    {
+      "id": "cabina-armatore",
+      "titolo": "Cabina armatore",
+      "descrizione": "La cabina armatore a poppa di uno Swan 651, con letto centrale, due divanetti laterali e boiserie in teak."
+    },
+    {
+      "id": "dinette",
+      "titolo": "La dinette",
+      "descrizione": "La dinette di uno Swan 651: divani a U blu, tavolo in legno lucido, libreria, scaletta del tambuccio e osteriggi sul cielo, tutto in teak."
+    },
+    {
+      "id": "salone-ovale",
+      "titolo": "Il salone ovale",
+      "descrizione": "Il salone ovale di uno Swan 651 con gli interni rifatti: tavolo apparecchiato per la cena, divano a ferro di cavallo, libreria e applique. Non è la disposizione originale."
+    },
+    {
+      "id": "barografo",
+      "titolo": "Il barografo",
+      "descrizione": "Il barografo in ottone di uno Swan 651 nella sua teca di teak accanto al carteggio, con il quadro elettrico originale e la dinette sullo sfondo: legno e ottone degli interni Swan."
+    },
+    {
+      "id": "carteggio",
+      "titolo": "Il carteggio",
+      "descrizione": "La stazione di carteggio di uno Swan 651: quadro elettrico originale con interruttori e strumenti analogici, accanto a schermi moderni, barometro e orologio in ottone."
+    },
+    {
+      "id": "pozzetto-dall-alto",
+      "titolo": "Il pozzetto",
+      "descrizione": "Il pozzetto di uno Swan 651 visto dall'alto in porto: ruota del timone, colonnina strumenti e i grandi winch cromati ai lati."
+    },
+    {
+      "id": "verricelli-elettrici",
+      "titolo": "I verricelli",
+      "descrizione": "Un grosso winch Harken nel pozzetto di uno Swan 651 con la scotta avvolta, e sotto i pulsanti rossi dei comandi elettrici dei verricelli."
+    },
+    {
+      "id": "fazer-finland-whitbread",
+      "titolo": "Fazer Finland",
+      "descrizione": "Fazer Finland, oggi Spirit of Helsinki, al lasco con randa e genoa e il nome dello sponsor sulla murata: lo Swan 651 che arrivò terzo alla Whitbread 1985-86."
+    },
+    {
+      "id": "fazer-finland-spinnaker-l71",
+      "titolo": "Fazer Finland",
+      "descrizione": "Fazer Finland con il grande spinnaker blu con la scritta FAZER e il numero velico L 71, l'epoca della Whitbread di metà anni Ottanta."
+    },
+    {
+      "id": "spirit-of-helsinki-di-bolina",
+      "titolo": "Spirit of Helsinki",
+      "descrizione": "Spirit of Helsinki, la ex Fazer Finland, di bolina con il numero 71 sulla murata e la bandiera finlandese."
+    },
+    {
+      "id": "spirit-of-helsinki-citta-del-capo",
+      "titolo": "Spirit of Helsinki",
+      "descrizione": "Spirit of Helsinki, la ex Fazer Finland, vista da poppa a Città del Capo, con la Table Mountain sullo sfondo."
+    },
+    {
+      "id": "tavola-profilo-pianta-651-002",
+      "titolo": "La tavola di progetto",
+      "descrizione": "La tavola ufficiale Nautor's Swan di Adrienne II, scafo 651-002, con il profilo di carena, chiglia e timone e la pianta degli interni: il riferimento da cui è nato il modello 3D del museo."
+    },
+    {
+      "id": "piano-velico-swan-651",
+      "titolo": "Il piano velico",
+      "descrizione": "Il piano velico ufficiale dello Swan 651: profilo della barca con albero, randa e fiocco, disegno al tratto su fondo bianco."
+    },
+    {
+      "id": "pianta-interni-swan-651",
+      "titolo": "Gli interni",
+      "descrizione": "La pianta degli interni dello Swan 651 vista dall'alto, prua a destra: cabina armatore a poppa, cucina e carteggio, salone al centro, cabine ospiti e bagni verso prua, gavone di prua."
+    },
+    {
+      "id": "pianta-coperta-swan-651",
+      "titolo": "La coperta",
+      "descrizione": "Il disegno della coperta dello Swan 651 visto dall'alto: pozzetto a poppa, posizione dei winch, osteriggi e tuga, utile per spiegare le manovre."
+    }
+  ],
+  "atmosfere": [
+    "alba",
+    "mattino",
+    "mezzogiorno",
+    "pomeriggio",
+    "tramonto",
+    "foschia",
+    "pioggia"
+  ]
+}
