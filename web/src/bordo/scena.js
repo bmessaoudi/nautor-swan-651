@@ -4,7 +4,7 @@
 // tutti quelli in mezzo; negli interni si accendono le luci di cabina.
 // Quando i due branch si uniranno in main, le parti comuni andranno in un modulo condiviso.
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createGLTFLoader, edgesOf } from "../gltf-loader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { KEYS, HOTSPOTS, CHAPTERS } from "../story.js";
 import { createOcean } from "../ocean.js";
@@ -348,7 +348,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
 
   // ---------- Modello ----------
   const ready = new Promise((resolve, reject) => {
-    new GLTFLoader().load(
+    createGLTFLoader(renderer).load(
       "/models/swan651.glb",
       (gltf) => {
         const root = gltf.scene;
@@ -381,7 +381,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
           }
           const interior = o.name.startsWith("Interior");
           const angle = o.name === "Hull" ? 3 : interior ? 40 : o.name === "Rigging" || o.name === "Lifelines" ? 60 : 28;
-          const lines = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, angle), interior ? lineMatInterior : lineMat);
+          const lines = new THREE.LineSegments(edgesOf(o, angle), interior ? lineMatInterior : lineMat);
           lines.renderOrder = 10;
           o.add(lines);
         });
