@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createFFT } from "./fft/simulation.js";
+import { createDetailTexture, DETAIL_ENC } from "./fft/detail.js";
 
 // Mare e cielo del capitolo Navigazione.
 // Il mare è un oceano FFT (fft/simulation.js): tre cascate di onde calcolate sulla GPU da uno
@@ -57,21 +58,6 @@ float waterHeight(vec2 x) {
   vec2 p = x;
   for (int k = 0; k < 2; k++) p = x - waterOffset(p, 0.0).xz;
   return waterOffset(p, 0.0).y;
-}
-`;
-
-const NOISE = /* glsl */ `
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float noise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
-}
-float fbm(vec2 p) {
-  float a = 0.5, s = 0.0;
-  for (int i = 0; i < 4; i++) { s += a * noise(p); p = p * 2.03 + 17.0; a *= 0.5; }
-  return s;
 }
 `;
 
@@ -147,6 +133,7 @@ uniform vec3 uSss;
 uniform sampler2D uRefl;
 uniform float uReflOn;
 uniform vec2 uResolution;
+uniform mat4 projectionMatrix;
 uniform sampler2D uFoamTex;
 uniform vec4 uFoamBox;
 uniform float uHeading;
@@ -154,11 +141,41 @@ uniform sampler2D uDeriv0;
 uniform sampler2D uDeriv1;
 uniform sampler2D uDeriv2;
 uniform vec3 uCascade;
+uniform sampler2D uDetailTex;
+uniform float uDetail;
+uniform vec2 uWind;
+uniform sampler2D uFoamPat;
 varying vec3 vWorld;
 varying vec2 vFlow;
 varying float vFade;
-${NOISE}
 ${SKY}
+
+vec2 rot(vec2 v, float a) {
+  float c = cos(a), s = sin(a);
+  return vec2(c * v.x - s * v.y, s * v.x + c * v.y);
+}
+vec2 dec(vec2 t) { return (t * 2.0 - 1.0) * ${DETAIL_ENC.toFixed(2)}; }
+// Increspature di dettaglio: pendenze nel piano del mondo. Lati 6,1 m (onde da 2 m a 11 cm) e
+// 1,37 m (da 45 a 2,5 cm), rapporto non intero. Ogni lettura scorre lungo la sua direzione, a
+// velocità vicine a quelle di fase di quelle onde. Ogni scala si spegne quando il pixel copre
+// più di un decimo del suo lato (la mipmap da sola, di taglio, lascerebbe scintillare l'orizzonte)
+// e la pendenza persa va nella ruvidità del riflesso del sole, come la mipmap di Toksvig.
+vec2 detailSlope(float footprint, out float lost) {
+  vec2 wper = vec2(-uWind.y, uWind.x);
+  vec2 wq = vec2(dot(vFlow, uWind), dot(vFlow, wper));
+  vec4 a1 = texture2D(uDetailTex, (rot(wq, 0.32) - vec2(uTime * 1.3, 0.0)) / 6.1);
+  vec4 a2 = texture2D(uDetailTex, (rot(wq, -0.41) - vec2(uTime * 0.9, 0.0)) / 6.1 + vec2(0.43, 0.17));
+  vec4 b1 = texture2D(uDetailTex, (rot(wq, 0.55) - vec2(uTime * 0.5, 0.0)) / 1.37);
+  vec4 b2 = texture2D(uDetailTex, (rot(wq, -0.27) - vec2(uTime * 0.34, 0.0)) / 1.37 + vec2(0.61, 0.29));
+  float wA = 1.0 - smoothstep(6.1 / 90.0, 6.1 / 10.0, footprint);
+  float wB = 1.0 - smoothstep(1.37 / 90.0, 1.37 / 10.0, footprint);
+  float aA = uDetail * 0.707;
+  float aB = uDetail * 0.6 * 0.707;
+  vec2 g = (rot(dec(a1.rg), -0.32) + rot(dec(a2.ba), 0.41)) * aA * wA
+         + (rot(dec(b1.rg), -0.55) + rot(dec(b2.ba), 0.27)) * aB * wB;
+  lost = 2.0 * (aA * aA * (1.0 - wA) + aB * aB * (1.0 - wB));
+  return uWind * g.x + wper * g.y;
+}
 
 // Sole come disco e non come punto (Karis 2013, usato da Sea of Thieves per il sole basso):
 // si prende il punto del disco più vicino al raggio riflesso.
@@ -186,6 +203,16 @@ void main() {
   vec4 c1 = texture2D(uDeriv1, vFlow / uCascade.y);
   vec4 c2 = texture2D(uDeriv2, vFlow / uCascade.z);
   vec2 slope = (c0.xy + c1.xy + c2.xy) * vFade;
+  // increspature sotto la cascata più piccola (fft/detail.js): due scale, ognuna letta due volte
+  // con direzioni e velocità diverse attorno al vento, così cambiano forma invece di scivolare
+  // rigide. Seguono l'acqua (vFlow comprende uOff) e non si smorzano attorno allo scafo.
+  // impronta del pixel sull'acqua in metri: distanza per angolo del pixel, allungata di taglio
+  // (media geometrica dei due assi). fwidth(vFlow) sarebbe costante per triangolo e la griglia
+  // radiale disegnerebbe anelli dove la sfumatura cambia gradino
+  vec3 vd = vWorld - cameraPosition;
+  float footprint = length(vd) * 2.0 / (projectionMatrix[1][1] * uResolution.y) / sqrt(max(abs(vd.y) / length(vd), 0.03));
+  float lost;
+  slope += detailSlope(footprint, lost);
   vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
   // in lontananza un filo più piatta: il riflesso del cielo non deve sfarfallare
   n = normalize(mix(n, vec3(0.0, 1.0, 0.0), far * 0.35));
@@ -217,23 +244,29 @@ void main() {
   vec3 col = mix(body, refl, fres * (1.0 - boatRefl.a * uReflOn * 0.15));
 
   // sole: disco più largo quando è basso, riflesso più ruvido in lontananza
-  float spec = areaSpec(n, vdir, uSunDir, uSunRadius, mix(0.06, 0.2, far));
+  // la pendenza delle increspature spente in lontananza allarga il riflesso (α² = α0² + 2σ²)
+  float r0 = mix(0.06, 0.2, far);
+  float spec = areaSpec(n, vdir, uSunDir, uSunRadius, sqrt(sqrt(r0 * r0 * r0 * r0 + lost)));
   col += uSunCol * spec * 0.22 * (1.0 - boatRefl.a * uReflOn);
 
-  // schiuma (come AC3): tre trame a scale diverse, una rampa sceglie quanto mostrarne
-  float coarse = fbm(vFlow * 0.18);
-  float medium = fbm(vFlow * 0.9 + 3.1);
-  float sparse = smoothstep(0.55, 0.8, noise(vFlow * 3.3));
+  // Schiuma. Le maschere dicono dove ce n'è e quanto è fresca (Jacobiano delle creste, strisce,
+  // buffer della scia); la forma la dà una foto di schiuma vera (ambientCG Foam001, CC0),
+  // equalizzata: il valore del texel è il suo quantile. Così la maschera fa da soglia: fresca
+  // copre quasi tutto, mentre si spegne restano solo i filamenti più chiari e si sfalda a merletto.
+  // Due scale ruotate e sfalsate (rapporto non intero) nascondono la ripetizione, una terza molto
+  // larga varia la quantità da un'onda all'altra.
+  float fa = texture2D(uFoamPat, mat2(0.8, -0.6, 0.6, 0.8) * vFlow / 6.7).r;
+  float fb = texture2D(uFoamPat, mat2(0.36, 0.93, -0.93, 0.36) * vFlow / 2.3 + vec2(0.37, 0.71) + uTime * vec2(0.006, 0.004)).r;
+  float coarse = texture2D(uFoamPat, mat2(0.6, 0.8, -0.8, 0.6) * vFlow / 53.0).r;
+  float fp = fa * 0.62 + fb * 0.38;
   // creste: la schiuma della FFT, dove l'onda si ripiega e nei secondi dopo (si spegne piano)
   float fftFoam = clamp(c0.a + c1.a * 0.8 + c2.a * 0.35, 0.0, 1.0) * vFade;
-  // come per la scia: il valore della mappa fa da soglia su una trama, compatta dove la schiuma è
-  // fresca e a merletto mentre si spegne (la mappa da sola, a un texel per metro, darebbe macchie lisce)
-  float crestLace = fbm(vFlow * 1.1 + 7.3) * 0.6 + noise(vFlow * 4.2) * 0.4;
-  float crestFoam = smoothstep(crestLace * 0.8, crestLace * 0.8 + 0.2, fftFoam * (0.7 + 0.6 * coarse)) * step(0.001, uCrestFoam);
-  // strisce lungo il vento da forza 5 in su
-  vec2 wd = normalize(vec2(1.0, 0.25));
-  vec2 sq = vec2(dot(vFlow, wd) * 0.03, dot(vFlow, vec2(-wd.y, wd.x)) * 0.55);
-  float streak = smoothstep(0.56, 0.74, fbm(sq)) * uStreaks * (1.0 - far * 0.6);
+  float crestFoam = clamp(fftFoam * (0.5 + coarse) * 1.7, 0.0, 1.0) * step(0.001, uCrestFoam);
+  // strisce lungo il vento da forza 5 in su: la stessa foto stirata lungo il vento, letta da una
+  // mipmap a 32 px (stirata a piena risoluzione darebbe graffi paralleli); il merletto lo fa fp.
+  // La foto è equalizzata: con la mipmap i valori si stringono attorno a 0,5, la soglia lascia strisce rade
+  vec2 sq = vec2(dot(vFlow, uWind) / 70.0, dot(vFlow, vec2(-uWind.y, uWind.x)) / 3.2);
+  float streak = smoothstep(0.68, 0.9, textureLod(uFoamPat, sq, 4.0).r) * uStreaks * (1.0 - far * 0.6);
 
   // schiuma attorno allo scafo e scia, dal buffer (seafx.js)
   // il buffer della schiuma segue la barca: si legge nel suo riferimento (seafx.js ruota la camera)
@@ -241,18 +274,15 @@ void main() {
   vec2 bl = vec2(vWorld.x * fc + vWorld.z * fs, -vWorld.x * fs + vWorld.z * fc);
   vec2 fuv = vec2((bl.x - uFoamBox.x) / uFoamBox.z, (uFoamBox.y + uFoamBox.w - bl.y) / uFoamBox.w);
   float inside = step(0.0, fuv.x) * step(fuv.x, 1.0) * step(0.0, fuv.y) * step(fuv.y, 1.0);
-  float hull = texture2D(uFoamTex, clamp(fuv, 0.0, 1.0)).r * inside;
-  float churn = fbm(vFlow * 1.3 + uTime * 0.35);
-  // merletto: il buffer fa da soglia su una trama fine, compatta solo dove la schiuma è fresca
-  // coordinate ruotate: il value noise allineato agli assi, tagliato da una soglia stretta,
-  // faceva una scia a quadretti
-  vec2 lq = mat2(0.8, -0.6, 0.6, 0.8) * vFlow;
-  float lace = fbm(lq * 2.4 + uTime * 0.2) * 0.7 + fbm(mat2(0.6, 0.8, -0.8, 0.6) * vFlow * 5.5) * 0.3;
-  float hullFoam = smoothstep(lace * 0.85 - 0.06, lace * 0.85 + 0.26, hull * 1.25);
+  float hullFoam = texture2D(uFoamTex, clamp(fuv, 0.0, 1.0)).r * inside * 1.15;
 
   float amount = clamp(crestFoam + streak * 0.5 + hullFoam, 0.0, 1.0);
-  float pattern = mix(sparse, mix(medium, 1.0, smoothstep(0.5, 1.0, amount)), smoothstep(0.1, 0.6, amount));
-  float foam = clamp(amount * (0.35 + 0.65 * pattern) * (0.7 + 0.6 * churn), 0.0, 1.0);
+  // soglia sulla foto: a 1 copre quasi tutto, a 0,3 restano i filamenti più chiari. Il bordo è
+  // morbido e la densità segue la foto: la schiuma vera è un velo di bolle, non un foglio bianco
+  float thr = 1.0 - 0.92 * amount;
+  float lace = smoothstep(thr - 0.1, thr + 0.16, fp) * (0.35 + 0.65 * fp) * (0.6 + 0.4 * amount);
+  // in lontananza la trama è più fine del pixel: si passa alla copertura media, niente scintillio
+  float foam = mix(lace, amount * 0.6, smoothstep(0.04, 0.3, footprint));
   vec3 foamCol = vec3(0.9, 0.93, 0.95) * (0.55 + 0.45 * max(dot(n, uSunDir), 0.0)) + uSunCol * 0.08;
   col = mix(col, foamCol, clamp(foam * uFoam, 0.0, 0.92));
 
@@ -261,6 +291,16 @@ void main() {
   gl_FragColor = vec4(col, uOpacity * (1.0 - smoothstep(1050.0, 1500.0, d)));
 }
 `;
+
+// Trama della schiuma, ripetibile, in scala di grigi (vedi la schiuma nel fragment shader).
+// Finché non arriva il texel vale 0: la soglia non passa e la schiuma semplicemente non c'è.
+function foamPattern() {
+  const tex = new THREE.TextureLoader().load(`${import.meta.env.BASE_URL}textures/sea/foam.jpg`);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
 
 // Griglia polare: fitta vicino alla barca, rada verso l'orizzonte (l'idea del LOD di Black Flag,
 // senza patch: la barca è sempre al centro).
@@ -391,6 +431,12 @@ export function createOcean(renderer) {
       uResolution: { value: new THREE.Vector2(1, 1) },
       uFoamTex: { value: null },
       uFoamBox: { value: new THREE.Vector4(0, 0, 1, 1) },
+      // increspature di dettaglio (fft/detail.js) e direzione del vento nel piano x-z
+      uDetailTex: { value: createDetailTexture() },
+      uDetail: { value: 0.08 },
+      uWind: { value: new THREE.Vector2(Math.cos(WIND_DIR), Math.sin(WIND_DIR)) },
+      // trama della schiuma: foto CC0 di ambientCG (Foam001), 512 px equalizzata, 108 KB
+      uFoamPat: { value: foamPattern() },
     },
   });
   const mesh = new THREE.Mesh(geo, mat);
@@ -475,6 +521,9 @@ export function createOcean(renderer) {
       mat.uniforms.uSss.value.copy(c.mid).lerp(new THREE.Color(0x2aa898), 0.55).multiplyScalar(1.15);
       mat.uniforms.uCrestFoam.value = c.crestFoam;
       mat.uniforms.uStreaks.value = c.streaks;
+      // increspature: pendenza quadratica media di ogni scala, con il vento (Cox e Munk 1954:
+      // la varianza delle pendenze cresce lineare con il vento). Circa 0,09 a 6 nodi, 0,15 a 25
+      mat.uniforms.uDetail.value = Math.sqrt(0.0025 + 0.0016 * c.knots * 0.5144);
       // il sole basso si allarga per l'atmosfera: scia di luce più ampia al tramonto
       mat.uniforms.uSunRadius.value = 0.025 + 0.11 * (1 - Math.min(1, c.sunDir.y / 0.5));
       envSea.color.copy(c.mid).multiplyScalar(0.6);
