@@ -6,8 +6,11 @@ import { WATER_GLSL } from "./ocean.js";
 // triplanare nello spazio della barca, quindi seguono la barca quando sbanda.
 // - Texture vere CC0 di Poly Haven (teak, pelle, maglina di cotone), normalizzate sulla loro
 //   media: aggiungono venatura e grana senza cambiare i colori scelti per Lunz am Meer.
-// - Dettagli procedurali: buccia d'arancia del gelcoat, fibre e cuciture delle vele in laminato,
-//   antivegetativa non uniforme, spazzolatura dell'alluminio.
+// - Dettagli procedurali: buccia d'arancia del gelcoat, antivegetativa non uniforme, spazzolatura
+//   dell'alluminio.
+// - Vele in dacron cross-cut (materiale Sail_Laminate, nome rimasto per compatibilità): atlante
+//   di texture generato da scripts/sails/make_sail_textures.py, controluce economico e
+//   fileggiare nel vertex shader (vedi SAIL_GLSL).
 // - Bagnato solo dove arriva l'acqua (idea di Crimson Desert): fascia sopra il galleggiamento
 //   che segue le onde, spruzzi a prua, coperta umida verso prua.
 
@@ -74,6 +77,40 @@ vec3 triNormal(sampler2D t, vec3 p, vec3 n, vec3 w, float s, float k) {
 }
 `;
 
+// Vele: atlante con la randa a sinistra (u 0,01-0,49) e il genoa a destra (u 0,51-0,99), v la quota.
+// Le UV vengono da build_sail in scripts/blender/swan651_rig.py (SAIL_UV)
+const SAIL_TEX = "/textures/sails/";
+// quanta luce del sole passa da un solo strato di dacron (0-1) e quanto ne toglie ogni strato in più
+const SAIL_TRANSLUCENCY = 0.5;
+const SAIL_LAYER_ABSORB = 0.8;
+
+const SAIL_GLSL = /* glsl */ `
+// corda (0 inferitura, 1 balumina) e quota (0 base, 1 testa) dalle UV dell'atlante
+vec2 sailCoord(vec2 tuv) {
+  float c = tuv.x < 0.5 ? (tuv.x - 0.01) / 0.48 : (tuv.x - 0.51) / 0.48;
+  return vec2(clamp(c, 0.0, 1.0), 1.0 - tuv.y);
+}
+// Spostamento lungo la normale e sua pendenza (per la luce), nello spazio della mesh (= barca).
+// - balumina che vibra con il vento: onde corte che corrono verso poppa, ferme all'inferitura;
+// - fileggiare (luff = influenza dello shape key Luffing): onde lunghe che partono dal bordo
+//   d'entrata e corrono verso la balumina, crescono verso poppa, ferme in testa e alla base.
+float sailWave(vec3 p, vec2 sc, float lee, float luff, float wind, float t, out vec2 grad) {
+  float a1 = dot(p.xy, vec2(1.6, 0.7)) * 2.2 + t * 9.0;
+  float a2 = p.y * 4.1 + t * 13.0;
+  float kl = 0.03 * wind * lee;
+  float d = (sin(a1) * 0.6 + sin(a2) * 0.4) * kl;
+  grad = vec2(cos(a1) * 0.6 * 3.52, cos(a1) * 0.6 * 1.54 + cos(a2) * 0.4 * 4.1) * kl;
+  float env = smoothstep(0.0, 0.3, sc.x) * (0.45 + 0.55 * sc.x)
+    * smoothstep(0.0, 0.05, sc.y) * (1.0 - smoothstep(0.86, 1.0, sc.y));
+  float kf = luff * (0.04 + 0.12 * wind) * env;
+  float b1 = p.x * 2.3 + p.y * 0.25 + t * 10.0;
+  float b2 = p.x * 3.4 - p.y * 0.5 + t * 15.0 + 1.7;
+  d += (sin(b1) * 0.65 + sin(b2) * 0.35) * kf;
+  grad += vec2(cos(b1) * 0.65 * 2.3 + cos(b2) * 0.35 * 3.4, cos(b1) * 0.65 * 0.25 - cos(b2) * 0.35 * 0.5) * kf;
+  return d;
+}
+`;
+
 const loader = new THREE.TextureLoader();
 function tex(name, srgb = false) {
   const t = loader.load(TEX + name);
@@ -114,8 +151,26 @@ function recipes() {
   };
 }
 
+// Texture delle vele, caricate una volta sola (flipY falso: le UV vengono dal GLB)
+let sailTexCache = null;
+function sailTextures() {
+  if (sailTexCache) return sailTexCache;
+  const load = (name, srgb) => {
+    const t = loader.load(SAIL_TEX + name);
+    t.flipY = false;
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.anisotropy = 8;
+    return t;
+  };
+  const weave = load("sails_weave.png", false);
+  weave.wrapS = weave.wrapT = THREE.RepeatWrapping;
+  sailTexCache = { albedo: load("sails_albedo.png", true), normal: load("sails_normal.png", false), weave };
+  return sailTexCache;
+}
+
 export function createMaterials(oceanShared, water) {
   const R = recipes();
+  const sailTex = sailTextures();
   // uniformi comuni: la barca (per lo spazio triplanare) e lo stato del mare
   const common = {
     uBoatInv: { value: new THREE.Matrix4() },
@@ -147,6 +202,10 @@ export function createMaterials(oceanShared, water) {
       uTriContrast: { value: r.contrast ?? 1 },
       uTriBoards: { value: r.boards ?? 0 },
     };
+    if (r.laminate) {
+      u.uSailWeave = { value: sailTex.weave };
+      u.uSailWeaveK = { value: 0.18 };
+    }
     if (r.map) defines.TRI_MAP = "";
     if (r.normal) defines.TRI_NORMAL = "";
     if (r.rough) defines.TRI_ROUGH = "";
@@ -173,6 +232,7 @@ export function createMaterials(oceanShared, water) {
           uniform float uTime;
           #ifdef LAMINATE
           attribute float aLeech;
+          ${SAIL_GLSL}
           #endif
           varying vec3 vTriPos;
           varying vec3 vTriNrm;
@@ -181,10 +241,27 @@ export function createMaterials(oceanShared, water) {
         .replace(
           "#include <project_vertex>",
           `#ifdef LAMINATE
-          // la balumina vibra con il vento: onde che corrono verso poppa, ferme all'inferitura
-          float lee = smoothstep(0.55, 1.0, aLeech);
-          transformed += objectNormal * (sin(dot(position.xy, vec2(1.6, 0.7)) * 2.2 + uTime * 9.0) * 0.6
-            + sin(position.y * 4.1 + uTime * 13.0) * 0.4) * 0.03 * uWindSail * lee;
+          {
+            // vibrazione della balumina e fileggiare (SAIL_GLSL); l'influenza dello shape key
+            // Luffing, già impostata da main.js, scena.js e sailing.js, decide quanto la vela sbatte
+            float luffK = 0.0;
+            #if defined(USE_MORPHTARGETS) && !defined(USE_INSTANCING_MORPH)
+            luffK = clamp(morphTargetInfluences[0], 0.0, 1.0);
+            #endif
+            vec2 sWg;
+            float sWd = sailWave(position, sailCoord(uv), smoothstep(0.55, 1.0, aLeech), luffK, uWindSail, uTime, sWg);
+            transformed += objectNormal * sWd;
+            #ifndef FLAT_SHADED
+            // la normale si inclina con la pendenza dell'onda, così le pieghe prendono luce e ombra
+            vec3 sG = vec3(sWg, 0.0);
+            sG -= objectNormal * dot(sG, objectNormal);
+            vNormal = normalize(normalMatrix * normalize(objectNormal - sG));
+            #ifdef FLIP_SIDED
+            // vele trasparenti a due facce: three disegna prima il retro con FLIP_SIDED
+            vNormal = -vNormal;
+            #endif
+            #endif
+          }
           #endif
           #include <project_vertex>`
         )
@@ -214,6 +291,10 @@ export function createMaterials(oceanShared, water) {
           uniform float uTriDetail;
           uniform float uTriContrast;
           uniform float uTriBoards;
+          #ifdef LAMINATE
+          uniform sampler2D uSailWeave;
+          uniform float uSailWeaveK;
+          #endif
           varying vec3 vTriPos;
           varying vec3 vTriNrm;
           varying vec3 vWetW;
@@ -275,17 +356,8 @@ export function createMaterials(oceanShared, water) {
           diffuseColor.rgb *= 1.0 - MOTTLE * (mNoise(vTriPos * 1.3) * 0.6 + mNoise(vTriPos * 7.0) * 0.4);
           #endif
           #ifdef LAMINATE
-          // vela in laminato: fibre nere a losanga nel piano della vela, cuciture orizzontali
-          vec2 sp = vTriPos.xy;
-          // le fibre si aprono a ventaglio dalla testa della vela, con spaziatura irregolare
-          vec2 head = vec2(1.0, 27.0);
-          float ang = atan(sp.x - head.x, head.y - sp.y);
-          float jit = mNoise(vec3(sp * 0.35, 1.0)) * 0.6;
-          float f1 = abs(fract(ang * 38.0 + jit) - 0.5);
-          float f2 = abs(fract(dot(sp, vec2(-0.8, 0.6)) * 1.6 + jit) - 0.5);
-          float fibre = max(smoothstep(0.05, 0.0, f1), smoothstep(0.03, 0.0, f2) * 0.6) * (0.6 + 0.4 * mNoise(vec3(sp * 3.0, 2.0)));
-          float seam = smoothstep(0.012, 0.0, abs(fract(sp.y / 1.35) - 0.5) - 0.488);
-          diffuseColor.rgb *= 1.0 - fibre * 0.13 - seam * 0.16;
+          // strati di tessuto dall'alfa della normal map dell'atlante (1 strato = 0,25)
+          float sailLayers = texture2D(normalMap, vNormalMapUv).a * 4.0;
           #endif
           #ifdef BACK_LINING
           // l'interno del guscio non ha le fasce della vernice esterna: è il rivestimento crema
@@ -306,7 +378,8 @@ export function createMaterials(oceanShared, water) {
           roughnessFactor *= 0.8 + 0.4 * mNoise(vec3(vTriPos.x * 0.6, vTriPos.y * 0.6 + vTriPos.z * 140.0, vTriPos.z * 0.6));
           #endif
           #ifdef LAMINATE
-          roughnessFactor = mix(roughnessFactor, 0.35, fibre * 0.6);
+          // il dacron è opaco; rinforzi e nastri, più fitti e resinati, un filo più lisci
+          roughnessFactor = clamp(roughnessFactor - 0.04 * (sailLayers - 1.0), 0.45, 1.0);
           #endif
           roughnessFactor = mix(roughnessFactor, 0.06, wet);`
         )
@@ -328,8 +401,35 @@ export function createMaterials(oceanShared, water) {
             #if defined(TRI_NORMAL) || defined(ORANGE_PEEL) || defined(TUFT)
             normal = normalize((viewMatrix * vec4(uBoatRot * nb, 0.0)).xyz);
             #endif
+            #ifdef LAMINATE
+            // trama e grinze del dacron, ripetute ogni 60 cm nel piano della vela (x-y della barca)
+            vec2 wv = texture2D(uSailWeave, vTriPos.xy / 0.6).xy * 2.0 - 1.0;
+            vec3 wB = vec3(wv * uSailWeaveK, 0.0);
+            vec3 wV = (viewMatrix * vec4(uBoatRot * wB, 0.0)).xyz;
+            normal = normalize(normal + wV - normal * dot(wV, normal));
+            #endif
           }`
         );
+      if (r.laminate) {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <opaque_fragment>",
+          `#if NUM_DIR_LIGHTS > 0
+          {
+            // Controluce economico: il sole dall'altra parte della vela passa attraverso il tessuto.
+            // La faccia in ombra si schiarisce (di più guardando verso il sole) e dove gli strati
+            // sono più d'uno (cuciture, nastri, rinforzi, stecche) passa meno luce: in trasparenza
+            // appaiono più scuri. directionalLights[0] è il sole (l'unica luce con l'ombra).
+            vec3 sL = directionalLights[0].direction;
+            float sBack = max(dot(-normal, sL), 0.0);
+            float sFwd = pow(max(dot(-normalize(vViewPosition), sL), 0.0), 5.0);
+            float sTau = exp(-${SAIL_LAYER_ABSORB.toFixed(2)} * max(sailLayers - 1.0, 0.0));
+            outgoingLight += directionalLights[0].color * diffuseColor.rgb * RECIPROCAL_PI
+              * sTau * sBack * (0.6 + 1.6 * sFwd) * ${SAIL_TRANSLUCENCY.toFixed(2)};
+          }
+          #endif
+          #include <opaque_fragment>`
+        );
+      }
       if (mat.isMeshPhysicalMaterial && mat.clearcoat > 0) {
         shader.fragmentShader = shader.fragmentShader.replace(
           "#include <clearcoat_normal_fragment_maps>",
@@ -366,6 +466,15 @@ export function createMaterials(oceanShared, water) {
         m.clearcoatRoughness = r.varnish[1];
       }
       if (r.roughness !== undefined) m.roughness = r.roughness;
+      if (r.laminate) {
+        // dacron: atlante di colore e rilievi; il tono generale si regola qui (sostituisce il grigio del GLB)
+        m.map = sailTex.albedo;
+        m.normalMap = sailTex.normal;
+        m.normalScale = new THREE.Vector2(1, 1);
+        m.color.setRGB(0.66, 0.66, 0.66);
+        m.roughness = 0.72;
+        m.metalness = 0;
+      }
       if (r.sheen) {
         m.sheen = r.sheen[0];
         m.sheenColor = new THREE.Color(r.sheen[1]);
