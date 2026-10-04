@@ -7,7 +7,7 @@ import { createBridge } from "./bridge.js";
 // Il server dei token gira accanto all'agente (agent/token_server.py)
 const TOKEN_URL = import.meta.env.VITE_BORDO_TOKEN_URL || "http://localhost:8790/token";
 
-export function createCollegamento(site, { onState, onVoice, onMic, onTranscript, onGiro }) {
+export function createCollegamento(site, { onState, onVoice, onMic, onTranscript, onGiro, onCrediti }) {
   let room = null;
   let bridge = null;
   let micPub = null;
@@ -18,6 +18,13 @@ export function createCollegamento(site, { onState, onVoice, onMic, onTranscript
     onState("connecting");
     try {
       const res = await fetch(TOKEN_URL);
+      // il server dei token controlla il credito delle API prima di aprire la stanza
+      if (res.status === 402) {
+        const { servizi } = await res.json();
+        onCrediti?.(servizi);
+        onState("off");
+        return;
+      }
       if (!res.ok) throw new Error(`token: ${res.status}`);
       const { url, token } = await res.json();
 
@@ -40,6 +47,8 @@ export function createCollegamento(site, { onState, onVoice, onMic, onTranscript
         if (s) onState(s);
         // il giro guidato: l'agente lo accende e lo spegne, la pagina lo fa proseguire
         if ("bordo.giro" in changed) onGiro?.(changed["bordo.giro"] === "1");
+        // credito finito a visita in corso: l'agente lo segnala prima di uscire
+        if (changed["bordo.errore"] === "crediti") onCrediti?.([]);
       });
       let agenteCaduto = false;
       room.on(RoomEvent.Disconnected, () => cleanup(agenteCaduto ? "error" : "off"));
