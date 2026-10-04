@@ -216,16 +216,20 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
   let frames = 0;
   renderer.setPixelRatio(LEVELS[0]);
 
-  // ---------- Ritmo in mare ----------
-  // In mare la scena si muove sempre (onde, nuvole) e la GPU lavorerebbe a ogni refresh dello
-  // schermo. Lì si disegna al massimo un fotogramma ogni ~22 ms (40 fps a 120 Hz, 30 fps a 60 Hz)
-  // e a risoluzione 1,5x al massimo: il sito deve girare anche su portatili modesti.
+  // ---------- Ritmo leggero ----------
+  // In mare la scena si muove sempre (onde, nuvole), in /bordo/ anche la camera: la GPU lavorerebbe
+  // a ogni refresh dello schermo. Lì si disegna al massimo un fotogramma ogni ~22 ms (40 fps a
+  // 120 Hz, 30 fps a 60 Hz) e a risoluzione 1,5x al massimo: il sito deve girare anche su portatili
+  // modesti. Con la scena nascosta (ingresso di /bordo/) basta un fotogramma ogni mezzo secondo,
+  // che tiene pronti gli shader per quando appare.
   const SEA_FRAME_MS = 22;
+  const HIDDEN_FRAME_MS = 500;
   const SEA_MAX_DPR = 1.5;
   let refresh = 16.7; // periodo dello schermo, stimato dal minimo fra due callback
   let lastRaf = 0;
   let lastDraw = -1e9;
   let sea = false;
+  let hiddenNow = false;
   const dpr = () => (sea ? Math.min(LEVELS[level], SEA_MAX_DPR) : LEVELS[level]);
 
   let W = 1;
@@ -301,9 +305,10 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
       }
       composer.render(dt);
     },
-    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare. atSea accende il
-    // limite di fotogrammi e di risoluzione del mare.
-    pace(time, atSea) {
+    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare. light accende il
+    // ritmo leggero, hidden quello minimo della scena nascosta.
+    pace(time, light, hidden = false) {
+      const atSea = light || hidden;
       const raw = time - lastRaf;
       lastRaf = time;
       if (raw > 3 && raw < 40) refresh = Math.min(refresh * 1.002, raw);
@@ -313,7 +318,8 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         renderer.setPixelRatio(dpr());
         composer.setSize(W, H, false);
       }
-      if (sea && time - lastDraw < SEA_FRAME_MS - 1) return false;
+      if (sea && time - lastDraw < (hidden ? HIDDEN_FRAME_MS : SEA_FRAME_MS) - 1) return false;
+      hiddenNow = hidden;
       lastDraw = time;
       return true;
     },
@@ -324,6 +330,8 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         gl.deleteQuery(query);
         query = null;
       }
+      // a scena nascosta i fotogrammi sono radi per scelta: non dicono nulla
+      if (hiddenNow) return;
       if (warm++ < 120) return;
       // durante l'arrivo in mare il cielo carica e compila: quei picchi non contano
       if (sky && sky.settling) {

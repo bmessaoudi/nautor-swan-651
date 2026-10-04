@@ -506,9 +506,11 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   let stillFrames = 0;
   const focusW = new THREE.Vector3();
 
+  let hidden = true;
   function frame(time) {
-    // in mare si disegna a ritmo ridotto (post.pace)
-    if (!post.pace(time, (cur?.ocean ?? 0) > 0.5)) {
+    // la camera gira sempre: ritmo leggero ovunque (post.pace), e quasi fermo finché la scena è
+    // nascosta dalla plancia d'ingresso
+    if (!post.pace(time, true, hidden)) {
       requestAnimationFrame(frame);
       return;
     }
@@ -690,6 +692,10 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
       return !!move;
     },
     conditions: () => cond,
+    // la pagina dice quando la scena si vede (fuori dall'ingresso e dall'accensione)
+    set visible(on) {
+      hidden = !on;
+    },
     setSeed: applyConditions,
   };
 }
