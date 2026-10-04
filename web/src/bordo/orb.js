@@ -110,7 +110,14 @@ export function createOrb(canvas) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
+  // come la scena, al massimo 30 fotogrammi al secondo
+  const FRAME_MS = 1000 / 30;
+
   function frame(now) {
+    if (now - last < FRAME_MS - 1) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     time += dt;

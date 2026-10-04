@@ -219,13 +219,14 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
   let frames = 0;
   renderer.setPixelRatio(LEVELS[0]);
 
-  // ---------- Ritmo leggero ----------
-  // In mare la scena si muove sempre (onde, nuvole), in /bordo/ anche la camera: la GPU lavorerebbe
-  // a ogni refresh dello schermo. Lì si disegna al massimo un fotogramma ogni ~22 ms (40 fps a
-  // 120 Hz, 30 fps a 60 Hz) e a risoluzione 1,5x al massimo: il sito deve girare anche su portatili
-  // modesti. Con la scena nascosta (ingresso di /bordo/) basta un fotogramma ogni mezzo secondo,
-  // che tiene pronti gli shader per quando appare.
-  const SEA_FRAME_MS = 22;
+  // ---------- Ritmo ----------
+  // Ovunque, dall'ingresso al mare, al massimo 30 fotogrammi al secondo: a 40 il mare occupava la
+  // GPU per tutto il tempo disponibile (31 W, 100% attiva su un M-series), e a ogni refresh di uno
+  // schermo a 120 Hz anche le scene leggere la tenevano sveglia per niente. Dove la scena si muove
+  // sempre (mare, vele che sbattono, /bordo/) anche la risoluzione resta a 1,5x al massimo: il sito
+  // deve girare anche su portatili modesti. Con la scena nascosta (ingresso) basta un fotogramma
+  // ogni mezzo secondo, che tiene pronti gli shader per quando appare.
+  const FRAME_MS = 1000 / 30;
   const HIDDEN_FRAME_MS = 500;
   const SEA_MAX_DPR = 1.5;
   let refresh = 16.7; // periodo dello schermo, stimato dal minimo fra due callback
@@ -314,8 +315,9 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
       }
       composer.render(dt);
     },
-    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare. light accende il
-    // ritmo leggero, hidden quello minimo della scena nascosta.
+    // Da chiamare a ogni callback di requestAnimationFrame: dice se disegnare (al massimo 30
+    // volte al secondo). light limita la risoluzione a 1,5x, hidden dà il ritmo minimo della
+    // scena nascosta.
     pace(time, light, hidden = false) {
       const atSea = light || hidden;
       const raw = time - lastRaf;
@@ -327,7 +329,7 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         renderer.setPixelRatio(dpr());
         composer.setSize(W, H, false);
       }
-      if (sea && time - lastDraw < (hidden ? HIDDEN_FRAME_MS : SEA_FRAME_MS) - 1) return false;
+      if (time - lastDraw < (hidden ? HIDDEN_FRAME_MS : FRAME_MS) - 1) return false;
       hiddenNow = hidden;
       lastDraw = time;
       return true;
@@ -347,21 +349,10 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
         slow = 0;
         return;
       }
-      let value, limit;
-      if (sea) {
-        // in mare il ritmo è limitato: conta solo se il fotogramma arriva più tardi del previsto
-        // (le timer query di Mac sono gonfiate, qui non servono)
-        value = ms;
-        limit = Math.ceil((SEA_FRAME_MS - 1) / refresh) * refresh * 1.25;
-      } else {
-        // la GPU non può metterci più del tempo fra due fotogrammi: su Mac (WebGL su Metal) le
-        // timer query danno valori gonfiati, 13 ms a 115 fps, e facevano scendere la risoluzione
-        // per niente. Quando conta il tempo fra fotogrammi vale la soglia larga: su uno schermo a
-        // 60 Hz quel tempo non scende mai sotto 16,7 ms anche con la GPU scarica.
-        const gpuBound = timer && gpuMs >= 0 && gpuMs < ms;
-        value = gpuBound ? gpuMs : ms;
-        limit = gpuBound ? 15 : 19;
-      }
+      // il ritmo è sempre limitato: conta solo se il fotogramma arriva più tardi del previsto
+      // (le timer query di Mac sono gonfiate, qui non servono)
+      const value = ms;
+      const limit = Math.ceil((FRAME_MS - 1) / refresh) * refresh * 1.25;
       ema += (Math.min(value, 100) - ema) * 0.05;
       slow = ema > limit ? slow + 1 : 0;
       calm = ema < limit * 0.85 ? calm + 1 : 0;
