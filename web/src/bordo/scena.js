@@ -523,8 +523,8 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
 
   let hidden = true;
   function frame(time) {
-    // la camera gira sempre: ritmo leggero ovunque (post.pace), e quasi fermo finché la scena è
-    // nascosta dalla plancia d'ingresso
+    // la camera gira sempre: 30 fps e risoluzione 1,5x al massimo (post.pace), e quasi fermo
+    // finché la scena è nascosta dalla plancia d'ingresso
     if (!post.pace(time, true, hidden)) {
       requestAnimationFrame(frame);
       return;

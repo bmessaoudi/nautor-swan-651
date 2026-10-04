@@ -163,7 +163,14 @@ export function createTimeline(el) {
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
   const t0 = performance.now();
   let frame = 0;
-  const tick = () => {
+  // il marcatore avanza a 30 fotogrammi al secondo, come il resto del sito
+  let lastTick = -Infinity;
+  const tick = (now) => {
+    if (now - lastTick < 1000 / 30 - 1) {
+      frame = requestAnimationFrame(tick);
+      return;
+    }
+    lastTick = now;
     const t = (performance.now() - t0) / 1000;
     const seg = segments.find((s) => t < s.end) ?? segments[segments.length - 1];
     const k = seg.end > seg.start ? ease(Math.min(1, Math.max(0, (t - seg.start) / (seg.end - seg.start)))) : 1;
