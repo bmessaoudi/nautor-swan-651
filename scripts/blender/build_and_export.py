@@ -6,9 +6,12 @@ Da riga di comando, senza aprire Blender:
 
 Oppure dentro Blender (anche via MCP) con exec(open(questo_file).read()).
 """
+import os
+
 import bpy
 
-REPO = "/Users/bilalmessaoudi/Desktop/coding/nautor-swan"
+# SWAN_REPO permette di lavorare da un worktree git senza scrivere nel repo principale
+REPO = os.environ.get("SWAN_REPO", "/Users/bilalmessaoudi/Desktop/coding/nautor-swan")
 BASE = REPO + "/scripts/blender/"
 
 ns = {}
