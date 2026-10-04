@@ -270,8 +270,14 @@ export function createPost(renderer, scene, camera, { sky = null } = {}) {
       vignette.darkness = THREE.MathUtils.lerp(A.vignette, B.vignette, t);
 
       // occlusione: niente nella tavola, raggio più corto negli interni
-      ao.configuration.intensity = (s.cut < 50 ? 4 : 2.2) * s.solid;
-      ao.configuration.aoRadius = s.cut < 50 ? 0.7 : 1.6;
+      // Negli interni l'occlusione grande è nella luce cotta (lightmaps.js): qui solo i contatti.
+      // Con la caduta lunga (0,6) e la sfocatura larga N8AO lasciava sui fianchi bianchi chiazze
+      // morbide, che il grading caldo degli interni rendeva rosate.
+      const inside = s.cut < 50;
+      ao.configuration.intensity = (inside ? 2.6 : 2.2) * s.solid;
+      ao.configuration.aoRadius = inside ? 0.5 : 1.6;
+      ao.configuration.distanceFalloff = inside ? 0.25 : 0.6;
+      ao.configuration.denoiseRadius = inside ? 5 : 10;
       // in mare aperto l'occlusione quasi non si vede e costa quanto il resto della scena
       ao.enabled = s.solid > 0.02 && s.ocean < 0.5;
     },
