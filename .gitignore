@@ -4,3 +4,5 @@ dist/
 *.blend1
 scripts/terrain/.cache/
 __pycache__/
+.dev.vars
+.wrangler/

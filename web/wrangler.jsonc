@@ -1,0 +1,17 @@
+// Demo interna su Cloudflare Workers: sito statico da dist più la route /token del computer di
+// bordo. L'accesso è filtrato da Cloudflare Access. Chiavi come secret: wrangler secret put
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nautor-swan-demo",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/token"]
+  },
+  // niente URL di anteprima: sarebbero un ingresso in più da proteggere
+  "preview_urls": false,
+  "observability": { "enabled": true }
+}
