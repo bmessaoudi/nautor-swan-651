@@ -4,6 +4,8 @@ Da riga di comando, senza aprire Blender:
     /Applications/Blender.app/Contents/MacOS/Blender -b models/swan651.blend \
         --python scripts/blender/build_and_export.py
 
+Con SWAN_BAKE=0 salta la cottura della lightmap degli interni (bake_interior.py).
+
 Oppure dentro Blender (anche via MCP) con exec(open(questo_file).read()).
 """
 import os
@@ -17,6 +19,9 @@ BASE = REPO + "/scripts/blender/"
 ns = {}
 for f in ("swan651_hull.py", "swan651_rig.py", "swan651_interior.py"):
     exec(open(BASE + f).read(), ns)
+# secondo set di UV degli interni per la lightmap (TEXCOORD_1 nel GLB), sempre, anche senza cottura
+exec(open(BASE + "bake_interior.py").read(), ns)
+ns["make_lightmap_uvs"]()
 
 # Si esportano solo le due collezioni della barca, senza le tavole di riferimento nascoste
 bpy.ops.object.select_all(action="DESELECT")
@@ -47,3 +52,7 @@ bpy.ops.export_scene.fbx(
 )
 bpy.ops.wm.save_mainfile()
 print("EXPORT_OK", len(exported), sorted(exported))
+
+# Luce cotta degli interni in Cycles (lenta): SWAN_BAKE=0 la salta e lascia le mappe che ci sono
+if os.environ.get("SWAN_BAKE", "1") != "0":
+    ns["bake_lightmaps"]()
