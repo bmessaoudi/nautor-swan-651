@@ -114,3 +114,15 @@ scenarios:
       agent_expectations: L’agente descrive i capitoli e le immagini disponibili dell’esperienza, apre l’immagine richiesta solo se l’id esiste nell’elenco e la mantiene visibile finché non cambia scena o viene chiusa. Se il contenuto richiesto non è disponibile, lo rifiuta e resta nel contesto della pagina.
       tags: {}
       userdata: {}
+    - label: Chiede risposte brevi e le pretende per tutta la visita
+      instructions: |-
+        Parla in modo sbrigativo e cortese, come chi visita il museo nella pausa caffè. Appena l'agente finisce il saluto chiede subito risposte brevi, poi fa domande che inviterebbero a raccontare a lungo, senza ripetere la richiesta di brevità.
+
+        Goals:
+        - Chiedi all'agente di risponderti in breve per tutta la visita.
+        - Chiedi chi ha disegnato lo Swan 651 e perché è famoso.
+        - Fatti portare sottocoperta e chiedi com'è organizzato l'interno.
+        - Chiedi di fare il giro della barca e prosegui per due tappe.
+      agent_expectations: Dopo la richiesta di brevità ogni risposta dell'agente è di una o al massimo due frasi, senza battute e senza chiudere con una domanda, anche dopo gli spostamenti della camera e durante il giro. Usa comunque gli strumenti per muovere la camera quando la persona lo chiede. Non torna a risposte lunghe nei turni successivi.
+      tags: {}
+      userdata: {}
