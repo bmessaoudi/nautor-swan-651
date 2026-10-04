@@ -4,8 +4,9 @@
 import { Room, RoomEvent, Track } from "livekit-client";
 import { createBridge } from "./bridge.js";
 
-// Il server dei token gira accanto all'agente (agent/token_server.py)
-const TOKEN_URL = import.meta.env.VITE_BORDO_TOKEN_URL || "http://localhost:8790/token";
+// In sviluppo il server dei token gira accanto all'agente (agent/token_server.py); in
+// produzione è la route /token del Worker (worker/index.js), sulla stessa origine del sito
+const TOKEN_URL = import.meta.env.VITE_BORDO_TOKEN_URL || (import.meta.env.DEV ? "http://localhost:8790/token" : "/token");
 
 export function createCollegamento(site, { onState, onVoice, onMic, onTranscript, onGiro, onCrediti }) {
   let room = null;
