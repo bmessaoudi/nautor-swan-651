@@ -36,14 +36,17 @@ SOLE_Z = -0.30            # pagliolo della dinette (sotto il galleggiamento)
 
 # Dalle foto degli scafi standard (Show Me, Aurora, 651-001): teak color miele satinato,
 # pagliolo teak e holly, cielo in vinile bianco con listelli. Tessuti: pelle rossa (scelta del cliente).
-MAT_JOINERY = material("Interior_Teak_Honey", (0.36, 0.165, 0.06), 0.38)
+# I bianchi stanno sotto 0,75: più chiari finivano nella spalla del tone mapping, dove le zone in
+# piena luce si sbiancano e quelle appena in ombra restano crema, e ogni ombra morbida (occlusione,
+# luce cotta) disegnava una chiazza rosata dai bordi netti sui fianchi.
+MAT_JOINERY = material("Interior_Teak_Honey", (0.29, 0.115, 0.04), 0.38)
 MAT_SOLE = textured_material("Interior_Sole_TeakHolly", "teak_holly_sole.png", 0.3)
 MAT_UPHOLSTERY = material("Upholstery_Leather_Red", (0.36, 0.025, 0.03), 0.6)
-MAT_MATTRESS = material("Mattress_Cream", (0.85, 0.8, 0.7), 0.9)
-MAT_HEADLINER = material("Headliner_White_Vinyl", (0.88, 0.87, 0.83), 0.55)
-MAT_WHITE = material("Interior_White", (0.9, 0.9, 0.88), 0.3)
+MAT_MATTRESS = material("Mattress_Cream", (0.7, 0.66, 0.58), 0.9)
+MAT_HEADLINER = material("Headliner_White_Vinyl", (0.7, 0.7, 0.68), 0.55)
+MAT_WHITE = material("Interior_White", (0.74, 0.74, 0.72), 0.3)
 MAT_ENGINE = material("Engine_Grey", (0.25, 0.3, 0.33), 0.5, metallic=0.3)
-MAT_COUNTER = material("Galley_Counter", (0.82, 0.8, 0.74), 0.25)
+MAT_COUNTER = material("Galley_Counter", (0.68, 0.66, 0.61), 0.25)
 MAT_STEEL_IN = material("Stainless", (0.85, 0.86, 0.88), 0.12, metallic=1.0)
 
 MAT_INSTR = material("Instrument_Black", (0.01, 0.012, 0.015), 0.2)
@@ -54,9 +57,9 @@ MAT_BOOKS = [
     material("Book_Green", (0.05, 0.15, 0.1), 0.6),
 ]
 # teak più scuro di bordini, cornici e tientibene; specchi dei bagni; vetroresina bianca dei bagni
-MAT_TEAK_DARK = material("Interior_Teak_Dark", (0.16, 0.065, 0.025), 0.32)
+MAT_TEAK_DARK = material("Interior_Teak_Dark", (0.11, 0.04, 0.014), 0.32)
 MAT_MIRROR = material("Interior_Mirror", (0.85, 0.87, 0.88), 0.03, metallic=1.0)
-MAT_GRP = material("Interior_GRP_White", (0.86, 0.85, 0.81), 0.2)
+MAT_GRP = material("Interior_GRP_White", (0.7, 0.69, 0.66), 0.2)
 
 MATS = [MAT_JOINERY, MAT_SOLE, MAT_UPHOLSTERY, MAT_MATTRESS, MAT_WHITE, MAT_ENGINE,
         MAT_COUNTER, MAT_STEEL_IN, MAT_HEADLINER, MAT_INSTR, *MAT_BOOKS,

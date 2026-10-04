@@ -107,7 +107,9 @@ def _light(col, name, kind, loc, color, energy, size=None, rot=None):
 
 
 def bake_lights(col):
-    """Oblò sui fianchi della tuga, tambucci in coperta e plafoniere calde nelle cabine."""
+    """Oblò sui fianchi della tuga, tambucci in coperta e plafoniere calde nelle cabine.
+    Restituisce (giorno, plafoniere): le due famiglie si cuociono separate."""
+    day, lamps = [], []
     # oblò: rettangoli luminosi appena dentro il vetro, rivolti verso l'asse e un po' in basso
     for x0p, x1p, slant in PORTLIGHTS:
         x0, x1 = px_x(x0p), px_x(x1p)
@@ -124,15 +126,15 @@ def bake_lights(col):
                 y = side * (coachroof_side_y(xm, zm) - 0.08)
             # l'area di Blender emette lungo -Z locale: la si gira verso l'asse, 12 gradi in basso
             rot = (-side * math.radians(78), 0.0, 0.0)
-            _light(col, "Bake_Portlight", "AREA", to_world(xm, y, zm), DAYLIGHT, 55.0 * (x1 - x0),
-                   size=(x1 - x0, z1 - z0), rot=rot)
+            day.append(_light(col, "Bake_Portlight", "AREA", to_world(xm, y, zm), DAYLIGHT, 55.0 * (x1 - x0),
+                              size=(x1 - x0, z1 - z0), rot=rot))
     # tambucci: cabina di prua, dinette, cucina sopra la scala, cabina armatoriale
     for px, w, l in ((3560, 0.55, 0.55), (2480, 0.6, 0.6), (2090, 0.75, 0.6), (1300, 0.5, 0.5), (2900, 0.45, 0.45)):
         x = plan_x(px)
         z = ceiling(x, 0.0) - 0.03
-        _light(col, "Bake_Hatch", "AREA", to_world(x, 0.0, z), DAYLIGHT, 60.0 * w * l, size=(l, w))
+        day.append(_light(col, "Bake_Hatch", "AREA", to_world(x, 0.0, z), DAYLIGHT, 60.0 * w * l, size=(l, w)))
     # plafoniere calde (faretti in ottone del cielino): (px, py) in pianta
-    lamps = [
+    lamp_at = [
         (1230, 2080), (1230, 2510), (1520, 2290),             # armatoriale
         (1680, 2120), (1680, 2280),                           # bagno e doccia di poppa
         (1900, 1960), (2080, 2080), (2200, 1960),             # cucina
@@ -141,10 +143,11 @@ def bake_lights(col):
         (2880, 2040), (3130, 2520), (3270, 2220), (2800, 2490),                 # cabine e bagni prodieri
         (3480, 2290), (3640, 2290),                           # cabina a V
     ]
-    for px, py in lamps:
+    for px, py in lamp_at:
         x, y = plan_x(px), plan_y(py)
         z = ceiling(x, y) - 0.06
-        _light(col, "Bake_Lamp", "POINT", to_world(x, y, z), WARM, 9.0, size=0.05)
+        lamps.append(_light(col, "Bake_Lamp", "POINT", to_world(x, y, z), WARM, 9.0, size=0.05))
+    return day, lamps
 
 
 # ---------------------------------------------------------------------------
@@ -251,7 +254,10 @@ def bake_lightmaps():
 
     lights = bpy.data.collections.new("Bake_Lights")
     scene.collection.children.link(lights)
-    bake_lights(lights)
+    day, lamps = bake_lights(lights)
+    # le plafoniere si cuociono bianche: nel web il colore caldo lo dà lo shader (lightmaps.js)
+    for ob in lamps:
+        ob.data.color = (1.0, 1.0, 1.0)
     _setup_cycles(scene)
 
     img = bpy.data.images.new("LM_bake", LM_SIZE, LM_SIZE, alpha=True, float_buffer=True)
@@ -283,12 +289,26 @@ def bake_lightmaps():
     bk.use_clear = True
     bk.target = "IMAGE_TEXTURES"
     out = {}
+
+    def bake_diffuse(only):
+        """Cottura della luce diffusa con accese solo le sorgenti di `only`."""
+        for ob in day + lamps:
+            ob.hide_render = ob not in only
+        img.generated_color = (0.0, 0.0, 0.0, 0.0)
+        bpy.ops.object.bake(type="DIFFUSE", pass_filter={"DIRECT", "INDIRECT"}, margin=LM_MARGIN_PX, use_clear=True)
+        return np.array(img.pixels[:], dtype=np.float32).reshape(LM_SIZE, LM_SIZE, 4)
+
+    def lum(x):
+        return x[..., 0] * 0.2126 + x[..., 1] * 0.7152 + x[..., 2] * 0.0722
+
     try:
         import time
         t0 = time.time()
-        bpy.ops.object.bake(type="DIFFUSE", pass_filter={"DIRECT", "INDIRECT"}, margin=LM_MARGIN_PX, use_clear=True)
-        light = np.array(img.pixels[:], dtype=np.float32).reshape(LM_SIZE, LM_SIZE, 4)
-        print("BAKE diffuse", round(time.time() - t0, 1), "s")
+        light = bake_diffuse(day)
+        print("BAKE giorno", round(time.time() - t0, 1), "s")
+        t0 = time.time()
+        lamp = bake_diffuse(lamps)
+        print("BAKE plafoniere", round(time.time() - t0, 1), "s")
         t0 = time.time()
         img.generated_color = (0.0, 0.0, 0.0, 0.0)
         bpy.ops.object.bake(type="AO", margin=LM_MARGIN_PX, use_clear=True)
@@ -296,20 +316,35 @@ def bake_lightmaps():
         print("BAKE ao", round(time.time() - t0, 1), "s")
 
         mask = light[..., 3] > 0
+        # Giorno (oblò e tambucci) a colori. Il 99,5 percentile va a 1: in 8 bit restano leggibili
+        # anche le zone in ombra; il fattore per tornare al valore vero va in interior.json
+        # Il taglio deve rispettare la tinta: tagliando i canali uno per uno il blu della luce del
+        # giorno si fermava a 1 prima del rosso, e sotto i tambucci i materassi diventavano pesca
+        # con un bordo rosa. Si normalizza sul canale più alto e si riduce il colore intero.
         light = _masked_blur(light, 2)
-        lum = light[..., 0] * 0.2126 + light[..., 1] * 0.7152 + light[..., 2] * 0.0722
-        # il 99,5 percentile va a 1: le pozze sotto le plafoniere restano leggibili in 8 bit
-        scale = float(np.percentile(lum[mask], 99.5)) if mask.any() else 1.0
-        rgb = _srgb(light[..., :3] / scale)
-        alpha = light[..., 3:4]
-        out["light"] = _save("interior_light", rgb, alpha)
+        peak = light[..., :3].max(axis=-1)
+        scale = float(np.percentile(peak[mask], 99.8)) if mask.any() else 1.0
+        rgb = light[..., :3] / scale
+        over = np.maximum(rgb.max(axis=-1, keepdims=True), 1.0)
+        out["light"] = _save("interior_light", _srgb(rgb / over), light[..., 3:4])
+        # Mappa a due canali: R = occlusione ambientale (la legge l'aoMap di three), G = luce delle
+        # plafoniere senza colore (la somma lo shader, a intensità variabile: accensione in /bordo/)
+        lamp = _masked_blur(lamp, 2)
+        lamp_l = lum(lamp)
+        lamp_scale = float(np.percentile(lamp_l[mask], 99.8)) if mask.any() else 1.0
         ao = _masked_blur(ao, 1)
-        aov = np.repeat(_srgb(np.clip(ao[..., :1], 0, 1)), 3, axis=-1)
-        # lo sfondo dell'atlante resta bianco: niente aloni scuri se il filtro pesca fuori dall'isola
-        aov[ao[..., 3] <= 0] = 1.0
-        out["ao"] = _save("interior_ao", aov, ao[..., 3:4])
+        two = np.zeros((LM_SIZE, LM_SIZE, 3), dtype=np.float32)
+        two[..., 0] = _srgb(np.clip(ao[..., 0], 0, 1))
+        two[..., 1] = _srgb(lamp_l / lamp_scale)
+        two[..., 2] = two[..., 0]
+        # fuori dalle isole occlusione bianca e plafoniere spente: niente aloni se il filtro pesca fuori
+        bg = ao[..., 3] <= 0
+        two[bg, 0] = two[bg, 2] = 1.0
+        two[bg, 1] = 0.0
+        out["ao"] = _save("interior_ao", two, ao[..., 3:4])
         meta = {
-            "light": out["light"], "ao": out["ao"], "scale": round(scale, 5), "size": LM_SIZE,
+            "light": out["light"], "ao": out["ao"], "scale": round(scale, 5),
+            "lampScale": round(lamp_scale, 5), "lampColor": list(WARM), "size": LM_SIZE,
             "samples": LM_SAMPLES, "uv": "TEXCOORD_1",
             "objects": sorted(o.name for o in objs),
         }

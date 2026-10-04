@@ -174,7 +174,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   // luci di cabina: le plafoniere sono cotte nella lightmap degli interni (lightmaps.js) e
   // l'accensione ne alza l'intensità. I cinque faretti veri restano solo come ripiego se le
   // mappe non arrivano: costavano cinque luci in ogni shader della scena, anche in mare.
-  const lightmaps = createLightmaps();
+  const lightmaps = createLightmaps(renderer);
   const cabin = [];
   const addCabinSpots = () => {
     for (const at of CABIN_LIGHTS) {

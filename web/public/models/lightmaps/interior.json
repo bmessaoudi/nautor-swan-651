@@ -1,7 +1,13 @@
 {
   "light": "interior_light.webp",
   "ao": "interior_ao.webp",
-  "scale": 2.40713,
+  "scale": 3.26094,
+  "lampScale": 3.0536,
+  "lampColor": [
+    1.0,
+    0.71,
+    0.42
+  ],
   "size": 2048,
   "samples": 160,
   "uv": "TEXCOORD_1",
