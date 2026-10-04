@@ -428,7 +428,7 @@ export function createMaterials(oceanShared, water) {
         m.map = sailTex.albedo;
         m.normalMap = sailTex.normal;
         m.normalScale = new THREE.Vector2(1, 1);
-        m.color.setRGB(0.76, 0.76, 0.76);
+        m.color.setRGB(0.66, 0.66, 0.66);
         m.roughness = 0.72;
         m.metalness = 0;
       }
