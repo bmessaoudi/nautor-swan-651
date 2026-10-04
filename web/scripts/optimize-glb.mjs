@@ -17,7 +17,7 @@
 // 5. texture in KTX2 (KHR_texture_basisu): UASTC per le normal map, ETC1S per tutto il resto
 //    (colore, ruvidità, lightmap). Lo spazio colore viene dallo slot del materiale.
 // Le texture esterne (lightmap, texture delle vele caricate a parte) si convertono con --ktx2-dir:
-// accanto a ogni .png o .jpg nasce un .ktx2 con lo stesso nome, da caricare con il KTX2Loader
+// accanto a ogni .png, .jpg o .webp nasce un .ktx2 con lo stesso nome, da caricare con il KTX2Loader
 // condiviso di src/gltf-loader.js. Nomi con "nor" o "normal" vanno in UASTC; nomi con rough, metal,
 // ao, orm, mask restano lineari; il resto (colore e lightmap) è sRGB.
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -159,9 +159,9 @@ export async function optimizeGLB(input, output) {
 
 export async function convertFolder(dir) {
   for (const f of readdirSync(dir)) {
-    if (!/\.(png|jpe?g)$/i.test(f)) continue;
+    if (!/\.(png|jpe?g|webp)$/i.test(f)) continue;
     const src = join(dir, f);
-    const dst = src.replace(/\.(png|jpe?g)$/i, ".ktx2");
+    const dst = src.replace(/\.(png|jpe?g|webp)$/i, ".ktx2");
     const kind = fileKind(f);
     writeFileSync(dst, await encode(new Uint8Array(readFileSync(src)), kind));
     console.log(`  ${f} -> ${dst.split("/").pop()} (${kind === "normal" ? "UASTC" : "ETC1S " + kind}), ${(statSync(src).size / 1024).toFixed(0)} -> ${(statSync(dst).size / 1024).toFixed(0)} KB`);

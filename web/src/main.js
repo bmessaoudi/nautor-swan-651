@@ -13,6 +13,7 @@ import { makeConditions, seedFromUrl } from "./conditions.js";
 import { createPost } from "./post.js";
 import { createAdaptiveTone } from "./contrast.js";
 import { createMaterials } from "./materials.js";
+import { createLightmaps } from "./lightmaps.js";
 import { createSeaFx, BOAT_LAYER } from "./seafx.js";
 import { createRigging } from "./rigging.js";
 import { createSailing } from "./sailing.js";
@@ -29,13 +30,18 @@ renderer.localClippingEnabled = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.VSMShadowMap;
 
+// plafoniere degli interni nella landing (0-1): un filo di caldo sopra la luce del giorno
+const LANDING_LAMPS = 0.25;
+
 const scene = new THREE.Scene();
+window.__scene = scene; // DEBUG-TEMP
 // near a 0,5 m: con 0,1 il rivestimento interno, a pochi cm dallo scafo, sfarfallava (z-fighting)
 const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
 // mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
 const ocean = createOcean(renderer);
 const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "bassa" });
 const post = createPost(renderer, scene, camera, { sky });
+window.__post = post; // DEBUG-TEMP
 // testi senza card sulla scena: scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js)
 const tone = createAdaptiveTone(renderer);
 
@@ -243,6 +249,9 @@ createGLTFLoader(renderer).load(
       lines.renderOrder = 10;
       o.add(lines);
     });
+    // luce cotta degli interni (lightmaps.js), quando arrivano le mappe; plafoniere appena accese
+    const lightmaps = createLightmaps(renderer);
+    lightmaps.apply(root).then(() => lightmaps.setLevel(LANDING_LAMPS));
     boat.add(root);
     rigging = createRigging({ boat, clipping: SOLID_PLANES, layer: BOAT_LAYER });
     sailing = createSailing({ boat, root, sails, rigging, ocean, clipping: SOLID_PLANES, layer: BOAT_LAYER });
@@ -461,6 +470,7 @@ const exploreBtn = document.getElementById("explore-btn");
 const exploreBar = document.getElementById("explore-bar");
 // collegati al canvas solo in esplorazione: da collegati bloccano lo scroll col dito (touch-action)
 const controls = new OrbitControls(camera);
+window.__controls = controls; window.__camera = camera; // DEBUG-TEMP
 controls.enabled = false;
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;

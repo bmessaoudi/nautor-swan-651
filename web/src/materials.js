@@ -54,14 +54,17 @@ vec2 triUvZ(vec3 p) {
   return p.xy;
   #endif
 }
+uniform vec2 uTriStretch;
 vec4 triSample(sampler2D t, vec3 p, vec3 w, float s) {
-  return texture2D(t, triUvX(p) * s) * w.x + texture2D(t, p.xz * s) * w.y + texture2D(t, triUvZ(p) * s) * w.z;
+  vec2 k = s * uTriStretch;
+  return texture2D(t, triUvX(p) * k) * w.x + texture2D(t, p.xz * k) * w.y + texture2D(t, triUvZ(p) * k) * w.z;
 }
 // normal map triplanare con blend UDN: perturbazione nello spazio della barca
 vec3 triNormal(sampler2D t, vec3 p, vec3 n, vec3 w, float s, float k) {
-  vec2 tx = texture2D(t, triUvX(p) * s).xy * 2.0 - 1.0;
-  vec2 ty = texture2D(t, p.xz * s).xy * 2.0 - 1.0;
-  vec2 tz = texture2D(t, triUvZ(p) * s).xy * 2.0 - 1.0;
+  vec2 k2 = s * uTriStretch;
+  vec2 tx = texture2D(t, triUvX(p) * k2).xy * 2.0 - 1.0;
+  vec2 ty = texture2D(t, p.xz * k2).xy * 2.0 - 1.0;
+  vec2 tz = texture2D(t, triUvZ(p) * k2).xy * 2.0 - 1.0;
   #ifdef TRI_VERTICAL
   vec3 px = vec3(0.0, tx.x, tx.y);
   vec3 pz = vec3(tz.y, tz.x, 0.0);
@@ -126,10 +129,15 @@ function recipes() {
   const deck = { map: tex("teak_deck.png", true) };
   const TEAK_MEAN = [0.688, 0.509, 0.34];
   return {
-    Interior_Teak_Honey: { ...teak, mean: TEAK_MEAN, roughMean: 0.655, scale: 1.4, normalK: 0.35, detail: 1, vertical: true },
+    // teak miele satinato: venatura stirata (diritta, non a cattedrale come un compensato) e più
+    // contrastata, tono che cambia da un pannello all'altro, vernice satinata con un leggero riflesso
+    Interior_Teak_Honey: { ...teak, mean: TEAK_MEAN, roughMean: 0.655, scale: 2.4, stretch: [0.4, 1], contrast: 1.5, boards: 0.07, normalK: 0.3, detail: 1, vertical: true, varnish: [0.55, 0.3], rough: null, roughness: 0.5, physical: true },
+    // bordini, cornici e tientibene: teak più scuro e più lucido
+    Interior_Teak_Dark: { ...teak, mean: TEAK_MEAN, roughMean: 0.655, scale: 3, stretch: [0.4, 1], contrast: 1.3, normalK: 0.25, detail: 1, vertical: true, varnish: [0.7, 0.22], rough: null, roughness: 0.4, physical: true },
     // la coperta: doghe da prua a poppa dalla texture già fatta, venatura dal teak di Poly Haven
     Teak_Deck: { map: deck.map, mean: [0.618, 0.485, 0.339], normal: teak.normal, scale: 1, normalScale: 2, normalK: 0.25, detail: 1, deck: true },
-    Upholstery_Leather_Red: { ...leather, roughMean: 0.508, scale: 2.5, normalK: 0.9, sheen: [0.35, 0x8a2a2a, 0.5], physical: true },
+    // pelle dei divani trapuntata a rombi con i bottoni (solo nello shader: nessun poligono in più)
+    Upholstery_Leather_Red: { ...leather, roughMean: 0.508, scale: 2.5, normalK: 0.9, sheen: [0.35, 0x8a2a2a, 0.5], physical: true, tuft: [0.17, 0.5] },
     Mattress_Cream: { ...cotton, mean: [0.761, 0.669, 0.616], roughMean: 0.802, scale: 5, normalK: 0.6, detail: 0.6, sheen: [0.6, 0xfff3e0, 0.7], physical: true },
     Headliner_White_Vinyl: { normal: leather.normal, scale: 7, normalK: 0.35 },
     Gelcoat_White: { orangePeel: 0.02, wet: true },
@@ -190,6 +198,9 @@ export function createMaterials(oceanShared, water) {
       uTriNormalScale: { value: r.normalScale || r.scale || 1 },
       uTriNormalK: { value: r.normalK || 0 },
       uTriDetail: { value: r.detail ?? 0 },
+      uTriStretch: { value: new THREE.Vector2(...(r.stretch || [1, 1])) },
+      uTriContrast: { value: r.contrast ?? 1 },
+      uTriBoards: { value: r.boards ?? 0 },
     };
     if (r.laminate) {
       u.uSailWeave = { value: sailTex.weave };
@@ -205,6 +216,10 @@ export function createMaterials(oceanShared, water) {
     if (r.wet) defines.WET_HULL = "";
     if (r.deck) defines.WET_DECK = "";
     if (r.wet && r.orangePeel) defines.BACK_LINING = "";
+    if (r.tuft) {
+      defines.TUFT = r.tuft[0].toFixed(3);
+      defines.TUFT_K = r.tuft[1].toFixed(3);
+    }
 
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, common, u);
@@ -274,6 +289,8 @@ export function createMaterials(oceanShared, water) {
           uniform float uTriNormalScale;
           uniform float uTriNormalK;
           uniform float uTriDetail;
+          uniform float uTriContrast;
+          uniform float uTriBoards;
           #ifdef LAMINATE
           uniform sampler2D uSailWeave;
           uniform float uSailWeaveK;
@@ -314,7 +331,25 @@ export function createMaterials(oceanShared, water) {
           vec3 triWgt = triWeights(triN);
           #ifdef TRI_MAP
           vec3 triCol = triSample(uTriMap, vTriPos, triWgt, uTriScale).rgb / uTriMean;
+          // venatura più marcata attorno al tono medio
+          triCol = max(vec3(0.15), vec3(1.0) + (triCol - vec3(1.0)) * uTriContrast);
           diffuseColor.rgb *= mix(vec3(1.0), triCol, uTriDetail);
+          // tavole e pannelli non sono tutti uguali: un tono che cambia ogni mezzo metro circa
+          diffuseColor.rgb *= 1.0 + uTriBoards * (mNoise(floor(vTriPos * vec3(2.2, 1.1, 2.2)) + 7.0) - 0.5) * 2.0;
+          #endif
+          #ifdef TUFT
+          // trapuntatura a rombi: cuscini gonfi fra i bottoni, sul piano dominante della faccia
+          vec3 tuftU = vec3(1.0, 0.0, 0.0), tuftV = vec3(0.0, 0.0, 1.0);
+          vec2 tuftP = vTriPos.xz;
+          if (triWgt.x > triWgt.y && triWgt.x > triWgt.z) { tuftP = vTriPos.zy; tuftU = vec3(0.0, 0.0, 1.0); tuftV = vec3(0.0, 1.0, 0.0); }
+          else if (triWgt.z > triWgt.y) { tuftP = vTriPos.xy; tuftU = vec3(1.0, 0.0, 0.0); tuftV = vec3(0.0, 1.0, 0.0); }
+          vec2 tuftA = tuftP * (6.2831853 / TUFT);
+          float tuftH = cos(tuftA.x) * cos(tuftA.y);
+          // vicino ai bottoni (h -> 1) la piega si stringe; nelle pieghe la pelle è più scura
+          float tuftS = 0.35 + 0.65 * smoothstep(0.55, 1.0, tuftH);
+          vec2 tuftG = vec2(-sin(tuftA.x) * cos(tuftA.y), -cos(tuftA.x) * sin(tuftA.y)) * tuftS;
+          float tuftB = smoothstep(0.93, 0.995, tuftH);
+          diffuseColor.rgb *= (0.9 + 0.1 * (1.0 - tuftH * 0.5)) * (1.0 - 0.45 * tuftB);
           #endif
           #ifdef MOTTLE
           // antivegetativa: chiazze e aloni, mai un colore uniforme
@@ -356,11 +391,14 @@ export function createMaterials(oceanShared, water) {
             #ifdef TRI_NORMAL
             nb = triNormal(uTriNormal, vTriPos, nb, triWgt, uTriNormalScale, uTriNormalK * (1.0 - wet * 0.7));
             #endif
+            #ifdef TUFT
+            nb = normalize(nb + (tuftU * tuftG.x + tuftV * tuftG.y) * TUFT_K);
+            #endif
             #ifdef ORANGE_PEEL
             // buccia d'arancia del gelcoat: si vede solo nei riflessi radenti
             nb = normalize(nb + mNoiseGrad(vTriPos * 38.0, 0.05) * ORANGE_PEEL * (1.0 - wet));
             #endif
-            #if defined(TRI_NORMAL) || defined(ORANGE_PEEL)
+            #if defined(TRI_NORMAL) || defined(ORANGE_PEEL) || defined(TUFT)
             normal = normalize((viewMatrix * vec4(uBoatRot * nb, 0.0)).xyz);
             #endif
             #ifdef LAMINATE
@@ -423,6 +461,11 @@ export function createMaterials(oceanShared, water) {
         THREE.MeshStandardMaterial.prototype.copy.call(m, mat);
         m.name = mat.name;
       }
+      if (r.varnish) {
+        m.clearcoat = r.varnish[0];
+        m.clearcoatRoughness = r.varnish[1];
+      }
+      if (r.roughness !== undefined) m.roughness = r.roughness;
       if (r.laminate) {
         // dacron: atlante di colore e rilievi; il tono generale si regola qui (sostituisce il grigio del GLB)
         m.map = sailTex.albedo;
