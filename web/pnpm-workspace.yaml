@@ -1,0 +1,5 @@
+# Script di build non necessari: esbuild e workerd arrivano con i binari già compilati
+# (verificati con --version). Cambiali solo se un binario smette di funzionare.
+allowBuilds:
+  esbuild: false
+  workerd: false
