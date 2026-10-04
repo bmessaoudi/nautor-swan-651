@@ -16,6 +16,7 @@ import { makeConditions, seedFromUrl } from "../conditions.js";
 import { createPost } from "../post.js";
 import { createAdaptiveTone } from "../contrast.js";
 import { createMaterials } from "../materials.js";
+import { createLightmaps } from "../lightmaps.js";
 import { createSeaFx, BOAT_LAYER } from "../seafx.js";
 import { createRigging } from "../rigging.js";
 
@@ -170,17 +171,20 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   let rigging = null;
   const interiorMeshes = [];
 
-  // luci di cabina: sempre nella scena (accenderle e spegnerle cambierebbe gli shader),
-  // a intensità zero finché non si scende sottocoperta
-  // faretti rivolti in basso, come plafoniere: pozze di luce su pagliolo, tavoli e divani,
-  // senza sporcare di arancione i fianchi bianchi dello scafo
-  const cabin = CABIN_LIGHTS.map((at) => {
-    const l = new THREE.SpotLight(0xffd6a0, 0, 4.2, 1.05, 0.85, 1.6);
-    l.position.set(...at);
-    l.target.position.set(at[0], -0.4, at[2]);
-    boat.add(l, l.target);
-    return l;
-  });
+  // luci di cabina: le plafoniere sono cotte nella lightmap degli interni (lightmaps.js) e
+  // l'accensione ne alza l'intensità. I cinque faretti veri restano solo come ripiego se le
+  // mappe non arrivano: costavano cinque luci in ogni shader della scena, anche in mare.
+  const lightmaps = createLightmaps(renderer);
+  const cabin = [];
+  const addCabinSpots = () => {
+    for (const at of CABIN_LIGHTS) {
+      const l = new THREE.SpotLight(0xffd6a0, 0, 4.2, 1.05, 0.85, 1.6);
+      l.position.set(...at);
+      l.target.position.set(at[0], -0.4, at[2]);
+      boat.add(l, l.target);
+      cabin.push(l);
+    }
+  };
   let lightsOn = false;
   let lightsT = 0;
 
@@ -385,6 +389,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
           lines.renderOrder = 10;
           o.add(lines);
         });
+        lightmaps.apply(root).then((ok) => ok || addCabinSpots());
         // prima di agganciarlo alla barca, che può essere già inclinata
         campionaSagoma(root);
         boat.add(root);
@@ -563,6 +568,7 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
     const flicker = since < 0.35 ? (Math.sin(since * 90) > 0.2 ? 1 : 0.15) : 1;
     const level = lightsOn ? Math.min(1, since / 0.6) * flicker : Math.max(0, 1 - since / 0.5);
     for (const l of cabin) l.intensity = level * 5;
+    lightmaps.setLevel(level);
 
     const flutter = s.luff * (0.78 + 0.22 * Math.sin(t * 7.0) * Math.sin(t * 2.3));
     for (const m of sails) {
