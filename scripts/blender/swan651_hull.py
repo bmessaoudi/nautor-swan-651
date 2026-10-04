@@ -17,7 +17,7 @@ import os
 import bmesh
 import bpy
 
-REPO = "/Users/bilalmessaoudi/Desktop/coding/nautor-swan"
+REPO = os.environ.get("SWAN_REPO", "/Users/bilalmessaoudi/Desktop/coding/nautor-swan")
 DRAWING = os.path.join(REPO, "reference/swan651-002-profile-layout.jpeg")
 OUTLINES = os.path.join(REPO, "reference/drawing_outlines_px.json")
 
