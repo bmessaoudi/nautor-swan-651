@@ -105,6 +105,9 @@ a { color: inherit; cursor: pointer; text-decoration: none; }
 /* Ingresso: presentazione e scelta della visita, sopra tutto (anche la copertura), così
    si legge subito mentre il modello si carica dietro. */
 html.choosing { overflow: hidden; }
+/* sotto la copertina la pagina è velata: le sue animazioni continue (box-shadow dei punti, il
+   suggerimento di scorrere) terrebbero la GPU a ogni refresh per niente */
+html.choosing .hs .dot, html.choosing .scroll-hint { animation-play-state: paused; }
 #mode {
   position: fixed; inset: 0; z-index: 60;
   /* il margine in basso alza la card, lontano dalla linea del tempo */
@@ -135,19 +138,16 @@ html.choosing { overflow: hidden; }
 .gal-col { position: relative; flex: 1; min-width: 0; will-change: transform; }
 /* posizione e misure di ogni foto le estrae gallery.js */
 .gal-item { position: absolute; margin: 0; overflow: hidden; background: #0d2a44; }
-.gal-item img { display: block; width: 100%; height: 100%; object-fit: cover; will-change: filter, transform; }
+/* niente will-change: ogni foto diventerebbe un livello a sé e la GPU rifarebbe la sfocatura a ogni
+   fotogramma; così le foto si disegnano dentro la colonna e la colonna scorre già pronta */
+.gal-item img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* Grana di pellicola: rumore SVG che tremola, visibile finché la foto non è sviluppata. */
 .gal-grain {
   position: absolute; inset: -50%; pointer-events: none;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   mix-blend-mode: overlay;
-  animation: grain 0.6s steps(4) infinite;
-}
-@keyframes grain {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-5%, 3%); }
-  50% { transform: translate(4%, -4%); }
-  75% { transform: translate(-3%, -2%); }
+  /* il tremolio lo dà gallery.js insieme ai filtri: animata qui, ogni grana sarebbe un livello
+     con fusione overlay da ricomporre a ogni fotogramma */
 }
 @keyframes gate-weave {
   0% { transform: translate(0, 0); }
