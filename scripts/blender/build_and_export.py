@@ -1,4 +1,4 @@
-"""Rigenera lo Swan 651 ed esporta GLB (web) e FBX (collega 3D), poi salva il .blend.
+"""Rigenera lo Swan 651 ed esporta GLB e FBX (collega 3D), salva il .blend, poi ottimizza il GLB per il web.
 
 Da riga di comando, senza aprire Blender:
     /Applications/Blender.app/Contents/MacOS/Blender -b models/swan651.blend \
@@ -47,3 +47,16 @@ bpy.ops.export_scene.fbx(
 )
 bpy.ops.wm.save_mainfile()
 print("EXPORT_OK", len(exported), sorted(exported))
+
+# Passo web: GLB ottimizzato (istanze GPU, meshopt, KTX2) in web/public/models/swan651.glb.
+# Serve node con le dipendenze di web/ (pnpm install); altrimenti: cd web && pnpm run modello
+import shutil
+import subprocess
+
+node = shutil.which("node")
+optimizer = REPO + "/web/scripts/optimize-glb.mjs"
+if node and os.path.isdir(REPO + "/web/node_modules") and os.path.exists(optimizer):
+    run = subprocess.run([node, optimizer], cwd=REPO + "/web", capture_output=True, text=True)
+    print("OPTIMIZE_OK" if run.returncode == 0 else "OPTIMIZE_ERRORE", run.stdout.strip()[-600:], run.stderr.strip()[-600:])
+else:
+    print("OPTIMIZE_SALTATO: esegui cd web && pnpm run modello")
