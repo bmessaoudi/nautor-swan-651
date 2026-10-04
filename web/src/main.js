@@ -5,7 +5,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Lenis from "lenis";
 import { KEYS, HOTSPOTS, CHAPTERS } from "./story.js";
 import { createOcean } from "./ocean.js";
+import { createSky, SKY_PHYS } from "./sky.js";
 import { createLandscape } from "./landscape.js";
+import { createTerrain } from "./terrain.js";
+import { createFauna } from "./fauna.js";
 import { makeConditions, seedFromUrl } from "./conditions.js";
 import { createPost } from "./post.js";
 import { createAdaptiveTone } from "./contrast.js";
@@ -29,7 +32,10 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 const scene = new THREE.Scene();
 // near a 0,5 m: con 0,1 il rivestimento interno, a pochi cm dallo scafo, sfarfallava (z-fighting)
 const camera = new THREE.PerspectiveCamera(22, 1, 0.5, 5000);
-const post = createPost(renderer, scene, camera);
+// mare e cielo prima del post-processing: le nuvole di sky.js sono passate del composer
+const ocean = createOcean(renderer);
+const sky = createSky(renderer, camera, ocean.shared, { quality: new URLSearchParams(location.search).get("cielo") || "bassa" });
+const post = createPost(renderer, scene, camera, { sky });
 // testi senza card sulla scena: scelgono chiaro o scuro in base a cosa hanno dietro (contrast.js)
 const tone = createAdaptiveTone(renderer);
 
@@ -138,15 +144,22 @@ let rigging = null; // cime, bandiera (rigging.js), creati quando il modello è 
 let sailing = null; // navigazione libera (sailing.js): rotta del mondo e gioco nella vista Navigazione
 const interiorMeshes = []; // nascosti quando lo scafo è chiuso: dentro non si vedono e costano
 
-const ocean = createOcean();
-scene.add(ocean.mesh, ocean.sky);
+// cielo fisico di sky.js al posto della cupola di ocean.js (ocean.sky resta, non si aggiunge)
+scene.add(ocean.mesh, sky.mesh);
 const seaFx = createSeaFx(renderer, scene, camera);
 ocean.linkSeaFx(seaFx.uniforms);
+ocean.linkSky(sky.uniforms, SKY_PHYS);
 // per controllare accumulo, qualità e buffer del mare dalla console
-if (import.meta.env.DEV) Object.assign(window, { __post: post, __seaFx: seaFx, __renderer: renderer, __scene: scene });
+if (import.meta.env.DEV) Object.assign(window, { __sky: sky, __post: post, __seaFx: seaFx, __renderer: renderer, __scene: scene, __ocean: ocean });
 const mats = createMaterials(ocean.shared, ocean.waves);
 const landscape = createLandscape(ocean.shared);
-scene.add(landscape.group, landscape.clouds, landscape.rain);
+scene.add(landscape.group, landscape.rain);
+// isole e coste da mappe di altezza vere
+const terrain = createTerrain(ocean.shared);
+scene.add(terrain.group);
+// gabbiani con scheletro
+const fauna = createFauna(ocean.shared);
+scene.add(fauna.group);
 
 // ---------- Condizioni del mare ----------
 // Ora del giorno, vento e costa dal seme: ?seed=N rivede la stessa scena
@@ -156,9 +169,11 @@ const condEl = document.getElementById("cond");
 function applyConditions(seed) {
   cond = makeConditions(seed);
   ocean.setConditions(cond);
+  sky.setConditions(cond); // dopo il mare: ricava dal cielo fisico i colori di orizzonte e foschia
   landscape.build(cond);
-  if (seaEnv) seaEnv.dispose();
-  seaEnv = ocean.envMap(pmrem);
+  terrain.build(cond);
+  fauna.build(cond);
+  refreshSeaEnv();
   SUN_SEA.copy(cond.sunDir).multiplyScalar(70);
   SEA.sun.copy(cond.light);
   SEA.intensity = cond.intensity;
@@ -171,7 +186,13 @@ function applyConditions(seed) {
   url.searchParams.set("seed", seed);
   history.replaceState(null, "", url);
 }
+function refreshSeaEnv() {
+  if (seaEnv) seaEnv.dispose();
+  seaEnv = sky.envMap(pmrem);
+}
 applyConditions(seedFromUrl());
+// le tabelle dell'atmosfera si calcolano in qualche fotogramma: poi si rifà la mappa d'ambiente
+sky.ready.then(refreshSeaEnv);
 condEl.querySelector("button").addEventListener("click", () => applyConditions(1 + Math.floor(Math.random() * 99999)));
 
 // Il modello si carica mentre si legge l'ingresso (overlay #mode).
@@ -623,6 +644,11 @@ const focusW = new THREE.Vector3();
 
 function frame(time) {
   lenis.raf(time);
+  // in mare si disegna a ritmo ridotto (post.pace); lo scroll di Lenis va avanti comunque
+  if (!post.pace(time, (lastS?.ocean ?? 0) > 0.5)) {
+    requestAnimationFrame(frame);
+    return;
+  }
   clock.update(time);
   const t = clock.getElapsed();
   const dt = clock.getDelta();
@@ -676,7 +702,10 @@ function frame(time) {
   mats.update(boat, s.ocean, wind * s.sails, cond.rain ? s.ocean : 0);
   if (rigging) rigging.update(t, wind);
   ocean.update(t, s.ocean, m, camera);
-  landscape.update(t, s.ocean, camera);
+  sky.update(t, dt, s.ocean);
+  landscape.update(t, s.ocean);
+  terrain.update(t, s.ocean);
+  fauna.update(t, dt, s.ocean, camera);
 
   // Luci: dallo studio al mare
   const sea = s.ocean;
