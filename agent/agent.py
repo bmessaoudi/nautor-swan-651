@@ -53,6 +53,12 @@ anthropic_llm._NO_PREFILL_PATTERNS = (*anthropic_llm._NO_PREFILL_PATTERNS, "clau
 
 TTS_MODEL = os.environ.get("ELEVEN_MODEL") or "eleven_v4_turbo"
 # gli audio tag ([chuckles], [whispers]...) li capiscono solo v3 e v4; con Flash si tolgono
+BREVE = """
+
+# Modalità attiva: risposte brevi
+
+La persona ha chiesto risposte brevi. Finché non ti chiede di raccontare di più, ogni risposta è di una frase, al massimo due: niente battute, niente tag espressivi, niente domanda finale. Vale anche nel giro guidato e dopo gli spostamenti della camera: la frase di presa in carico prima dello strumento può restare, dopo aggiungi al massimo una frase. Nel giro guidato fai una sola tappa per risposta e poi fermati, senza chiedere se proseguire: quando vuole andare avanti, la persona te lo dice."""
+
 TAG_AUDIO = TTS_MODEL.startswith(("eleven_v3", "eleven_v4"))
 
 SALUTO = (
@@ -148,14 +154,18 @@ class ComputerDiBordo(Agent):
         index: dict[str, Any],
         pagina: PaginaSimulata | None = None,
     ) -> None:
-        super().__init__(instructions=build_instructions(index))
+        self._base = build_instructions(index)
+        self._breve = False
+        super().__init__(instructions=self._base)
         self._visitor = visitor
         self._room = room
         self._last = len(index["passi"]) - 1
         # nelle simulations la pagina è finta e risponde in processo
         self._pagina = pagina
-        # risposte brevi chieste dalla persona: vale fino a quando non chiede di più
-        self._breve = False
+
+    @property
+    def pagina(self) -> PaginaSimulata | None:
+        return self._pagina
 
     async def _sito(self, method: str, **args: Any) -> dict[str, Any]:
         if self._pagina:
@@ -194,10 +204,10 @@ class ComputerDiBordo(Agent):
         # La nota entra nel messaggio stesso: resta nella cronologia senza cambiarne il
         # prefisso, così la cache del prompt regge turno dopo turno
         nota = self.nota_schermo()
-        # Anche la brevità chiesta sta nella nota: una regola nel prompt da sola si perde dopo
-        # un paio di turni. Dentro la stessa parentesi, perché una nota a parte il modello la ripete
+        # la modalità breve sta anche nelle istruzioni, ma da sola lì si allenta dopo qualche
+        # turno: il promemoria accanto a ciò che è a schermo la tiene viva
         if self._breve:
-            nota = (nota[:-1] + "; " if nota else "[") + "risposte brevi, senza battute]"
+            nota = (nota[:-1] + "; " if nota else "[") + "risposte brevi]"
         if nota:
             new_message.content.insert(0, nota)
 
@@ -270,7 +280,11 @@ class ComputerDiBordo(Agent):
         Args:
             attive: true per rispondere in una frase, false per tornare al racconto normale.
         """
+        # Una regola generica nel prompt si perde dopo un paio di turni, e una nota nei messaggi
+        # il modello la ripete ad alta voce: la modalità attiva entra nelle istruzioni. Costa una
+        # sola riscrittura della cache, al cambio
         self._breve = attive
+        await self.update_instructions(self._base + BREVE if attive else self._base)
         if attive:
             return "Da ora una frase per risposta, al massimo due, senza battute e senza domanda finale."
         return "Si torna al racconto normale."
@@ -305,7 +319,29 @@ async def chiedi_indice(ctx: JobContext, visitor: rtc.RemoteParticipant) -> dict
     return json.loads(await asyncio.wait_for(arrivato, timeout=10.0))
 
 
-@server.rtc_session(agent_name=AGENT_NAME)
+def verifica_stato(sim: SimulationContext) -> None:
+    """Nelle simulations confronta la pagina finta con lo stato atteso dello scenario
+    (userdata.atteso: passo, capitolo, mare, immagine). Il giudizio del simulatore guarda la
+    conversazione; questo guarda ciò che la persona vedrebbe davvero a schermo."""
+    atteso = sim.userdata().get("atteso")
+    session = sim.job_context.primary_session
+    agent = session.current_agent if session else None
+    pagina = getattr(agent, "pagina", None)
+    if not atteso or pagina is None:
+        return
+    stato = pagina.stato()
+    errori = []
+    for chiave, valore in atteso.items():
+        reale = stato.get(chiave)
+        # il mare è "Tramonto, 12 nodi, costa alta": si controlla solo l'atmosfera
+        ok = str(reale).lower().startswith(str(valore).lower()) if chiave == "mare" else reale == valore
+        if not ok:
+            errori.append(f"{chiave}: atteso {valore!r}, a schermo {reale!r}")
+    if errori:
+        sim.fail("Stato finale diverso dall'atteso: " + "; ".join(errori))
+
+
+@server.rtc_session(agent_name=AGENT_NAME, on_simulation_end=verifica_stato)
 async def entrypoint(ctx: JobContext) -> None:
     await ctx.connect()
     # Nelle simulations (lk agent simulate) non c'è il browser: indice e pagina sono finti
@@ -334,6 +370,9 @@ async def entrypoint(ctx: JobContext) -> None:
             apply_text_normalization="on",
         ),
         **turn_options(sim),
+        # una richiesta composta (mare, poi passo, poi foto) o il giro guidato superano le 3
+        # chiamate di fila del default, e l'agente si fermerebbe a metà
+        max_tool_steps=6,
         tts_text_transforms=["filter_markdown", "filter_emoji", togli_note if TAG_AUDIO else togli_tag],
     )
     # una sessione chiusa (errore o visitatore uscito) chiude anche il job: l'agente lascia
@@ -380,8 +419,16 @@ async def entrypoint(ctx: JobContext) -> None:
             session.input.set_audio_enabled(False)
             # Flux chiude la trascrizione dopo un attimo di silenzio: se non arriva in tempo si usa
             # quella provvisoria, che con Flux è già buona
-            session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
+            turno = session.commit_user_turn(transcript_timeout=0.9, stt_flush_duration=0.9)
+            turno.add_done_callback(turno_vuoto)
             return "ok"
+
+        def turno_vuoto(turno: asyncio.Future[str]) -> None:
+            # Con la trascrizione vuota l'agente non risponde, e chi ha parlato resterebbe ad
+            # aspettare nel silenzio: meglio dire che non si è sentito
+            if turno.cancelled() or turno.exception() or turno.result().strip():
+                return
+            session.say("[short pause] Non ti ho sentito. Tieni premuta la sfera mentre parli e lasciala alla fine.")
 
         @lp.register_rpc_method("agente.annullaTurno")
         async def annulla_turno(data: rtc.RpcInvocationData) -> str:
@@ -407,7 +454,8 @@ async def scalda_cache(model: llm.LLM, agent: Agent) -> None:
 
 
 TAG = re.compile(r"\[[^\]]*\]\s*")
-# le note che il sistema mette nei messaggi dell'utente: a volte il modello le ripete
+# le note che il sistema mette nei messaggi dell'utente: a volte il modello le ripete, e la
+# voce le leggerebbe (i sottotitoli le tolgono già, con tutte le parentesi quadre)
 NOTA = re.compile(r"\[(?:A schermo|risposte brevi)[^\]]*\]\s*", re.IGNORECASE)
 
 
@@ -446,7 +494,8 @@ def turn_options(sim: SimulationContext | None) -> dict[str, Any]:
 
     Nelle simulations nessuno preme la sfera: il turno lo chiude Flux."""
     if sim:
-        return {"turn_handling": {"turn_detection": "stt"}}
+        # Flux decide già la fine del turno: il ritardo minimo di LiveKit si sommerebbe al suo
+        return {"turn_handling": {"turn_detection": "stt", "endpointing": {"min_delay": 0}}}
     return {"turn_handling": {"turn_detection": "manual", "interruption": {"enabled": False}}}
 
 

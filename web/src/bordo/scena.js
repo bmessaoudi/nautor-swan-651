@@ -263,10 +263,9 @@ export function createScena({ canvas, onEvent = () => {}, margini = () => ({ sin
   function mix(A, B, t) {
     const s = {};
     for (const key of NUM_KEYS) s[key] = lerp(A[key], B[key], t);
-    // la camera gira attorno al punto guardato dalla parte più corta
-    let d = B.theta - A.theta;
-    if (d > Math.PI) d -= Math.PI * 2;
-    if (d < -Math.PI) d += Math.PI * 2;
+    // la camera gira attorno al punto guardato dalla parte più corta. Il modulo, non una
+    // sola correzione: dopo qualche giro di panoramica la differenza supera di molto 2π
+    const d = ((((B.theta - A.theta + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
     s.theta = A.theta + d * t;
     s.tgt = lerp3(A.tgt, B.tgt, t);
     s.focus = lerp3(A.focus, B.focus, t);
