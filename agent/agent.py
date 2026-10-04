@@ -154,6 +154,8 @@ class ComputerDiBordo(Agent):
         self._last = len(index["passi"]) - 1
         # nelle simulations la pagina è finta e risponde in processo
         self._pagina = pagina
+        # risposte brevi chieste dalla persona: vale fino a quando non chiede di più
+        self._breve = False
 
     async def _sito(self, method: str, **args: Any) -> dict[str, Any]:
         if self._pagina:
@@ -191,7 +193,12 @@ class ComputerDiBordo(Agent):
     async def on_user_turn_completed(self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage) -> None:
         # La nota entra nel messaggio stesso: resta nella cronologia senza cambiarne il
         # prefisso, così la cache del prompt regge turno dopo turno
-        if nota := self.nota_schermo():
+        nota = self.nota_schermo()
+        # Anche la brevità chiesta sta nella nota: una regola nel prompt da sola si perde dopo
+        # un paio di turni. Dentro la stessa parentesi, perché una nota a parte il modello la ripete
+        if self._breve:
+            nota = (nota[:-1] + "; " if nota else "[") + "risposte brevi, senza battute]"
+        if nota:
             new_message.content.insert(0, nota)
 
     @function_tool
@@ -257,6 +264,18 @@ class ComputerDiBordo(Agent):
         return f"Ora in scena: {r['mare']} (passo {r['passo']})."
 
     @function_tool
+    async def risposte_brevi(self, context: RunContext, attive: bool) -> str:
+        """Da usare quando la persona chiede risposte brevi o di tagliare corto (attive=true), oppure chiede di raccontare di più (attive=false). Vale per il resto della visita.
+
+        Args:
+            attive: true per rispondere in una frase, false per tornare al racconto normale.
+        """
+        self._breve = attive
+        if attive:
+            return "Da ora una frase per risposta, al massimo due, senza battute e senza domanda finale."
+        return "Si torna al racconto normale."
+
+    @function_tool
     async def spegni(self, context: RunContext) -> None:
         """Spegne il computer di bordo quando la persona saluta o chiede di chiudere. Saluta prima di usarlo."""
         await context.wait_for_playout()
@@ -315,7 +334,7 @@ async def entrypoint(ctx: JobContext) -> None:
             apply_text_normalization="on",
         ),
         **turn_options(sim),
-        tts_text_transforms=["filter_markdown", "filter_emoji", *([] if TAG_AUDIO else [togli_tag])],
+        tts_text_transforms=["filter_markdown", "filter_emoji", togli_note if TAG_AUDIO else togli_tag],
     )
     # una sessione chiusa (errore o visitatore uscito) chiude anche il job: l'agente lascia
     # la stanza e la plancia lo vede spegnersi
@@ -387,9 +406,25 @@ async def scalda_cache(model: llm.LLM, agent: Agent) -> None:
         logger.warning("cache non scaldata: %s", e)
 
 
+TAG = re.compile(r"\[[^\]]*\]\s*")
+# le note che il sistema mette nei messaggi dell'utente: a volte il modello le ripete
+NOTA = re.compile(r"\[(?:A schermo|risposte brevi)[^\]]*\]\s*", re.IGNORECASE)
+
+
+async def togli_note(text: AsyncIterable[str]) -> AsyncIterable[str]:
+    """Toglie le note di sistema ripetute dal modello e lascia gli audio tag veri."""
+    async for chunk in togli_parentesi(text, NOTA):
+        yield chunk
+
+
 async def togli_tag(text: AsyncIterable[str]) -> AsyncIterable[str]:
-    """Toglie gli audio tag dal testo per i modelli che li leggerebbero ad alta voce.
-    Un tag può arrivare spezzato fra due pezzi dello stream: si trattiene finché non si chiude."""
+    """Toglie gli audio tag dal testo per i modelli che li leggerebbero ad alta voce."""
+    async for chunk in togli_parentesi(text, TAG):
+        yield chunk
+
+
+async def togli_parentesi(text: AsyncIterable[str], pattern: re.Pattern[str]) -> AsyncIterable[str]:
+    """Un tag può arrivare spezzato fra due pezzi dello stream: si trattiene finché non si chiude."""
     resto = ""
     async for chunk in text:
         resto += chunk
@@ -398,9 +433,9 @@ async def togli_tag(text: AsyncIterable[str]) -> AsyncIterable[str]:
             pronto, resto = resto[:aperta], resto[aperta:]
         else:
             pronto, resto = resto, ""
-        if pronto := re.sub(r"\[[^\]]*\]\s*", "", pronto):
+        if pronto := pattern.sub("", pronto):
             yield pronto
-    if resto := re.sub(r"\[[^\]]*\]\s*", "", resto):
+    if resto := pattern.sub("", resto):
         yield resto
 
 
