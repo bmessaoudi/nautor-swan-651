@@ -1,0 +1,24 @@
+{
+  "light": "interior_light.webp",
+  "ao": "interior_ao.webp",
+  "scale": 3.26094,
+  "lampScale": 3.0536,
+  "lampColor": [
+    1.0,
+    0.71,
+    0.42
+  ],
+  "size": 2048,
+  "samples": 160,
+  "uv": "TEXCOORD_1",
+  "objects": [
+    "Interior_Bulkheads",
+    "Interior_Details",
+    "Interior_Furniture",
+    "Interior_Headliner",
+    "Interior_Lining",
+    "Interior_MastPost",
+    "Interior_Sole",
+    "Interior_Trim"
+  ]
+}
