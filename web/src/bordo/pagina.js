@@ -103,6 +103,11 @@ const scena = createScena({
     if (name === "mare") collegamento?.pubblicaStato();
   },
 });
+// la scena 3D lavora davvero solo quando si vede: all'ingresso e durante l'accensione il canvas
+// è nascosto dal CSS (post.pace la tiene a un fotogramma ogni mezzo secondo)
+const scenaVisibile = () => !["ingresso", "accensione"].includes(document.body.dataset.fase);
+scena.visible = scenaVisibile();
+new MutationObserver(() => (scena.visible = scenaVisibile())).observe(document.body, { attributes: true, attributeFilter: ["data-fase"] });
 
 // ---------- Parole chiave ----------
 // Un titolo breve e al massimo tre dati, scelti dall'agente. Durante uno spostamento lungo
