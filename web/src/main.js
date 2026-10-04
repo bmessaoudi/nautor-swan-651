@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createGLTFLoader, edgesOf } from "./gltf-loader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Lenis from "lenis";
@@ -198,7 +198,7 @@ condEl.querySelector("button").addEventListener("click", () => applyConditions(1
 // Il modello si carica mentre si legge l'ingresso (overlay #mode).
 const loaderEl = document.getElementById("loader");
 
-new GLTFLoader().load(
+createGLTFLoader(renderer).load(
   "/models/swan651.glb",
   (gltf) => {
     const root = gltf.scene;
@@ -238,7 +238,7 @@ new GLTFLoader().load(
       const interior = o.name.startsWith("Interior");
       // Lo scafo mostra tutto il reticolo, come un piano di costruzione
       const angle = o.name === "Hull" ? 3 : interior ? 40 : o.name === "Rigging" || o.name === "Lifelines" ? 60 : 28;
-      const edges = new THREE.EdgesGeometry(o.geometry, angle);
+      const edges = edgesOf(o, angle);
       const lines = new THREE.LineSegments(edges, interior ? lineMatInterior : lineMat);
       lines.renderOrder = 10;
       o.add(lines);
