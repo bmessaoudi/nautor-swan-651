@@ -141,14 +141,22 @@ export function createGallery(host) {
     update();
   }
 
-  function update() {
-    const t = reducedMotion ? 0 : (performance.now() - start) / 1000;
+  // Filtri e scala delle foto cambiano di pochi punti al secondo, ma ogni cambio fa ridisegnare
+  // la colonna con le sue sfocature: bastano 10 aggiornamenti al secondo
+  const LOOK_MS = 100;
+  let lastLook = -Infinity;
+
+  function update(look = true) {
+    const now = performance.now();
+    if (look) lastLook = now;
+    const t = reducedMotion ? 0 : (now - start) / 1000;
     const vh = innerHeight;
     for (const col of columns) {
       const { blur, focusPull } = col.layer;
       const travel = t * col.speed + col.phase;
       const offset = ((travel % col.loopH) + col.loopH) % col.loopH;
       col.el.style.transform = `translate3d(0, ${(-offset).toFixed(1)}px, 0)`;
+      if (!look) continue;
       for (const item of col.items) {
         const center = item.center - offset;
         if (center < -item.h || center > vh + item.h) continue;
@@ -164,14 +172,25 @@ export function createGallery(host) {
           (focus > 0.05 ? ` blur(${focus.toFixed(2)}px)` : "");
         item.img.style.transform = `scale(${(1.1 - 0.1 * p).toFixed(4)})`;
         item.grain.style.opacity = (0.45 * (1 - color)).toFixed(3);
+        // la grana della pellicola cambia a ogni aggiornamento, come i fotogrammi di una copia
+        item.grain.style.backgroundPosition = `${Math.floor(Math.random() * 180)}px ${Math.floor(Math.random() * 180)}px`;
         item.fig.style.opacity = ((MIN_OPACITY + (1 - MIN_OPACITY) * smooth(0, 0.8, p)) * col.fade).toFixed(3);
       }
     }
   }
 
-  function loop() {
+  // Come una pellicola in proiezione, la galleria avanza a 24 fotogrammi al secondo: a ogni
+  // refresh (120 Hz sui portatili recenti) la GPU ricomporrebbe a schermo intero tutte le foto
+  // sfocate e velate, e sulla copertina arrivava al 90%
+  const FRAME_MS = 1000 / 24;
+  let lastFrame = -Infinity;
+
+  function loop(now) {
     if (stopped) return;
-    update();
+    if (now - lastFrame >= FRAME_MS - 1) {
+      lastFrame = now;
+      update(now - lastLook >= LOOK_MS);
+    }
     frame = requestAnimationFrame(loop);
   }
 
