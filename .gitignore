@@ -6,3 +6,4 @@ scripts/terrain/.cache/
 __pycache__/
 .dev.vars
 .wrangler/
+.claude/worktrees/
