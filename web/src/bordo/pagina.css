@@ -106,7 +106,7 @@ body.con-media .parole-dati dd { font-size: clamp(22px, 2.2vw, 32px); }
 /* foto viva: zoom lentissimo, una volta sola e poi ferma. Solo transform, così resta sul
    compositore; niente will-change esplicito perché il browser promuove il livello solo per la
    durata dell'animazione e lo rilascia alla fine. Il pannello ha backdrop-filter: un'animazione
-   continua lì sopra raddoppiava il lavoro della GPU (HANDOFF.md), per questo dura 20 s e si ferma */
+   continua lì sopra raddoppiava il lavoro della GPU, per questo dura 20 s e si ferma */
 .media-corpo { overflow: hidden; }
 #media.on .media-corpo > img, #media.on .media-corpo > .grafico { animation: foto-viva 20s linear forwards; }
 @keyframes foto-viva { from { transform: scale(1); } to { transform: scale(1.05); } }

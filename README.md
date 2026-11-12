@@ -15,7 +15,7 @@ scripts/blender/  ->  models/  ->  web/
  (script Python)     (GLB, FBX)    (sito three.js)
 ```
 
-1. **Modello da script.** Lo scafo, l'armo, l'attrezzatura di coperta e gli interni sono generati interamente da script Python per Blender (`scripts/blender/`), senza modellazione a mano né generazione AI. Le forme partono dalle tavole e dai certificati di stazza raccolti in `reference/`.
+1. **Modello da script.** Lo scafo, l'armo, l'attrezzatura di coperta e gli interni sono generati interamente da script Python per Blender (`scripts/blender/`), senza modellazione a mano né generazione AI. Le forme partono dalla tavola di profilo dello scafo e dai dati di stazza riassunti in `reference/swan651-data.json`.
 2. **Esportazione.** `build_and_export.py` ricostruisce la scena, esporta `models/swan651.glb` e `models/swan651.fbx`, salva il `.blend` e lancia l'ottimizzazione del GLB per il web (istanze GPU, quantizzazione, meshopt, texture KTX2).
 3. **Sito.** La cartella `web/` carica il modello ottimizzato e lo mette in scena.
 
@@ -68,7 +68,9 @@ Altri comandi in `web/`:
 | `pnpm run modello` | Ottimizza il GLB di `models/` per il web |
 | `pnpm run modello:stat` | Peso, triangoli e memoria texture del modello grezzo e di quello ottimizzato |
 
-La pagina `/bordo/` ha bisogno anche dell'agente vocale, di un server LiveKit e delle chiavi API (Anthropic, Deepgram, ElevenLabs): la procedura completa è in [`docs/handoff.md`](docs/handoff.md#avvio), le variabili in [`agent/.env.example`](agent/.env.example).
+La pagina `/bordo/` ha bisogno anche dell'agente vocale, di un server LiveKit e delle chiavi API (Anthropic, Deepgram, ElevenLabs): le variabili sono in [`agent/.env.example`](agent/.env.example).
+
+Materiale non incluso nella repo: le foto di riferimento, la tavola Nautor usata dagli script dello scafo e le foto di regata mostrate dal computer di bordo (`web/public/img/bordo/`) appartengono ai rispettivi autori e restano fuori da git. Senza di esse il sito funziona, ma il computer di bordo non mostra le foto e gli script che leggono la tavola (`extract_outlines.py`, `measure_drawing.py`) non si possono rieseguire; i contorni già estratti sono in `reference/drawing_outlines_px.json`.
 
 ## Struttura della repo
 
@@ -79,9 +81,8 @@ La pagina `/bordo/` ha bisogno anche dell'agente vocale, di un server LiveKit e 
 | `models/` | Modello generato: `swan651.glb`, `swan651.fbx`, `swan651.blend` e texture |
 | `web/` | Il sito: landing, pagina `/bordo/`, Worker Cloudflare e script per il modello |
 | `agent/` | Il computer di bordo: agente vocale in Python, prompt, base di conoscenza e server dei token |
-| `reference/` | Materiale di ricerca: tavole, certificati di stazza, dati tecnici e foto di riferimento con il manifest delle fonti |
+| `reference/` | Dati tecnici della barca e contorni dello scafo estratti dalla tavola |
 | `renders/` | Render del modello nelle sue versioni successive |
-| `docs/` | Note di lavoro: passaggio di consegne, ricerca iniziale, piani e report sull'ambiente in mare |
 
 ## Galleria
 
@@ -94,8 +95,8 @@ La pagina `/bordo/` ha bisogno anche dell'agente vocale, di un server LiveKit e 
 
 ## Stato del progetto
 
-È una demo in sviluppo, pensata per uso interno: la versione online è protetta da accesso e non è pubblica. Il modello è completo negli esterni e negli interni principali; bagni, cabine prodiere e alcuni dettagli degli interni sono ancora semplificati. Le note aperte e le prossime attività sono raccolte in [`docs/handoff.md`](docs/handoff.md).
+È una demo in sviluppo, pensata per uso interno: la versione online è protetta da accesso e non è pubblica. Il modello è completo negli esterni e negli interni principali; bagni, cabine prodiere e alcuni dettagli degli interni sono ancora semplificati.
 
 ## Fonti e diritti
 
-I dati della barca vengono da tavole, certificati di stazza e documenti pubblici elencati in `reference/`. Le foto in `reference/` sono materiale di studio e restano dei rispettivi autori. Le texture usate nel sito provengono da Poly Haven e ambientCG (CC0); i dati altimetrici delle coste da Copernicus DEM GLO-30 e dalle terrain tile di AWS Open Data.
+I dati della barca vengono da una tavola di profilo, da un certificato di stazza IRC e da fonti pubbliche (Wikipedia, Sailboatdata), riassunti in `reference/swan651-data.json`. Le foto e le tavole usate come riferimento restano dei rispettivi autori e non sono incluse nella repo. Le texture usate nel sito provengono da Poly Haven e ambientCG (CC0); i dati altimetrici delle coste da Copernicus DEM GLO-30 e dalle terrain tile di AWS Open Data.

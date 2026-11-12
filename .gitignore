@@ -7,3 +7,16 @@ __pycache__/
 .dev.vars
 .wrangler/
 .claude/worktrees/
+
+# Materiale di terzi e note di lavoro: restano in locale, fuori da git
+reference/photos/
+reference/photos_web/
+reference/*.pdf
+reference/*.jpeg
+reference/archivio-web-fonti.txt
+web/public/img/bordo/
+docs/
+HANDOFF.md
+RICERCA.md
+PIANO-AMBIENTE*.md
+*.tmp.mjs

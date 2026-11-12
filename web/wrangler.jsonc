@@ -3,8 +3,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nautor-swan-demo",
-  // account personale [email rimossa], dove c'è Zero Trust (team [team rimosso])
-  "account_id": "[account id rimosso]",
+  // account Cloudflare: da variabile d'ambiente CLOUDFLARE_ACCOUNT_ID al momento del deploy
   "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],

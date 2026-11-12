@@ -88,7 +88,7 @@ export function createFilm(canvas) {
 
 /**
  * Le tappe della linea del tempo: anno, didascalia, quanto restarci (s) e quanto metterci ad arrivare (s).
- * 1982 e 1986 vengono dai dati verificati del progetto (HANDOFF.md); le altre sono tappe note
+ * 1982 e 1986 vengono dai dati verificati del progetto; le altre sono tappe note
  * della storia di Nautor, da confermare con le fonti del cantiere.
  */
 const MILESTONES = [
